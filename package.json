@@ -1,0 +1,40 @@
+{
+  "name": "me-sim",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "ng serve --host 127.0.0.1 --port 1420",
+    "build": "ng build",
+    "tauri": "tauri",
+    "desktop": "tauri dev",
+    "package": "tauri build --bundles nsis",
+    "package:offline": "tauri build --bundles nsis --config src-tauri/tauri.offline.conf.json",
+    "test": "node scripts/test.mjs",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "preview": "node scripts/serve.mjs",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.css\""
+  },
+  "dependencies": {
+    "@angular/common": "22.1.7",
+    "@angular/compiler": "22.1.7",
+    "@angular/core": "22.1.7",
+    "@angular/forms": "22.1.7",
+    "@angular/platform-browser": "22.1.7",
+    "@angular/router": "22.1.7",
+    "@tauri-apps/api": "2.11.1",
+    "rxjs": "7.8.2",
+    "three": "0.186.0",
+    "tslib": "2.8.1"
+  },
+  "devDependencies": {
+    "@angular/build": "22.1.8",
+    "@angular/cli": "22.1.8",
+    "@angular/compiler-cli": "22.1.7",
+    "@axe-core/playwright": "4.11.1",
+    "@playwright/test": "1.58.2",
+    "@tauri-apps/cli": "2.11.4",
+    "@types/three": "0.183.1",
+    "prettier": "3.8.1",
+    "typescript": "6.0.2"
+  }
+}

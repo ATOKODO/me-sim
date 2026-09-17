@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.angular/
+.cache/
+src-tauri/target/
+src-tauri/gen/
+test-results/
+playwright-report/
+*.db
+*.db-wal
+*.db-shm
+
+release/

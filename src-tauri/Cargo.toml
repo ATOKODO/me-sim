@@ -1,0 +1,31 @@
+[package]
+name = "me-sim"
+version = "0.1.0"
+edition = "2021"
+default-run = "me-sim"
+
+[lib]
+name = "me_sim_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.38", features = ["bundled"] }
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+csv = "1"
+calamine = { version = "0.34", features = ["dates"] }
+rust_xlsxwriter = "0.94"
+cfb = "0.14"
+rfd = "0.17"
+tempfile = "3"
+
+[profile.release]
+strip = true
+lto = "thin"
+codegen-units = 8
