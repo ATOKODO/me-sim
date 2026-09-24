@@ -10,7 +10,7 @@ Les artefacts de cette livraison sont dans `release/` :
 
 - `Me-Sim_0.1.0_x64-setup.exe` : installation standard, téléchargement de WebView2 si absent.
 - `Me-Sim_0.1.0_x64-offline-setup.exe` : installation avec WebView2 embarqué.
-- `Me-Sim.exe` : exécutable direct, nécessite WebView2 déjà installé.
+- `Me-Sim-0.1.0-updated.exe` : exécutable direct de cette livraison, nécessite WebView2 déjà installé.
 
 Les paquets sont non signés. Ils ne sont pas installés automatiquement sur ton poste.
 
@@ -35,9 +35,12 @@ Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `s
 ## Ce qui fonctionne
 
 - Création, sélection, modification, suppression de profils ; démo séparée et explicitement fictive.
-- Saisie, correction et suppression de poids, sommeil, pas, activité, apports et stress déclaré.
+- Saisie, correction et suppression de poids, sommeil, pas, activité, apports, stress déclaré et habitudes horodatées (sport, marche, travail, social, lecture, pauses, réseaux/écran, écran le soir, jeux vidéo, sédentarité, tabac, vapotage, repas et alcool).
+- Timeline défilable des 24 dernières heures, récapitulatif de journée et relecture des activités dans l’ordre par l’avatar.
+- Profil Target par profil : définition d’une journée de référence (sommeil, pas, activité, tabac, vapotage, écran du soir, sédentarité et autres habitudes) et visualisation de la déviation observée sur les 7 derniers jours ; les jours sans données restent inconnus.
 - Historique et courbes d’observations ; données absentes indiquées comme inconnues.
-- Scène PS1, quatre animations, couleur d’avatar, préférences d’animation et rendu 2D de remplacement.
+- Scène PS1, animations contextuelles propres à chaque activité (pause, marche, repos, sport, travail, social, écran, écran du soir, jeu, tabac, vapotage, sédentarité, lecture, repas et boisson), accessoires 3D associés, couleur d’avatar, préférences d’animation et rendu 2D de remplacement.
+- Remplacement progressif des animations 3D par des GLB locaux, un fichier par habitude ; [guide pour l’artiste](docs/artist-animation-guide.md) et commande `npm run check:avatar` pour vérifier les exports.
 - Scénarios personnels enregistrés et deux avatars illustratifs côte à côte.
 - Imports CSV UTF-8, XLS binaire, XLSX multifeuille et tableaux JSON, avec mapping, unités, dates et aperçu paginé.
 - Exports CSV, XLS binaire BIFF8, XLSX et sauvegarde JSON complète ; restauration transactionnelle précédée d’une copie JSON.

@@ -4,7 +4,21 @@ export type Metric =
   | "steps"
   | "activity"
   | "intake"
-  | "stress";
+  | "stress"
+  | "exercise"
+  | "walk"
+  | "work"
+  | "social"
+  | "gaming"
+  | "screen"
+  | "reading"
+  | "meal"
+  | "rest"
+  | "alcohol"
+  | "tobacco"
+  | "vaping"
+  | "screen_evening"
+  | "sedentary";
 export interface Profile {
   id: string;
   name: string;
@@ -13,6 +27,22 @@ export interface Profile {
   heightCm: number | null;
   color: string;
   demo: boolean;
+  target?: TargetDay | null;
+}
+export interface TargetDay {
+  sleepHours: number;
+  steps: number;
+  activityMinutes: number;
+  exerciseMinutes: number;
+  walkMinutes: number;
+  socialMinutes: number;
+  screenMinutes: number;
+  gamingMinutes: number;
+  alcoholGlasses: number;
+  tobaccoCigarettes: number;
+  vapingMinutes: number;
+  eveningScreenMinutes: number;
+  sedentaryMinutes: number;
 }
 export interface Observation {
   id: string;
@@ -23,6 +53,10 @@ export interface Observation {
   unit: string;
   source: string;
   batchId: string | null;
+  /** Optional local time (HH:mm) for activities shown in the 24 h replay. */
+  at?: string | null;
+  /** Duration in minutes for an activity event. Kept separate from value for import compatibility. */
+  durationMinutes?: number | null;
 }
 export interface Scenario {
   id: string;
@@ -86,6 +120,8 @@ export interface Mapping {
   metricColumn: number | null;
   valueColumn: number;
   unitColumn: number | null;
+  timeColumn?: number | null;
+  durationColumn?: number | null;
   metric: string;
   unit: string;
   dateFormat: string;
@@ -116,6 +152,21 @@ export type Mutation =
   | { type: "deleteScenario"; value: { id: string; profileId: string } }
   | { type: "settings"; value: Settings }
   | { type: "demo" };
+export const DEFAULT_TARGET: TargetDay = {
+  sleepHours: 8,
+  steps: 8000,
+  activityMinutes: 30,
+  exerciseMinutes: 30,
+  walkMinutes: 30,
+  socialMinutes: 60,
+  screenMinutes: 90,
+  gamingMinutes: 60,
+  alcoholGlasses: 0,
+  tobaccoCigarettes: 0,
+  vapingMinutes: 0,
+  eveningScreenMinutes: 60,
+  sedentaryMinutes: 480,
+};
 export const METRICS: {
   id: Metric;
   label: string;
@@ -123,6 +174,9 @@ export const METRICS: {
   icon: string;
   color: string;
   max: number;
+  event?: boolean;
+  positive?: boolean;
+  valueLabel?: string;
 }[] = [
   {
     id: "weight",
@@ -172,7 +226,163 @@ export const METRICS: {
     color: "#e3a0b0",
     max: 10,
   },
+  {
+    id: "exercise",
+    label: "Sport / entraînement",
+    unit: "min",
+    icon: "activity",
+    color: "#bde883",
+    max: 1440,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "walk",
+    label: "Marche / sortie",
+    unit: "min",
+    icon: "steps",
+    color: "#a9d673",
+    max: 1440,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "work",
+    label: "Travail / étude",
+    unit: "min",
+    icon: "briefcase",
+    color: "#9ec5e7",
+    max: 1440,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "social",
+    label: "Temps social",
+    unit: "min",
+    icon: "users",
+    color: "#f5c980",
+    max: 1440,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "gaming",
+    label: "Jeux vidéo",
+    unit: "min",
+    icon: "gamepad",
+    color: "#d4a4e8",
+    max: 1440,
+    event: true,
+    positive: false,
+    valueLabel: "Durée",
+  },
+  {
+    id: "screen",
+    label: "Réseaux sociaux / écran",
+    unit: "min",
+    icon: "phone",
+    color: "#e7a3a3",
+    max: 1440,
+    event: true,
+    positive: false,
+    valueLabel: "Durée",
+  },
+  {
+    id: "reading",
+    label: "Lecture / apprentissage",
+    unit: "min",
+    icon: "book",
+    color: "#a9d9ca",
+    max: 1440,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "meal",
+    label: "Repas",
+    unit: "min",
+    icon: "sun",
+    color: "#e9d580",
+    max: 240,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "rest",
+    label: "Repos / pause",
+    unit: "min",
+    icon: "moon",
+    color: "#a7b9f9",
+    max: 1440,
+    event: true,
+    positive: true,
+    valueLabel: "Durée",
+  },
+  {
+    id: "alcohol",
+    label: "Alcool",
+    unit: "verre",
+    icon: "glass",
+    color: "#ec9a83",
+    max: 20,
+    event: true,
+    positive: false,
+    valueLabel: "Nombre de verres",
+  },
+  {
+    id: "tobacco",
+    label: "Tabac",
+    unit: "cigarette",
+    icon: "cigarette",
+    color: "#d6a995",
+    max: 100,
+    event: true,
+    positive: false,
+    valueLabel: "Nombre de cigarettes",
+  },
+  {
+    id: "vaping",
+    label: "Vapotage",
+    unit: "min",
+    icon: "vape",
+    color: "#a5c8d5",
+    max: 1440,
+    event: true,
+    positive: false,
+    valueLabel: "Durée",
+  },
+  {
+    id: "screen_evening",
+    label: "Écran le soir",
+    unit: "min",
+    icon: "phone",
+    color: "#9ca9d5",
+    max: 1440,
+    event: true,
+    positive: false,
+    valueLabel: "Durée",
+  },
+  {
+    id: "sedentary",
+    label: "Temps sédentaire",
+    unit: "min",
+    icon: "chair",
+    color: "#c6a8a1",
+    max: 1440,
+    event: true,
+    positive: false,
+    valueLabel: "Durée",
+  },
 ];
+/** The journal is the source of truth for playable timeline habits. */
+export const HABIT_METRICS = METRICS.filter((metric) => metric.event);
 export const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -202,6 +412,7 @@ export function addDemo(s: Snapshot): Profile {
     heightCm: 178,
     color: "#bde883",
     demo: true,
+    target: { ...DEFAULT_TARGET },
   };
   s.profiles.push(p);
   for (let i = 0; i < 28; i++) {
@@ -226,6 +437,40 @@ export function addDemo(s: Snapshot): Profile {
         batchId: null,
       });
     }
+  }
+  const events: [Metric, number, number][] = [
+    ["exercise", 30, 90],
+    ["walk", 25, 180],
+    ["sedentary", 120, 280],
+    ["work", 150, 400],
+    ["social", 55, 540],
+    ["screen", 35, 650],
+    ["gaming", 80, 750],
+    ["alcohol", 2, 830],
+    ["tobacco", 2, 910],
+    ["vaping", 10, 990],
+    ["screen_evening", 45, 1070],
+    ["meal", 30, 1150],
+    ["reading", 25, 1230],
+    ["rest", 20, 1310],
+  ];
+  for (const [metric, value, minutesAgo] of events) {
+    const when = new Date(Date.now() - minutesAgo * 60_000);
+    const date = `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, "0")}-${String(when.getDate()).padStart(2, "0")}`;
+    const at = `${String(when.getHours()).padStart(2, "0")}:${String(when.getMinutes()).padStart(2, "0")}`;
+    s.observations.push({
+      id: uid(),
+      profileId: p.id,
+      date,
+      metric,
+      value,
+      unit: METRICS.find((m) => m.id === metric)!.unit,
+      source: "Démonstration fictive",
+      batchId: null,
+      at,
+      durationMinutes:
+        METRICS.find((m) => m.id === metric)!.unit === "min" ? value : null,
+    });
   }
   return p;
 }

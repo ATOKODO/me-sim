@@ -21,6 +21,42 @@ impl<E: std::error::Error> From<E> for AppError {
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase", deny_unknown_fields)]
+pub struct TargetDay {
+    pub sleep_hours: f64,
+    pub steps: f64,
+    pub activity_minutes: f64,
+    pub exercise_minutes: f64,
+    pub walk_minutes: f64,
+    pub social_minutes: f64,
+    pub screen_minutes: f64,
+    pub gaming_minutes: f64,
+    pub alcohol_glasses: f64,
+    pub tobacco_cigarettes: f64,
+    pub vaping_minutes: f64,
+    pub evening_screen_minutes: f64,
+    pub sedentary_minutes: f64,
+}
+impl Default for TargetDay {
+    fn default() -> Self {
+        Self {
+            sleep_hours: 8.,
+            steps: 8_000.,
+            activity_minutes: 30.,
+            exercise_minutes: 30.,
+            walk_minutes: 30.,
+            social_minutes: 60.,
+            screen_minutes: 90.,
+            gaming_minutes: 60.,
+            alcohol_glasses: 0.,
+            tobacco_cigarettes: 0.,
+            vaping_minutes: 0.,
+            evening_screen_minutes: 60.,
+            sedentary_minutes: 480.,
+        }
+    }
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Profile {
     pub id: String,
@@ -30,6 +66,8 @@ pub struct Profile {
     pub height_cm: Option<f64>,
     pub color: String,
     pub demo: bool,
+    #[serde(default)]
+    pub target: Option<TargetDay>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -42,6 +80,10 @@ pub struct Observation {
     pub unit: String,
     pub source: String,
     pub batch_id: Option<String>,
+    #[serde(default)]
+    pub at: Option<String>,
+    #[serde(default)]
+    pub duration_minutes: Option<f64>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -117,6 +159,42 @@ pub fn id() -> String {
 pub fn invalid(s: impl ToString) -> AppError {
     AppError::new("INVALID_DATA", s)
 }
+fn validate_target(t: &TargetDay) -> Result<()> {
+    let values = [
+        t.sleep_hours,
+        t.steps,
+        t.activity_minutes,
+        t.exercise_minutes,
+        t.walk_minutes,
+        t.social_minutes,
+        t.screen_minutes,
+        t.gaming_minutes,
+        t.alcohol_glasses,
+        t.tobacco_cigarettes,
+        t.vaping_minutes,
+        t.evening_screen_minutes,
+        t.sedentary_minutes,
+    ];
+    if values.iter().any(|v| !v.is_finite() || *v < 0.)
+        || t.sleep_hours > 24.
+        || t.steps > 200_000.
+        || t.activity_minutes > 1_440.
+        || t.exercise_minutes > 1_440.
+        || t.walk_minutes > 1_440.
+        || t.social_minutes > 1_440.
+        || t.screen_minutes > 1_440.
+        || t.gaming_minutes > 1_440.
+        || t.alcohol_glasses > 20.
+        || t.tobacco_cigarettes.fract() != 0.
+        || t.tobacco_cigarettes > 100.
+        || t.vaping_minutes > 1_440.
+        || t.evening_screen_minutes > 1_440.
+        || t.sedentary_minutes > 1_440.
+    {
+        return Err(invalid("Journée cible invalide."));
+    }
+    Ok(())
+}
 pub fn unit(metric: &str) -> Option<&'static str> {
     match metric {
         "weight" => Some("kg"),
@@ -125,6 +203,11 @@ pub fn unit(metric: &str) -> Option<&'static str> {
         "activity" => Some("min"),
         "intake" => Some("kcal"),
         "stress" => Some("/10"),
+        "exercise" | "walk" | "work" | "social" | "gaming" | "screen" | "reading" | "meal"
+        | "rest" => Some("min"),
+        "alcohol" => Some("verre"),
+        "tobacco" => Some("cigarette"),
+        "vaping" | "screen_evening" | "sedentary" => Some("min"),
         _ => None,
     }
 }
@@ -144,6 +227,11 @@ pub fn validate_observation(o: &Observation) -> Result<()> {
         "activity" => 1440.,
         "intake" => 30_000.,
         "stress" => 10.,
+        "exercise" | "walk" | "work" | "social" | "gaming" | "screen" | "reading" | "meal"
+        | "rest" => 1440.,
+        "alcohol" => 20.,
+        "tobacco" => 100.,
+        "vaping" | "screen_evening" | "sedentary" => 1440.,
         _ => return Err(invalid("Mesure inconnue.")),
     };
     if !o.value.is_finite()
@@ -151,7 +239,23 @@ pub fn validate_observation(o: &Observation) -> Result<()> {
         || o.value > max
         || (o.metric == "weight" && o.value == 0.)
         || (o.metric == "steps" && o.value.fract() != 0.)
+        || (o.metric == "tobacco" && o.value.fract() != 0.)
         || Some(o.unit.as_str()) != unit(&o.metric)
+        || o.at.as_ref().is_some_and(|at| {
+            let b = at.as_bytes();
+            b.len() != 5
+                || b[2] != b':'
+                || !b[0].is_ascii_digit()
+                || !b[1].is_ascii_digit()
+                || !b[3].is_ascii_digit()
+                || !b[4].is_ascii_digit()
+                || (b[0] - b'0') * 10 + (b[1] - b'0') > 23
+                || (b[3] - b'0') * 10 + (b[4] - b'0') > 59
+        })
+        || o.duration_minutes
+            .is_some_and(|d| !d.is_finite() || !(0.0..=1440.0).contains(&d) || d == 0.0)
+        || (o.duration_minutes.is_some() && unit(&o.metric) != Some("min"))
+        || (o.at.is_some() && unit(&o.metric) == Some("min") && o.duration_minutes != Some(o.value))
     {
         return Err(invalid("Valeur ou unité invalide."));
     }
@@ -185,6 +289,9 @@ pub fn validate(s: &Snapshot) -> Result<()> {
         {
             return Err(invalid("Données physiques invalides."));
         }
+        if let Some(target) = &p.target {
+            validate_target(target)?;
+        }
         if let Some(d) = &p.birth_date {
             let date = NaiveDate::parse_from_str(d, "%Y-%m-%d")
                 .map_err(|_| invalid("Date de naissance invalide."))?;
@@ -210,7 +317,12 @@ pub fn validate(s: &Snapshot) -> Result<()> {
         validate_observation(o)?;
         if !ids.contains(o.profile_id.as_str())
             || !obs_ids.insert(&o.id)
-            || !keys.insert((&o.profile_id, &o.date, &o.metric))
+            || !keys.insert((
+                &o.profile_id,
+                &o.date,
+                &o.metric,
+                o.at.as_deref().unwrap_or(""),
+            ))
             || o.batch_id
                 .as_ref()
                 .is_some_and(|b| !batches.contains(&(o.profile_id.as_str(), b.as_str())))
@@ -316,6 +428,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
                 height_cm: Some(178.),
                 color: "#bde883".into(),
                 demo: true,
+                target: Some(TargetDay::default()),
             });
             for day in 0..28 {
                 let d = (chrono::Local::now().date_naive() - chrono::Duration::days(27 - day))
@@ -342,8 +455,45 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
                         unit: unit(metric).unwrap().into(),
                         source: "Démonstration fictive".into(),
                         batch_id: None,
+                        at: None,
+                        duration_minutes: None,
                     });
                 }
+            }
+            let now = chrono::Local::now();
+            for (metric, value, minutes_ago) in [
+                ("exercise", 30., 90),
+                ("walk", 25., 180),
+                ("sedentary", 120., 280),
+                ("work", 150., 400),
+                ("social", 55., 540),
+                ("screen", 35., 650),
+                ("gaming", 80., 750),
+                ("alcohol", 2., 830),
+                ("tobacco", 2., 910),
+                ("vaping", 10., 990),
+                ("screen_evening", 45., 1070),
+                ("meal", 30., 1150),
+                ("reading", 25., 1230),
+                ("rest", 20., 1310),
+            ] {
+                let when = now - chrono::Duration::minutes(minutes_ago);
+                s.observations.push(Observation {
+                    id: id(),
+                    profile_id: pid.clone(),
+                    date: when.date_naive().to_string(),
+                    metric: metric.into(),
+                    value,
+                    unit: unit(metric).unwrap().into(),
+                    source: "Démonstration fictive".into(),
+                    batch_id: None,
+                    at: Some(when.format("%H:%M").to_string()),
+                    duration_minutes: if unit(metric) == Some("min") {
+                        Some(value)
+                    } else {
+                        None
+                    },
+                });
             }
         }
     }

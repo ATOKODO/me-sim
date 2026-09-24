@@ -1,4 +1,107 @@
 import { test, expect } from "@playwright/test";
+
+function sampleAnimatedGlb() {
+  const binary = Buffer.alloc(76);
+  const vertices = [0, 0, 0, 0.2, 0, 0, 0, 0.2, 0];
+  vertices.forEach((value, index) => binary.writeFloatLE(value, index * 4));
+  [0, 1, 2].forEach((value, index) =>
+    binary.writeUInt16LE(value, 36 + index * 2),
+  );
+  [0, 1].forEach((value, index) => binary.writeFloatLE(value, 44 + index * 4));
+  [0, 0, 0, 0.1, 0, 0].forEach((value, index) =>
+    binary.writeFloatLE(value, 52 + index * 4),
+  );
+  const gltf = {
+    asset: { version: "2.0" },
+    buffers: [{ byteLength: binary.length }],
+    bufferViews: [
+      { buffer: 0, byteOffset: 0, byteLength: 36 },
+      { buffer: 0, byteOffset: 36, byteLength: 6 },
+      { buffer: 0, byteOffset: 44, byteLength: 8 },
+      { buffer: 0, byteOffset: 52, byteLength: 24 },
+    ],
+    accessors: [
+      {
+        bufferView: 0,
+        componentType: 5126,
+        count: 3,
+        type: "VEC3",
+        min: [0, 0, 0],
+        max: [0.2, 0.2, 0],
+      },
+      { bufferView: 1, componentType: 5123, count: 3, type: "SCALAR" },
+      {
+        bufferView: 2,
+        componentType: 5126,
+        count: 2,
+        type: "SCALAR",
+        min: [0],
+        max: [1],
+      },
+      { bufferView: 3, componentType: 5126, count: 2, type: "VEC3" },
+    ],
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
+    nodes: [{ mesh: 0 }],
+    scenes: [{ nodes: [0] }],
+    scene: 0,
+    animations: [
+      {
+        name: "Walk",
+        samplers: [{ input: 2, output: 3 }],
+        channels: [{ sampler: 0, target: { node: 0, path: "translation" } }],
+      },
+    ],
+  };
+  const json = Buffer.from(JSON.stringify(gltf));
+  const paddedJson = Buffer.concat([
+    json,
+    Buffer.alloc((4 - (json.length % 4)) % 4, 0x20),
+  ]);
+  const glb = Buffer.alloc(12 + 8 + paddedJson.length + 8 + binary.length);
+  glb.writeUInt32LE(0x46546c67, 0);
+  glb.writeUInt32LE(2, 4);
+  glb.writeUInt32LE(glb.length, 8);
+  glb.writeUInt32LE(paddedJson.length, 12);
+  glb.writeUInt32LE(0x4e4f534a, 16);
+  paddedJson.copy(glb, 20);
+  const binaryHeader = 20 + paddedJson.length;
+  glb.writeUInt32LE(binary.length, binaryHeader);
+  glb.writeUInt32LE(0x004e4942, binaryHeader + 4);
+  binary.copy(glb, binaryHeader + 8);
+  return glb;
+}
+
+test("local artist GLB replaces one habit animation", async ({ page }) => {
+  await page.route("**/avatar/animations.json", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        version: 1,
+        overrides: { walk: { file: "clips/walk.glb", clip: "Walk" } },
+      }),
+    }),
+  );
+  await page.route("**/avatar/clips/walk.glb", (route) =>
+    route.fulfill({
+      contentType: "model/gltf-binary",
+      body: sampleAnimatedGlb(),
+    }),
+  );
+  await page.goto("/");
+  await page
+    .getByLabel("Prévisualiser l’animation d’une habitude")
+    .selectOption("walk");
+  await expect(page.locator(".scene[data-mode='walk']")).toContainText(
+    "ANIMATION GLB",
+  );
+  await page
+    .getByLabel("Prévisualiser l’animation d’une habitude")
+    .selectOption("reading");
+  await expect(page.locator(".scene[data-mode='reading']")).toContainText(
+    "SCÈNE 3D",
+  );
+});
+
 test("dashboard renders locally and captures the PS1 scene", async ({
   page,
 }) => {
@@ -18,6 +121,52 @@ test("dashboard renders locally and captures the PS1 scene", async ({
   expect(errors).toEqual([]);
   expect(requests).toEqual([]);
 });
+test("target day saves and shows the seven-day deviation trajectory", async ({
+  page,
+}) => {
+  await page.goto("/#/");
+  await expect(
+    page.getByRole("heading", { name: "Ma journée idéale, à ma portée" }),
+  ).toBeVisible();
+  await page.getByLabel("Sommeil cible (h)").fill("8.5");
+  await page.getByLabel("Réseaux / écran max (min)").fill("60");
+  await page.getByRole("button", { name: "Enregistrer ma cible" }).click();
+  await expect(page.getByText("Ma déviation vers le Target")).toBeVisible();
+  await expect(page.locator(".deviation-chart .deviation-day")).toHaveCount(7);
+  await expect(
+    page.locator(".deviation-chart .deviation-number").first(),
+  ).toBeVisible();
+});
+test("journal documents a negative habit and replays the last 24 hours", async ({
+  page,
+}) => {
+  await page.goto("/#/journal");
+  await page.getByRole("button", { name: "Jeux vidéo", exact: true }).click();
+  await page.getByLabel("Durée · min").fill("90");
+  await page.getByLabel("Heure de début").fill("08:15");
+  await page.getByRole("button", { name: "Ajouter au journal" }).click();
+  await expect(
+    page.getByRole("cell", { name: /Jeux vidéo/ }).first(),
+  ).toBeVisible();
+  await page.goto("/#/");
+  await expect(
+    page.getByRole("heading", { name: /La journée de/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Jeux vidéo/ }).first(),
+  ).toBeVisible();
+  await page
+    .locator(".timeline-event")
+    .filter({ hasText: "Jeux vidéo" })
+    .first()
+    .click();
+  await expect(page.locator(".scene[data-mode='gaming']")).toBeVisible();
+  await page.getByRole("button", { name: "Rejouer la journée" }).click();
+  await expect(
+    page.getByRole("button", { name: "Arrêter la relecture" }),
+  ).toBeEnabled();
+  await expect(page.locator(".timeline-event").first()).toHaveClass(/active/);
+});
 test("profiles isolate observations and journal supports edit/delete", async ({
   page,
 }) => {
@@ -26,7 +175,9 @@ test("profiles isolate observations and journal supports edit/delete", async ({
   await page
     .getByRole("button", { name: "Créer le profil", exact: true })
     .click();
-  await expect(page.getByLabel("Profil actif").locator("option:checked")).toHaveText("Camille");
+  await expect(
+    page.getByLabel("Profil actif").locator("option:checked"),
+  ).toHaveText("Camille");
   await page.getByRole("link", { name: "Mon journal", exact: true }).click();
   await expect(page.getByText("Aucune mesure pour le moment.")).toBeVisible();
   await page.getByLabel("Valeur · kg").fill("68.5");

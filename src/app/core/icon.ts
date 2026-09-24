@@ -26,6 +26,18 @@ const PATHS: Record<string, string> = {
   edit: "m4 16 12-12 4 4L8 20H4Z M14 6l4 4",
   play: "m8 4 12 8-12 8Z",
   pause: "M8 4v16 M16 4v16",
+  users:
+    "M16 21v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3 M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M17 3a4 4 0 0 1 0 8 M22 21v-3a4 4 0 0 0-3-4",
+  gamepad:
+    "M6 8h12a4 4 0 0 1 3.8 5.2l-1.1 4a2.5 2.5 0 0 1-4.5.7l-1-1.4H8.8l-1 1.4a2.5 2.5 0 0 1-4.5-.7l-1.1-4A4 4 0 0 1 6 8Z M7 11v4 M5 13h4 M16 12h.01 M19 14h.01",
+  phone: "M6 2h12v20H6z M10 18h4",
+  book: "M4 4a3 3 0 0 1 3-1h12v18H7a3 3 0 0 0-3 1z M4 4v17 M8 7h7 M8 11h7",
+  briefcase: "M3 7h18v13H3z M8 7V4h8v3 M3 12h18 M10 12v2h4v-2",
+  glass: "M6 3h12l-1 8a5 5 0 0 1-4 4v5h4v2H7v-2h4v-5a5 5 0 0 1-4-4Z",
+  cigarette:
+    "M3 14h15v4H3z M18 14h2v4h-2z M6 14V9a3 3 0 0 1 3-3 M20 6v3 M22 6v3",
+  vape: "M8 3h8v14H8z M10 17h4v4h-4z M10 7h4 M18 5c2 2 2 4 0 6 M20 3c3 3 3 7 0 10",
+  chair: "M6 4h12v7H6z M4 11h16v4H4z M6 15v6 M18 15v6",
 };
 @Component({
   selector: "ui-icon",

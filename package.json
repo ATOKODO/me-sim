@@ -9,6 +9,7 @@
     "desktop": "tauri dev",
     "package": "tauri build --bundles nsis",
     "package:offline": "tauri build --bundles nsis --config src-tauri/tauri.offline.conf.json",
+    "check:avatar": "node scripts/check-avatar.mjs",
     "test": "node scripts/test.mjs",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "preview": "node scripts/serve.mjs",

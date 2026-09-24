@@ -24,6 +24,10 @@ pub struct Mapping {
     pub metric_column: Option<usize>,
     pub value_column: usize,
     pub unit_column: Option<usize>,
+    #[serde(default)]
+    pub time_column: Option<usize>,
+    #[serde(default)]
+    pub duration_column: Option<usize>,
     pub metric: String,
     pub unit: String,
     pub date_format: String,
@@ -178,6 +182,28 @@ fn metric_name(s: &str) -> String {
         "activité" | "activite" | "activity" => "activity",
         "apports" | "calories" | "intake" => "intake",
         "stress" => "stress",
+        "sport" | "exercice" | "exercise" => "exercise",
+        "marche" | "sortie" | "walk" => "walk",
+        "travail" | "étude" | "etude" | "work" => "work",
+        "social" | "amis" => "social",
+        "jeux" | "jeux vidéo" | "jeux video" | "gaming" => "gaming",
+        "réseaux" | "reseaux" | "écran" | "ecran" | "screen" => "screen",
+        "lecture" | "apprentissage" | "reading" => "reading",
+        "repas" | "meal" => "meal",
+        "repos" | "pause" | "rest" => "rest",
+        "alcool" | "verre" | "alcohol" => "alcohol",
+        "tabac" | "cigarette" | "cigarettes" | "tobacco" => "tobacco",
+        "vapotage" | "vape" | "vaping" => "vaping",
+        "écran le soir"
+        | "ecran le soir"
+        | "temps d'écran le soir"
+        | "temps d'ecran le soir"
+        | "écran soir"
+        | "ecran soir"
+        | "screen evening"
+        | "screen_evening" => "screen_evening",
+        "temps sédentaire" | "temps sedentaire" | "sédentarité" | "sedentarite" | "sédentaire"
+        | "sedentaire" | "temps assis" | "sedentary" => "sedentary",
         _ => s,
     }
     .to_string()
@@ -214,6 +240,7 @@ fn parse_row(row: &[String], m: &Mapping, pid: &str, filename: &str) -> Result<O
         .parse::<f64>()
         .map_err(|_| invalid("Nombre invalide."))?;
     match (metric.as_str(), source_unit) {
+        ("tobacco", "cigarettes" | "cigarette(s)") => {}
         ("weight", "lb") => value *= 0.45359237,
         ("weight", "g") => value /= 1000.,
         ("sleep", "min") => value /= 60.,
@@ -226,6 +253,20 @@ fn parse_row(row: &[String], m: &Mapping, pid: &str, filename: &str) -> Result<O
             ))
         }
     }
+    let at_time = m.time_column.and_then(|column| {
+        row.get(column)
+            .map(|v| v.trim().to_string())
+            .filter(|v| !v.is_empty())
+    });
+    let duration = m
+        .duration_column
+        .and_then(|column| {
+            row.get(column)
+                .map(|v| v.trim().replace(',', "."))
+                .filter(|v| !v.is_empty())
+                .and_then(|v| v.parse::<f64>().ok())
+        })
+        .or_else(|| (at_time.is_some() && unit(&metric) == Some("min")).then_some(value));
     let o = Observation {
         id: id(),
         profile_id: pid.into(),
@@ -237,6 +278,8 @@ fn parse_row(row: &[String], m: &Mapping, pid: &str, filename: &str) -> Result<O
         value,
         source: filename.into(),
         batch_id: None,
+        at: at_time,
+        duration_minutes: duration,
     };
     validate_observation(&o)?;
     Ok(o)
@@ -249,17 +292,30 @@ pub fn preview(book: &Workbook, m: &Mapping, pid: &str, s: &Snapshot) -> Result<
         .sheets
         .get(m.sheet)
         .ok_or_else(|| invalid("Feuille introuvable."))?;
-    let mut seen: HashMap<(String, String), f64> = s
+    let mut seen: HashMap<(String, String, String), f64> = s
         .observations
         .iter()
         .filter(|o| o.profile_id == pid)
-        .map(|o| ((o.date.clone(), o.metric.clone()), o.value))
+        .map(|o| {
+            (
+                (
+                    o.date.clone(),
+                    o.metric.clone(),
+                    o.at.clone().unwrap_or_default(),
+                ),
+                o.value,
+            )
+        })
         .collect();
     let mut rows = vec![];
     for (i, row) in sheet.rows.iter().enumerate() {
         let pr = match parse_row(row, m, pid, &book.filename) {
             Ok(o) => {
-                let key = (o.date.clone(), o.metric.clone());
+                let key = (
+                    o.date.clone(),
+                    o.metric.clone(),
+                    o.at.clone().unwrap_or_default(),
+                );
                 let (status, message) = match seen.get(&key) {
                     Some(v) if *v == o.value => ("duplicate", "Déjà présent : sera ignoré."),
                     Some(_) => (
@@ -306,7 +362,10 @@ pub fn commit(s: &mut Snapshot, p: &Preview, policy: &str, skip_errors: bool) ->
     for row in &p.rows {
         if let Some(o) = &row.observation {
             let pos = s.observations.iter().position(|x| {
-                x.profile_id == p.profile_id && x.date == o.date && x.metric == o.metric
+                x.profile_id == p.profile_id
+                    && x.date == o.date
+                    && x.metric == o.metric
+                    && x.at == o.at
             });
             if let Some(i) = pos {
                 if s.observations[i].value == o.value || policy == "skip" {
@@ -341,6 +400,8 @@ fn cells(s: &Snapshot, pid: &str) -> Vec<Vec<String>> {
         "value".into(),
         "unit".into(),
         "source".into(),
+        "time".into(),
+        "durationMinutes".into(),
     ]];
     let mut obs: Vec<_> = s
         .observations
@@ -355,6 +416,10 @@ fn cells(s: &Snapshot, pid: &str) -> Vec<Vec<String>> {
             o.value.to_string(),
             o.unit.clone(),
             o.source.clone(),
+            o.at.clone().unwrap_or_default(),
+            o.duration_minutes
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
         ]);
     }
     rows
@@ -496,12 +561,13 @@ mod tests {
     fn excel_and_csv_roundtrip() {
         let mut s = Snapshot::default();
         mutate(&mut s, Mutation::Demo).unwrap();
+        let expected_rows = s.observations.len();
         let dir = tempfile::tempdir().unwrap();
         for ext in ["csv", "xls", "xlsx"] {
             let path = dir.path().join(format!("test.{ext}"));
             export(&path, ext, &s, &s.profiles[0].id).unwrap();
             let b = read(&path).unwrap();
-            assert_eq!(b.sheets[0].rows.len(), 140, "{ext}");
+            assert_eq!(b.sheets[0].rows.len(), expected_rows, "{ext}");
             assert_eq!(b.sheets[0].headers[0], "date");
             let mapping = Mapping {
                 sheet: 0,
@@ -509,6 +575,8 @@ mod tests {
                 metric_column: Some(1),
                 value_column: 2,
                 unit_column: Some(3),
+                time_column: Some(5),
+                duration_column: Some(6),
                 metric: "weight".into(),
                 unit: "".into(),
                 date_format: "iso".into(),
@@ -544,6 +612,8 @@ mod tests {
             value_column: 1,
             metric_column: None,
             unit_column: None,
+            time_column: None,
+            duration_column: None,
             metric: "weight".into(),
             unit: "lb".into(),
             date_format: "dmy".into(),
@@ -567,6 +637,8 @@ mod acceptance {
             metric_column: Some(1),
             value_column: 2,
             unit_column: Some(3),
+            time_column: None,
+            duration_column: None,
             metric: "weight".into(),
             unit: "".into(),
             date_format: "iso".into(),

@@ -177,12 +177,30 @@ import { Icon } from "../core/icon";
                   <option [value]="u">{{ u }}</option>
                 }
               </select></label
+            ><label
+              >Heure (optionnel)<select formControlName="timeColumn">
+                <option [ngValue]="null">Aucune heure</option>
+                @for (h of headers(); track $index) {
+                  <option [ngValue]="$index">
+                    {{ h || "Colonne " + ($index + 1) }}
+                  </option>
+                }
+              </select></label
+            ><label
+              >Durée (optionnel)<select formControlName="durationColumn">
+                <option [ngValue]="null">Utiliser la valeur</option>
+                @for (h of headers(); track $index) {
+                  <option [ngValue]="$index">
+                    {{ h || "Colonne " + ($index + 1) }}
+                  </option>
+                }
+              </select></label
             >
           </div>
           <p class="field-help">
             Profil destinataire : <strong>{{ store.profile()?.name }}</strong
-            >. Les unités seront converties vers kg, h, pas, min, kcal ou /10.
-            Les formules et macros ne sont jamais exécutées.
+            >. Les unités seront converties vers kg, h, pas, min, kcal, verre ou
+            /10. Les formules et macros ne sont jamais exécutées.
           </p>
           <details>
             <summary>Voir les 5 premières lignes du fichier</summary>
@@ -389,7 +407,7 @@ export class DataPage {
   store = inject(Store);
   fb = inject(FormBuilder);
   metrics = METRICS;
-  units = ["kg", "lb", "g", "h", "min", "pas", "kcal", "kJ", "/10"];
+  units = ["kg", "lb", "g", "h", "min", "pas", "kcal", "kJ", "/10", "verre"];
   book = signal<Workbook | null>(null);
   previewData = signal<Preview | null>(null);
   previewPage = signal(0);
@@ -402,6 +420,8 @@ export class DataPage {
     valueColumn: [1],
     metricColumn: [null as number | null],
     unitColumn: [null as number | null],
+    timeColumn: [null as number | null],
+    durationColumn: [null as number | null],
     metric: ["weight"],
     unit: [""],
     dateFormat: [""],
@@ -447,6 +467,8 @@ export class DataPage {
           valueColumn: 1,
           metricColumn: null,
           unitColumn: null,
+          timeColumn: null,
+          durationColumn: null,
           metric: "weight",
           unit: "",
           dateFormat: "",
@@ -457,6 +479,8 @@ export class DataPage {
           ["valueColumn", "value"],
           ["metricColumn", "metric"],
           ["unitColumn", "unit"],
+          ["timeColumn", "time"],
+          ["durationColumn", "durationMinutes"],
         ] as const) {
           const index = headers.indexOf(name);
           if (index >= 0) this.form.controls[field].setValue(index);

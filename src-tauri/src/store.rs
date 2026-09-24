@@ -13,13 +13,17 @@ impl Store {
     pub fn init(conn: Connection) -> Result<Self> {
         conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;")?;
         let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
-        if version > 1 {
+        if version > 2 {
             return Err(AppError::new(
                 "UNSUPPORTED_VERSION",
                 "Base créée par une version plus récente.",
             ));
         }
-        conn.execute_batch("BEGIN; CREATE TABLE IF NOT EXISTS profiles(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS observations(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,metric TEXT NOT NULL,data TEXT NOT NULL,UNIQUE(profile_id,date,metric)); CREATE TABLE IF NOT EXISTS batches(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS scenarios(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS metadata(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL); INSERT OR IGNORE INTO metadata VALUES(1,0); PRAGMA user_version=1; COMMIT;")?;
+        if version == 0 {
+            conn.execute_batch("BEGIN; CREATE TABLE IF NOT EXISTS profiles(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS observations(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,metric TEXT NOT NULL,at TEXT NOT NULL DEFAULT '',data TEXT NOT NULL,UNIQUE(profile_id,date,metric,at)); CREATE TABLE IF NOT EXISTS batches(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS scenarios(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS metadata(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL); INSERT OR IGNORE INTO metadata VALUES(1,0); PRAGMA user_version=2; COMMIT;")?;
+        } else if version == 1 {
+            conn.execute_batch("BEGIN; CREATE TABLE observations_v2(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,metric TEXT NOT NULL,at TEXT NOT NULL DEFAULT '',data TEXT NOT NULL,UNIQUE(profile_id,date,metric,at)); INSERT INTO observations_v2(id,profile_id,date,metric,at,data) SELECT id,profile_id,date,metric,COALESCE(json_extract(data,'$.at'),''),data FROM observations; DROP TABLE observations; ALTER TABLE observations_v2 RENAME TO observations; PRAGMA user_version=2; COMMIT;")?;
+        }
         let revision =
             conn.query_row("SELECT revision FROM metadata WHERE id=1", [], |r| r.get(0))?;
         Ok(Self {
@@ -78,12 +82,13 @@ impl Store {
         }
         for o in &s.observations {
             tx.execute(
-                "INSERT INTO observations VALUES(?1,?2,?3,?4,?5)",
+                "INSERT INTO observations(id,profile_id,date,metric,at,data) VALUES(?1,?2,?3,?4,?5,?6)",
                 params![
                     o.id,
                     o.profile_id,
                     o.date,
                     o.metric,
+                    o.at.clone().unwrap_or_default(),
                     serde_json::to_string(o)?
                 ],
             )?;
@@ -143,10 +148,57 @@ mod tests {
         mutate(&mut s, Mutation::Demo).unwrap();
         mutate(&mut s, Mutation::Demo).unwrap();
         let id = s.profiles[0].id.clone();
+        let remaining_count = s.observations.iter().filter(|o| o.profile_id != id).count();
         mutate(&mut s, Mutation::DeleteProfile(id.clone())).unwrap();
         assert_eq!(s.profiles.len(), 1);
-        assert_eq!(s.observations.len(), 140);
+        assert_eq!(s.observations.len(), remaining_count);
         assert!(s.observations.iter().all(|o| o.profile_id != id));
+    }
+
+    #[test]
+    fn migrates_v1_rows_and_keeps_multiple_timed_activities() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE profiles(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE observations(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,date TEXT NOT NULL,metric TEXT NOT NULL,data TEXT NOT NULL,UNIQUE(profile_id,date,metric)); CREATE TABLE batches(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE scenarios(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE runs(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE settings(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL); CREATE TABLE metadata(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL); INSERT INTO metadata VALUES(1,0); PRAGMA user_version=1;").unwrap();
+        let profile = Profile {
+            id: "p1".into(),
+            name: "Test".into(),
+            birth_date: None,
+            sex: None,
+            height_cm: None,
+            color: "#bde883".into(),
+            demo: false,
+            target: None,
+        };
+        conn.execute(
+            "INSERT INTO profiles VALUES(?1,?2)",
+            params![profile.id, serde_json::to_string(&profile).unwrap()],
+        )
+        .unwrap();
+        let old = serde_json::json!({"id":"o1","profileId":"p1","date":"2026-01-01","metric":"weight","value":70.0,"unit":"kg","source":"test","batchId":null});
+        conn.execute(
+            "INSERT INTO observations VALUES('o1','p1','2026-01-01','weight',?1)",
+            [old.to_string()],
+        )
+        .unwrap();
+        let mut db = Store::init(conn).unwrap();
+        let mut s = db.load().unwrap();
+        assert_eq!(s.observations.len(), 1);
+        for at in ["08:00", "18:00"] {
+            s.observations.push(Observation {
+                id: id(),
+                profile_id: "p1".into(),
+                date: "2026-01-01".into(),
+                metric: "gaming".into(),
+                value: 30.,
+                unit: "min".into(),
+                source: "test".into(),
+                batch_id: None,
+                at: Some(at.into()),
+                duration_minutes: Some(30.),
+            });
+        }
+        db.replace(&s).unwrap();
+        assert_eq!(db.load().unwrap().observations.len(), 3);
     }
 }
 #[cfg(test)]

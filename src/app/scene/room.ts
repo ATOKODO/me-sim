@@ -1,4 +1,5 @@
 import * as T from "three";
+import { ArtistAnimations } from "./artist-animations";
 export class Room {
   private renderer: T.WebGLRenderer;
   private scene = new T.Scene();
@@ -9,6 +10,9 @@ export class Room {
   private person = new T.Group();
   private arms: T.Group[] = [];
   private legs: T.Group[] = [];
+  private activityProps: Record<string, T.Group> = {};
+  private artist: ArtistAnimations;
+  private vaporPuffs: T.Mesh[] = [];
   private diamond: T.Mesh;
   private shirt = new T.MeshLambertMaterial({
     color: "#bde883",
@@ -19,9 +23,11 @@ export class Room {
     animations: true,
     jitter: false,
     mode: "idle",
+    replayKey: 0,
     hidden: false,
   };
   private last = 0;
+  private modeStartedAt = 0;
   private dead = false;
   private onLost = (e: Event) => {
     e.preventDefault();
@@ -31,6 +37,7 @@ export class Room {
   constructor(
     private host: HTMLElement,
     private onFallback: () => void,
+    private onAnimationSource?: (source: "artist" | "procedural") => void,
   ) {
     this.renderer = new T.WebGLRenderer({
       antialias: false,
@@ -53,6 +60,12 @@ export class Room {
     this.scene.add(this.root);
     this.buildRoom();
     this.buildPerson();
+    this.buildActivityProps();
+    this.artist = new ArtistAnimations(this.root, (active) => {
+      this.person.visible = !active;
+      this.setActivityProps(active ? "idle" : this.options.mode);
+      this.onAnimationSource?.(active ? "artist" : "procedural");
+    });
     this.diamond = new T.Mesh(
       new T.OctahedronGeometry(0.18, 0),
       new T.MeshLambertMaterial({
@@ -215,10 +228,171 @@ export class Room {
     shadow.position.set(-0.45, 0.11, 0.75);
     this.root.add(shadow);
   }
+  private buildActivityProps() {
+    const laptop = new T.Group();
+    this.box(0.62, 0.04, 0.38, 0x3f5960, 0, 0, 0, laptop);
+    this.box(0.54, 0.32, 0.035, 0x7fa4a1, 0, 0.18, -0.16, laptop);
+    laptop.position.set(0, 0.72, 0.26);
+    this.person.add(laptop);
+    this.activityProps.work = laptop;
+
+    const phone = new T.Group();
+    this.box(0.12, 0.28, 0.035, 0x263e4b, 0, 0, 0, phone);
+    this.box(0.09, 0.19, 0.012, 0x9cc8c2, 0, 0.01, -0.025, phone);
+    phone.position.set(0.2, 1.08, 0.3);
+    phone.rotation.z = -0.15;
+    this.person.add(phone);
+    this.activityProps.screen = phone;
+
+    const eveningPhone = new T.Group();
+    this.box(0.15, 0.3, 0.035, 0x2b3153, 0, 0, 0, eveningPhone);
+    const nightDisplay = new T.Mesh(
+      new T.BoxGeometry(0.12, 0.22, 0.015),
+      new T.MeshBasicMaterial({ color: 0x849de2 }),
+    );
+    nightDisplay.position.set(0, 0.01, 0.027);
+    eveningPhone.add(nightDisplay);
+    eveningPhone.position.set(0.08, 1.31, 0.32);
+    eveningPhone.rotation.z = 0.2;
+    this.person.add(eveningPhone);
+    this.activityProps.screen_evening = eveningPhone;
+
+    const controller = new T.Group();
+    this.box(0.35, 0.1, 0.16, 0x694f86, 0, 0, 0, controller);
+    this.box(0.07, 0.035, 0.025, 0xd4a4e8, -0.1, 0.06, -0.03, controller);
+    this.box(0.035, 0.07, 0.025, 0xd4a4e8, -0.1, 0.06, -0.03, controller);
+    this.box(0.035, 0.035, 0.025, 0xf5c980, 0.1, 0.06, -0.03, controller);
+    controller.position.set(0, 0.98, 0.31);
+    this.person.add(controller);
+    this.activityProps.gaming = controller;
+
+    const book = new T.Group();
+    this.box(0.42, 0.035, 0.28, 0x9a6b4d, -0.14, 0, 0, book);
+    this.box(0.42, 0.035, 0.28, 0x6f8d79, 0.14, 0, 0, book);
+    this.box(0.02, 0.02, 0.24, 0xe3d6af, 0, 0.03, 0, book);
+    book.position.set(0, 1.02, 0.29);
+    book.rotation.x = -0.28;
+    this.person.add(book);
+    this.activityProps.reading = book;
+
+    const plate = new T.Group();
+    const dish = new T.Mesh(
+      new T.CylinderGeometry(0.24, 0.2, 0.035, 8),
+      new T.MeshLambertMaterial({ color: 0xd7d1ad, flatShading: true }),
+    );
+    plate.add(dish);
+    this.box(0.12, 0.06, 0.12, 0xe9d580, 0, 0.06, 0, plate);
+    plate.position.set(0, 0.72, 0.3);
+    this.person.add(plate);
+    this.activityProps.meal = plate;
+
+    const glass = new T.Group();
+    const tumbler = new T.Mesh(
+      new T.CylinderGeometry(0.07, 0.09, 0.2, 6),
+      new T.MeshLambertMaterial({
+        color: 0xec9a83,
+        transparent: true,
+        opacity: 0.85,
+      }),
+    );
+    glass.add(tumbler);
+    glass.position.set(0.2, 1.06, 0.3);
+    this.person.add(glass);
+    this.activityProps.alcohol = glass;
+
+    const speech = new T.Group();
+    const bubble = new T.Mesh(
+      new T.IcosahedronGeometry(0.16, 0),
+      new T.MeshLambertMaterial({ color: 0xf5c980, flatShading: true }),
+    );
+    speech.add(bubble);
+    speech.position.set(0.42, 1.85, 0.08);
+    this.person.add(speech);
+    this.activityProps.social = speech;
+
+    const cushion = new T.Group();
+    this.box(0.5, 0.12, 0.32, 0x8899c6, 0, 0, 0, cushion);
+    cushion.position.set(0, 1.03, 0.19);
+    cushion.rotation.z = 0.12;
+    this.person.add(cushion);
+    this.activityProps.rest = cushion;
+
+    const cigarette = new T.Group();
+    const paper = new T.Mesh(
+      new T.BoxGeometry(0.035, 0.22, 0.035),
+      new T.MeshLambertMaterial({ color: 0xe3ddc5, flatShading: true }),
+    );
+    paper.rotation.z = -0.9;
+    cigarette.add(paper);
+    const ember = new T.Mesh(
+      new T.BoxGeometry(0.038, 0.045, 0.04),
+      new T.MeshLambertMaterial({
+        color: 0xb96b48,
+        emissive: 0x5b180b,
+        flatShading: true,
+      }),
+    );
+    ember.position.y = -0.1;
+    cigarette.add(ember);
+    cigarette.position.set(-0.14, 1.98, 0.28);
+    this.person.add(cigarette);
+    this.activityProps.tobacco = cigarette;
+    this.addVapor(cigarette, 0xd1d2c0, 0.11);
+
+    const vape = new T.Group();
+    this.box(0.08, 0.3, 0.07, 0x648b9b, 0, 0, 0, vape);
+    this.box(0.055, 0.07, 0.045, 0xc4e0d8, 0, 0.11, 0.04, vape);
+    this.box(0.09, 0.04, 0.075, 0x354955, 0, -0.17, 0, vape);
+    vape.position.set(-0.16, 1.98, 0.27);
+    this.person.add(vape);
+    this.activityProps.vaping = vape;
+    this.addVapor(vape, 0xb9dbe0, 0.12);
+
+    const chair = new T.Group();
+    this.box(0.76, 0.12, 0.66, 0x8b745b, 0, 0.7, 0, chair);
+    for (const x of [-0.29, 0.29])
+      for (const z of [-0.23, 0.23])
+        this.box(0.08, 0.68, 0.08, 0x665341, x, 0.34, z, chair);
+    chair.position.set(-0.45, 0, 0.75);
+    this.root.add(chair);
+    this.activityProps.sedentary = chair;
+
+    this.setActivityProps("idle");
+  }
+  private addVapor(parent: T.Group, color: number, height: number) {
+    for (let i = 0; i < 3; i++) {
+      const puff = new T.Mesh(
+        new T.IcosahedronGeometry(0.055 + i * 0.012, 0),
+        new T.MeshLambertMaterial({
+          color,
+          transparent: true,
+          opacity: 0.42,
+          flatShading: true,
+          depthWrite: false,
+        }),
+      );
+      puff.position.set(0.04, height + i * 0.1, 0.01);
+      parent.add(puff);
+      this.vaporPuffs.push(puff);
+    }
+  }
+  private setActivityProps(mode: string) {
+    Object.values(this.activityProps).forEach((prop) => (prop.visible = false));
+    const prop = this.activityProps[mode];
+    if (prop) prop.visible = true;
+  }
   update(o: typeof this.options) {
+    if (o.mode !== this.options.mode || o.replayKey !== this.options.replayKey)
+      this.modeStartedAt = performance.now();
     this.options = o;
     this.shirt.color.set(o.color);
+    this.setActivityProps(o.mode);
+    this.artist.setColor(o.color);
+    this.artist.play(o.mode, o.replayKey, o.animations);
     this.host.style.visibility = o.hidden ? "hidden" : "visible";
+  }
+  async preloadModes(modes: string[]) {
+    await this.artist.preload(modes);
   }
   private resize() {
     const w = this.host.clientWidth,
@@ -236,37 +410,136 @@ export class Room {
     if (this.dead) return;
     this.frame = requestAnimationFrame(this.tick);
     if (ms - this.last < 32 || document.hidden || this.options.hidden) return;
+    const delta = Math.min((ms - this.last) / 1000, 0.1);
     this.last = ms;
-    const t = this.options.animations ? ms / 1000 : 0;
-    const moving =
-      this.options.mode === "walk" || this.options.mode === "exercise";
-    this.person.position.y =
-      0.1 +
-      (this.options.mode === "exercise"
-        ? Math.abs(Math.sin(t * 3)) * 0.1
-        : Math.sin(t * 2) * 0.018);
-    this.person.rotation.z = this.options.mode === "rest" ? 0.07 : 0;
-    this.person.rotation.y = this.options.mode === "rest" ? -0.4 : 0.15;
-    this.arms.forEach(
-      (a, i) =>
-        (a.rotation.x = moving
-          ? Math.sin(t * 4 + i * Math.PI) * 0.65
-          : 0.02 * Math.sin(t * 2 + i)),
-    );
-    this.legs.forEach(
-      (a, i) =>
-        (a.rotation.x = moving ? Math.sin(t * 4 - i * Math.PI) * 0.4 : 0),
-    );
+    const t = this.options.animations
+      ? Math.max(0, (ms - this.modeStartedAt) / 1000)
+      : 0;
+    const mode = this.options.mode;
+    let bodyY = 0.1 + Math.sin(t * 2) * 0.018;
+    let bodyZ = 0;
+    let bodyRotY = 0.15;
+    let armPose = (i: number) => 0.02 * Math.sin(t * 2 + i);
+    let armZPose = (_i: number) => 0;
+    let legPose = (_i: number) => 0;
+    switch (mode) {
+      case "walk":
+        bodyY = 0.1 + Math.abs(Math.sin(t * 4)) * 0.04;
+        armPose = (i) => Math.sin(t * 5 + i * Math.PI) * 0.65;
+        legPose = (i) => Math.sin(t * 5 - i * Math.PI) * 0.45;
+        break;
+      case "exercise":
+        bodyY = 0.1 + Math.abs(Math.sin(t * 3)) * 0.12;
+        bodyZ = Math.sin(t * 3) * 0.04;
+        armPose = (i) => 0.8 + Math.sin(t * 3 + i) * 0.28;
+        legPose = (i) => Math.sin(t * 3 + i * Math.PI) * 0.32;
+        break;
+      case "work":
+        bodyY = 0.06 + Math.sin(t * 1.6) * 0.01;
+        bodyRotY = -0.3;
+        armPose = (i) => 0.72 + Math.sin(t * 8 + i * Math.PI) * 0.14;
+        break;
+      case "social":
+        bodyRotY = 0.3 + Math.sin(t * 1.7) * 0.08;
+        armPose = (i) => 0.75 + Math.sin(t * 2.7 + i) * 0.24;
+        break;
+      case "screen":
+        bodyY = 0.07 + Math.sin(t * 1.4) * 0.01;
+        bodyRotY = -0.52;
+        bodyZ = Math.sin(t * 1.8) * 0.03;
+        armPose = (i) => 0.82 + Math.sin(t * 2 + i) * 0.12;
+        break;
+      case "screen_evening":
+        bodyY = -0.02 + Math.sin(t * 0.8) * 0.008;
+        bodyRotY = -0.65;
+        bodyZ = -0.11 + Math.sin(t * 0.9) * 0.018;
+        armPose = (i) => 1.08 + Math.sin(t * 1.1 + i) * 0.05;
+        legPose = () => -0.24;
+        break;
+      case "gaming":
+        bodyY = 0.08 + Math.sin(t * 2.2) * 0.025;
+        bodyRotY = -0.42;
+        armPose = (i) => 0.9 + Math.sin(t * 7 + i * Math.PI) * 0.1;
+        legPose = (i) => Math.sin(t * 2 + i) * 0.06;
+        break;
+      case "reading":
+        bodyY = 0.06 + Math.sin(t * 1.2) * 0.008;
+        bodyRotY = -0.38;
+        bodyZ = -0.04 + Math.sin(t * 1.3) * 0.02;
+        armPose = (i) => 0.62 + Math.sin(t * 1.8 + i) * 0.08;
+        break;
+      case "meal":
+        bodyRotY = -0.26;
+        armPose = (i) =>
+          0.65 + Math.abs(Math.sin(t * 2.2 + i * Math.PI)) * 0.35;
+        break;
+      case "alcohol":
+        bodyRotY = -0.22;
+        armPose = (i) =>
+          i === 0
+            ? 0.45 + Math.abs(Math.sin(t * 1.8)) * 0.85
+            : 0.16 + Math.sin(t * 1.6) * 0.08;
+        break;
+      case "tobacco":
+        bodyY = 0.07 + Math.sin(t * 1.1) * 0.012;
+        bodyRotY = -0.25;
+        bodyZ = Math.sin(t * 2.2) * 0.02;
+        armZPose = (i) => (i === 0 ? 2.12 + Math.sin(t * 3.2) * 0.12 : 0);
+        armPose = (i) => (i === 0 ? 0.12 + Math.sin(t * 3.2) * 0.08 : 0);
+        break;
+      case "vaping":
+        bodyY = 0.04 + Math.sin(t * 0.7) * 0.02;
+        bodyRotY = -0.41;
+        bodyZ = -0.035;
+        armZPose = (i) => (i === 0 ? 2.35 + Math.sin(t * 0.8) * 0.025 : -0.36);
+        armPose = (i) => (i === 0 ? 0.2 : 0.48);
+        break;
+      case "sedentary":
+        bodyY =
+          -0.3 + (this.options.animations ? Math.sin(t * 1.2) * 0.008 : 0);
+        bodyRotY = -0.34;
+        armPose = () => 0.12;
+        legPose = () => -0.9;
+        break;
+      case "rest":
+        bodyY = 0.08 + Math.sin(t * 0.9) * 0.012;
+        bodyZ = 0.09;
+        bodyRotY = -0.34;
+        armPose = (i) => 0.08 + Math.sin(t * 1.1 + i) * 0.05;
+        break;
+      default:
+        break;
+    }
+    this.person.position.y = bodyY;
+    this.person.rotation.z = bodyZ;
+    this.person.rotation.y = bodyRotY;
+    this.arms.forEach((a, i) => {
+      a.rotation.x = armPose(i);
+      a.rotation.z = armZPose(i);
+    });
+    this.legs.forEach((a, i) => (a.rotation.x = legPose(i)));
     this.diamond.rotation.y = t * 0.65;
     this.diamond.position.y = 3.35 + Math.sin(t * 2) * 0.06;
+    if (this.options.animations) {
+      this.vaporPuffs.forEach((puff, i) => {
+        const phase = (t * (i < 3 ? 1.35 : 0.55) + (i % 3) / 3) % 1;
+        puff.position.y = (i < 3 ? 0.11 : 0.12) + phase * 0.2;
+        puff.position.x = 0.04 + Math.sin(t * 1.2 + i) * 0.035;
+        puff.scale.setScalar(0.7 + phase * 0.65);
+        const material = puff.material as T.MeshLambertMaterial;
+        material.opacity = 0.42 * (1 - phase);
+      });
+    }
     this.root.rotation.y =
       this.options.jitter && this.options.animations
         ? Math.round(Math.sin(t * 7) * 2) * 0.001
         : 0;
+    this.artist.tick(delta);
     this.renderer.render(this.scene, this.camera);
   };
   dispose() {
     this.dead = true;
+    this.artist.dispose();
     cancelAnimationFrame(this.frame);
     this.observer.disconnect();
     this.renderer.domElement.removeEventListener(

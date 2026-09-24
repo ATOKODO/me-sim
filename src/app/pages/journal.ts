@@ -38,17 +38,38 @@ import { Icon } from "../core/icon";
                 : "Comment vas-tu aujourd’hui ?"
             }}
           </h2>
+          <div class="quick-habits" aria-label="Saisie rapide d’une activité">
+            <span class="quick-label">Ajouter vite</span>
+            @for (m of quickMetrics; track m.id) {
+              <button type="button" class="quick-habit" (click)="choose(m.id)">
+                <ui-icon [name]="m.icon" />{{ m.label }}
+              </button>
+            }
+          </div>
           <form [formGroup]="form" (ngSubmit)="save()">
             <label
               >Date<input type="date" formControlName="date" required /></label
             ><label
-              >Mesure<select formControlName="metric">
-                @for (m of metrics; track m.id) {
-                  <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
-                }
+              >Repère ou activité<select formControlName="metric">
+                <optgroup label="Repères quotidiens">
+                  @for (m of dailyMetrics; track m.id) {
+                    <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
+                  }
+                </optgroup>
+                <optgroup label="Habitudes positives">
+                  @for (m of positiveMetrics; track m.id) {
+                    <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
+                  }
+                </optgroup>
+                <optgroup label="Habitudes à observer">
+                  @for (m of negativeMetrics; track m.id) {
+                    <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
+                  }
+                </optgroup>
               </select></label
             ><label
-              >Valeur · {{ currentMetric().unit
+              >{{ currentMetric().valueLabel ?? "Valeur" }} ·
+              {{ currentMetric().unit
               }}<input
                 type="number"
                 formControlName="value"
@@ -58,11 +79,23 @@ import { Icon } from "../core/icon";
                 placeholder="Ta mesure"
                 required
             /></label>
+            @if (currentMetric().event) {
+              <label
+                >Heure de début<input
+                  type="time"
+                  formControlName="time"
+                  required
+              /></label>
+            }
             <p class="field-help">
               {{
                 currentMetric().id === "stress"
                   ? "De 0 (aucun stress) à 10 (stress maximal), selon ton ressenti."
-                  : "Une valeur par mesure et par jour. Tu peux la corriger à tout moment."
+                  : currentMetric().event
+                    ? currentMetric().positive
+                      ? "Note aussi ce qui te fait du bien : le personnage le rejouera dans l’ordre de ta journée."
+                      : "Tu peux le documenter sans jugement : cette trace sert à comprendre ta journée."
+                    : "Une valeur par mesure et par jour. Tu peux la corriger à tout moment."
               }}
             </p>
             <button
@@ -111,7 +144,12 @@ import { Icon } from "../core/icon";
               <tbody>
                 @for (o of paged(); track o.id) {
                   <tr>
-                    <td>{{ o.date | date: "dd MMM yyyy" }}</td>
+                    <td>
+                      {{ o.date | date: "dd MMM yyyy" }}
+                      @if (o.at) {
+                        <span class="dim">· {{ o.at }}</span>
+                      }
+                    </td>
                     <td>
                       <span class="table-metric"
                         ><ui-icon [name]="store.metric(o.metric).icon" />{{
@@ -214,6 +252,23 @@ export class Journal {
   store = inject(Store);
   fb = inject(FormBuilder);
   metrics = METRICS;
+  dailyMetrics = METRICS.filter((m) => !m.event);
+  positiveMetrics = METRICS.filter((m) => m.event && m.positive);
+  negativeMetrics = METRICS.filter((m) => m.event && !m.positive);
+  quickMetrics = METRICS.filter((m) =>
+    [
+      "exercise",
+      "walk",
+      "social",
+      "gaming",
+      "screen",
+      "alcohol",
+      "tobacco",
+      "vaping",
+      "screen_evening",
+      "sedentary",
+    ].includes(m.id),
+  );
   filter = signal("");
   page = signal(0);
   editing = signal<Observation | null>(null);
@@ -223,6 +278,7 @@ export class Journal {
     date: [today(), Validators.required],
     metric: ["weight" as Metric, Validators.required],
     value: [null as number | null, Validators.required],
+    time: [""],
   });
   constructor() {
     effect(() => {
@@ -239,6 +295,10 @@ export class Journal {
         Validators.max(this.currentMetric().max),
       ]);
       this.form.controls.value.updateValueAndValidity();
+      this.form.controls.time.setValidators(
+        this.currentMetric().event ? [Validators.required] : [],
+      );
+      this.form.controls.time.updateValueAndValidity();
     });
   }
   currentMetric = () => METRICS.find((m) => m.id === this.selectedMetric())!;
@@ -250,11 +310,30 @@ export class Journal {
   paged = () => this.filtered().slice(this.page() * 15, this.page() * 15 + 15);
   reset() {
     this.editing.set(null);
-    this.form.reset({ date: today(), metric: "weight", value: null });
+    this.form.reset({
+      date: today(),
+      metric: "weight",
+      value: null,
+      time: this.nowTime(),
+    });
+  }
+  nowTime() {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+  choose(metric: Metric) {
+    this.form.controls.metric.setValue(metric);
+    this.form.controls.time.setValue(this.nowTime());
+    this.form.controls.value.setValue(null);
   }
   edit(o: Observation) {
     this.editing.set(o);
-    this.form.setValue({ date: o.date, metric: o.metric, value: o.value });
+    this.form.setValue({
+      date: o.date,
+      metric: o.metric,
+      value: o.value,
+      time: o.at ?? this.nowTime(),
+    });
   }
   async save() {
     if (this.form.invalid) return;
@@ -269,6 +348,11 @@ export class Journal {
       unit: this.currentMetric().unit,
       source: "Saisie manuelle",
       batchId: null,
+      at: this.currentMetric().event ? v.time || this.nowTime() : null,
+      durationMinutes:
+        this.currentMetric().event && this.currentMetric().unit === "min"
+          ? v.value
+          : null,
     };
     if (await this.store.mutate({ type: "saveObservation", value: o }))
       this.reset();

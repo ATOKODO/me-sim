@@ -2,7 +2,7 @@ import { FocusDialog } from "../core/focus-dialog";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Store } from "../core/store";
-import { Profile, uid, today } from "../core/models";
+import { DEFAULT_TARGET, Profile, uid, today } from "../core/models";
 import { Icon } from "../core/icon";
 @Component({
   imports: [FocusDialog, ReactiveFormsModule, Icon],
@@ -214,6 +214,7 @@ export class Profiles {
       heightCm: v.heightCm,
       color: v.color!,
       demo: this.editing()?.demo ?? false,
+      target: this.editing()?.target ?? { ...DEFAULT_TARGET },
     };
     if (await this.store.mutate({ type: "saveProfile", value: p })) {
       this.store.select(id);

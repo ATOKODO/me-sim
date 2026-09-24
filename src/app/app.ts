@@ -1,11 +1,11 @@
-import {FormsModule} from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { Component, inject } from "@angular/core";
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
 import { Store } from "./core/store";
 import { Icon } from "./core/icon";
 @Component({
   selector: "app-root",
-  imports: [FormsModule,RouterLink, RouterLinkActive, RouterOutlet, Icon],
+  imports: [FormsModule, RouterLink, RouterLinkActive, RouterOutlet, Icon],
   template: `<a class="skip-link" href="#main">Aller au contenu</a>
     <aside class="sidebar">
       <a routerLink="/" class="brand"
