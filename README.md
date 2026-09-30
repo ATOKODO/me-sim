@@ -1,6 +1,6 @@
 # Me-Sim
 
-Application Windows locale : Angular 22, Tauri 2, SQLite et Three.js. Interface française, plusieurs profils et diorama rétro PS1 entièrement construit avec des assets locaux.
+Application Windows locale : Angular 22, Tauri 2, SQLite et Three.js. Interface française ou anglaise, thèmes sombre et clair, plusieurs profils et diorama rétro PS1 entièrement construit avec des assets locaux.
 
 ![Application Windows](docs/native-dashboard.png)
 
@@ -34,6 +34,8 @@ Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `s
 
 ## Ce qui fonctionne
 
+- Menu Français / English disponible dans la barre supérieure et dans les préférences. Changement immédiat des libellés, du calendrier, des dates et des nombres, sans modifier les noms ou textes saisis.
+- Thèmes sombre et clair, avec bouton dans la barre supérieure et choix dans les préférences. Langue et thème enregistrés localement pour tous les profils, inclus dans les sauvegardes JSON ; les anciennes sauvegardes utilisent français et sombre par défaut.
 - Création, sélection, modification, suppression de profils ; démo séparée et explicitement fictive.
 - Saisie, correction et suppression de poids, sommeil, pas, activité, apports, stress déclaré et habitudes horodatées (sport, marche, travail, social, lecture, pauses, réseaux/écran, écran le soir, jeux vidéo, sédentarité, tabac, vapotage, repas et alcool).
 - Timeline défilable des 24 dernières heures, récapitulatif de journée et relecture des activités dans l’ordre par l’avatar.
@@ -55,7 +57,7 @@ Voir [la fiche scientifique](docs/model-card.md) pour les sources, les condition
 
 ## Confidentialité
 
-La base est située sous `%LOCALAPPDATA%\fr.mesim.desktop\me-sim.db`. Son emplacement exact est affiché dans les préférences. Aucun compte, serveur distant, CDN, police externe, analytique ou service d’IA. Pas de mise à jour automatique.
+La base est située sous `%LOCALAPPDATA%\fr.mesim.desktop\me-sim.db`. Son emplacement exact est affiché dans les préférences. Seuls la langue et le thème sont aussi mémorisés dans le cache local de la WebView pour l’affichage au démarrage ; aucune donnée de santé n’y est stockée. Les traductions sont embarquées, sans service distant. Aucun compte, serveur distant, CDN, police externe, analytique ou service d’IA. Pas de mise à jour automatique.
 
 Données non chiffrées, protégées par la session Windows. Les profils ne sont pas des comptes authentifiés. Supprimer un profil supprime ses enregistrements de la base active, mais pas les sauvegardes, exports ou copies système déjà créés ; ce n’est pas un effacement forensique du disque.
 
@@ -63,7 +65,7 @@ La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent
 
 ## Organisation
 
-- `src/app/core` : contrats TypeScript, état Signals, icônes, graphique et gestion du focus.
+- `src/app/core` : contrats TypeScript, état Signals, catalogue de traductions embarqué (`translations.ts`), préférences de présentation, icônes, graphique et gestion du focus.
 - `src/app/pages` : écrans et formulaires réactifs.
 - `src/app/scene` : scène chargée à la demande et libération des ressources GPU.
 - `src-tauri/src` : domaines, SQLite, échanges, moteur de recherche et commandes natives.

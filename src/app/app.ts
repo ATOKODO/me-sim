@@ -1,3 +1,4 @@
+import { I18n, TranslatePipe } from "./core/i18n";
 import { FormsModule } from "@angular/forms";
 import { Component, inject } from "@angular/core";
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
@@ -5,24 +6,31 @@ import { Store } from "./core/store";
 import { Icon } from "./core/icon";
 @Component({
   selector: "app-root",
-  imports: [FormsModule, RouterLink, RouterLinkActive, RouterOutlet, Icon],
-  template: `<a class="skip-link" href="#main">Aller au contenu</a>
+  imports: [
+    TranslatePipe,
+    FormsModule,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    Icon,
+  ],
+  template: `<a class="skip-link" href="#main">{{ "Aller au contenu" | t }}</a>
     <aside class="sidebar">
       <a routerLink="/" class="brand"
         ><span class="brand-gem">◆</span> me<span class="brand-dash">—</span
-        >sim<span class="version">ALPHA</span></a
+        >sim<span class="version">{{ "ALPHA" | t }}</span></a
       >
-      <div class="sidebar-section">TON PETIT MONDE</div>
-      <nav aria-label="Navigation principale">
+      <div class="sidebar-section">{{ "TON PETIT MONDE" | t }}</div>
+      <nav [attr.aria-label]="'Navigation principale' | t">
         @for (item of links; track item.path) {
           <a
-            [attr.aria-label]="item.label"
+            [attr.aria-label]="tr(item.label)"
             [routerLink]="item.path"
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-            ><ui-icon [name]="item.icon" /><span>{{ item.label }}</span>
+            ><ui-icon [name]="item.icon" /><span>{{ tr(item.label) }}</span>
             @if (item.path === "/futurs") {
-              <span class="nav-small">LAB</span>
+              <span class="nav-small">{{ "LAB" | t }}</span>
             }
           </a>
         }
@@ -31,28 +39,62 @@ import { Icon } from "./core/icon";
         <div class="privacy-note">
           <ui-icon name="lock" />
           <div>
-            <strong>Ta vie reste privée.</strong
-            ><span>Tes données restent chez toi.</span>
+            <strong>{{ "Ta vie reste privée." | t }}</strong
+            ><span>{{ "Tes données restent chez toi." | t }}</span>
           </div>
         </div>
         <a
           routerLink="/parametres"
           routerLinkActive="active"
           class="settings-link"
-          ><ui-icon name="settings" /> Préférences</a
+          ><ui-icon name="settings" /> {{ "Préférences" | t }}</a
         >
         <div class="build-label">
-          <span class="status-dot"></span> LOCAL FIRST <span>v0.1.0</span>
+          <span class="status-dot"></span> {{ "LOCAL FIRST" | t }}
+          <span>{{ "v0.1.0" | t }}</span>
         </div>
       </div>
     </aside>
     <div class="workspace">
       <header class="topbar">
-        <div class="breadcrumb">MON ESPACE <span>/</span> <b>Me-Sim</b></div>
+        <div class="breadcrumb">
+          {{ "MON ESPACE" | t }} <span>/</span> <b>{{ "Me-Sim" | t }}</b>
+        </div>
         <div class="topbar-right">
+          <label class="language-menu">
+            <span>{{ "Langue" | t }}</span>
+            <select
+              [attr.aria-label]="'Langue' | t"
+              [ngModel]="i18n.language()"
+              [disabled]="store.busy() || store.loading()"
+              (ngModelChange)="i18n.setLanguage($event)"
+            >
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <button
+            class="theme-button"
+            [attr.aria-label]="
+              i18n.theme() === 'dark'
+                ? tr('Passer au thème clair')
+                : tr('Passer au thème sombre')
+            "
+            [title]="
+              i18n.theme() === 'dark'
+                ? tr('Passer au thème clair')
+                : tr('Passer au thème sombre')
+            "
+            [disabled]="store.busy() || store.loading()"
+            (click)="i18n.setTheme(i18n.theme() === 'dark' ? 'light' : 'dark')"
+          >
+            <ui-icon [name]="i18n.theme() === 'dark' ? 'sun' : 'moon'" />
+          </button>
           <span class="local-badge"
             ><ui-icon name="lock" />
-            {{ store.desktop ? "Hors ligne" : "Aperçu navigateur" }}</span
+            {{
+              store.desktop ? tr("Hors ligne") : tr("Aperçu navigateur")
+            }}</span
           ><span class="top-divider"></span
           ><label class="profile-switch"
             ><span
@@ -60,13 +102,13 @@ import { Icon } from "./core/icon";
               [style.background]="store.profile()?.color"
               >{{ store.profile()?.name?.charAt(0) || "?" }}</span
             ><select
-              aria-label="Profil actif"
+              [attr.aria-label]="'Profil actif' | t"
               [disabled]="store.busy()"
               [ngModel]="store.activeId()"
               (ngModelChange)="store.select($event)"
             >
               @if (!store.profiles().length) {
-                <option value="">Aucun profil</option>
+                <option value="">{{ "Aucun profil" | t }}</option>
               }
               @for (p of store.profiles(); track p.id) {
                 <option [ngValue]="p.id">{{ p.name }}</option>
@@ -77,48 +119,54 @@ import { Icon } from "./core/icon";
       </header>
       @if (!store.desktop) {
         <div class="preview-banner">
-          Aperçu de l’interface · données fictives en mémoire. Ouvre
-          l’application Windows pour enregistrer et échanger tes données.
+          {{
+            "Aperçu de l’interface · données fictives en mémoire. Ouvre l’application Windows pour enregistrer et échanger tes données."
+              | t
+          }}
         </div>
       }
       <main id="main" tabindex="-1">
         @if (store.error()) {
           <div class="notice error" role="alert">
-            <ui-icon name="info" />{{ store.error()
+            <ui-icon name="info" />{{ store.error() | t
             }}<button
               class="text-button"
               (click)="store.error.set('')"
-              aria-label="Fermer l’erreur"
+              [attr.aria-label]="'Fermer l’erreur' | t"
             >
-              ×
+              {{ "×" | t }}
             </button>
           </div>
         }
         @if (store.notice()) {
           <div class="notice" role="status">
-            <ui-icon name="check" />{{ store.notice()
+            <ui-icon name="check" />{{ store.notice() | t
             }}<button
               class="text-button"
               (click)="store.notice.set('')"
-              aria-label="Fermer le message"
+              [attr.aria-label]="'Fermer le message' | t"
             >
-              ×
+              {{ "×" | t }}
             </button>
           </div>
         }
         @if (store.loading()) {
-          <div class="empty-state">Ouverture de ton espace…</div>
+          <div class="empty-state">{{ "Ouverture de ton espace…" | t }}</div>
         } @else {
           <router-outlet />
         }
       </main>
       <footer>
-        <span>Un peu mieux te connaître. Un futur à la fois.</span
-        ><span>CONÇU POUR RESTER CHEZ TOI <ui-icon name="lock" /></span>
+        <span>{{ "Un peu mieux te connaître. Un futur à la fois." | t }}</span
+        ><span
+          >{{ "CONÇU POUR RESTER CHEZ TOI" | t }} <ui-icon name="lock"
+        /></span>
       </footer>
     </div>`,
 })
 export class App {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   store = inject(Store);
   links = [
     { path: "/", label: "Mon aperçu", icon: "home" },

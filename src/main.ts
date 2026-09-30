@@ -4,7 +4,9 @@ import { LOCALE_ID } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import fr from "@angular/common/locales/fr";
 import { App } from "./app/app";
+import { applyPresentation, readPresentation } from "./app/core/presentation";
 registerLocaleData(fr);
+applyPresentation(readPresentation());
 bootstrapApplication(App, {
   providers: [
     { provide: LOCALE_ID, useValue: "fr-FR" },

@@ -41,8 +41,9 @@ fn mutate(operation: Mutation, state: State<AppState>) -> Result<Snapshot> {
 }
 #[tauri::command]
 async fn choose_import(state: State<'_, AppState>) -> Result<Option<exchange::Workbook>> {
+    let english = matches!(lock(&state.store)?.load()?.settings.language, Language::En);
     let path = rfd::AsyncFileDialog::new()
-        .add_filter("Mesures", &["csv", "xls", "xlsx", "json"])
+        .add_filter(if english { "Measurements" } else { "Mesures" }, &["csv", "xls", "xlsx", "json"])
         .pick_file()
         .await;
     let Some(file) = path else { return Ok(None) };
@@ -137,8 +138,9 @@ struct RestorePreview {
 }
 #[tauri::command]
 async fn preview_restore(state: State<'_, AppState>) -> Result<Option<RestorePreview>> {
+    let english = matches!(lock(&state.store)?.load()?.settings.language, Language::En);
     let file = rfd::AsyncFileDialog::new()
-        .add_filter("Sauvegarde Me-Sim", &["json"])
+        .add_filter(if english { "Me-Sim backup" } else { "Sauvegarde Me-Sim" }, &["json"])
         .pick_file()
         .await;
     let Some(file) = file else { return Ok(None) };

@@ -1,4 +1,10 @@
 import {
+  I18n,
+  TranslatePipe,
+  LocalDatePipe,
+  LocalNumberPipe,
+} from "../core/i18n";
+import {
   Component,
   computed,
   effect,
@@ -7,7 +13,6 @@ import {
   signal,
   ViewChild,
 } from "@angular/core";
-import { DatePipe, DecimalPipe } from "@angular/common";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { Store } from "../core/store";
@@ -25,8 +30,9 @@ import { Chart } from "../core/chart";
 import { AvatarScene } from "../scene/avatar";
 @Component({
   imports: [
-    DatePipe,
-    DecimalPipe,
+    TranslatePipe,
+    LocalDatePipe,
+    LocalNumberPipe,
     RouterLink,
     Icon,
     Chart,
@@ -35,14 +41,19 @@ import { AvatarScene } from "../scene/avatar";
   ],
   template: `<div class="page-heading">
       <div>
-        <div class="eyebrow">{{ date | date: "EEEE d MMMM yyyy" }}</div>
-        <h1>Un peu plus toi, chaque jour<span class="accent">.</span></h1>
+        <div class="eyebrow">{{ date | localDate: "EEEE d MMMM yyyy" }}</div>
+        <h1>
+          {{ "Un peu plus toi, chaque jour" | t }}<span class="accent">.</span>
+        </h1>
         <p>
-          Observe tes habitudes. Explore tes possibles. Avance à ton rythme.
+          {{
+            "Observe tes habitudes. Explore tes possibles. Avance à ton rythme."
+              | t
+          }}
         </p>
       </div>
       <a class="button primary" routerLink="/journal"
-        ><ui-icon name="plus" /> Ajouter une mesure</a
+        ><ui-icon name="plus" /> {{ "Ajouter une mesure" | t }}</a
       >
     </div>
     @if (store.profile(); as profile) {
@@ -50,11 +61,11 @@ import { AvatarScene } from "../scene/avatar";
         <section class="panel avatar-panel">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">ICI ET MAINTENANT</span>
-              <h2>Ton avatar aujourd’hui</h2>
+              <span class="eyebrow">{{ "ICI ET MAINTENANT" | t }}</span>
+              <h2>{{ "Ton avatar aujourd’hui" | t }}</h2>
             </div>
             <span class="pill">{{
-              profile.demo ? "DÉMONSTRATION" : "MON AVATAR"
+              profile.demo ? tr("DÉMONSTRATION") : tr("MON AVATAR")
             }}</span>
           </div>
           <div class="main-scene">
@@ -70,28 +81,33 @@ import { AvatarScene } from "../scene/avatar";
           <div class="avatar-toolbar">
             <div>
               <strong>{{ profile.name }}</strong
-              ><span>Un reflet de toi. À ta façon.</span>
+              ><span>{{ "Un reflet de toi. À ta façon." | t }}</span>
             </div>
-            <div class="scene-controls" aria-label="Animation de l’avatar">
+            <div
+              class="scene-controls"
+              [attr.aria-label]="'Animation de l’avatar' | t"
+            >
               @for (m of modes; track m.id) {
                 <button
                   [class.selected]="mode() === m.id"
                   [attr.aria-pressed]="mode() === m.id"
                   (click)="previewMode(m.id)"
-                  [title]="m.label"
+                  [title]="tr(m.label)"
                 >
-                  <ui-icon [name]="m.icon" /><span>{{ m.label }}</span>
+                  <ui-icon [name]="m.icon" /><span>{{ tr(m.label) }}</span>
                 </button>
               }
               <label class="scene-preview">
-                Prévisualiser
+                {{ "Prévisualiser" | t }}
                 <select
-                  aria-label="Prévisualiser l’animation d’une habitude"
+                  [attr.aria-label]="
+                    'Prévisualiser l’animation d’une habitude' | t
+                  "
                   [value]="mode()"
                   (change)="previewMode($any($event.target).value)"
                 >
                   @for (m of previewModes; track m.id) {
-                    <option [value]="m.id">{{ m.label }}</option>
+                    <option [value]="m.id">{{ tr(m.label) }}</option>
                   }
                 </select>
               </label>
@@ -100,122 +116,141 @@ import { AvatarScene } from "../scene/avatar";
         </section>
         <section class="today-column">
           <div class="section-inline">
-            <h2>Tes repères</h2>
-            <span>Dernières mesures</span>
+            <h2>{{ "Tes repères" | t }}</h2>
+            <span>{{ "Dernières mesures" | t }}</span>
           </div>
           @for (m of essentials; track m.id) {
             <article class="metric-card">
-              <div class="metric-icon" [style.color]="m.color">
+              <div class="metric-icon" [style.color]="i18n.color(m.color)">
                 <ui-icon [name]="m.icon" />
               </div>
               <div class="metric-body">
-                <span>{{ m.label }}</span>
+                <span>{{ tr(m.label) }}</span>
                 <div class="metric-value">
                   @if (store.latest(m.id); as o) {
-                    {{ o.value | number: "1.0-1" }}<small>{{ m.unit }}</small>
+                    {{ o.value | localNumber: "1.0-1"
+                    }}<small>{{ tr(m.unit) }}</small>
                   } @else {
-                    <span class="unknown">Non renseigné</span>
+                    <span class="unknown">{{ "Non renseigné" | t }}</span>
                   }
                 </div>
                 <span class="metric-date"
-                  >{{ store.latest(m.id)?.date | date: "d MMM" }}
+                  >{{ store.latest(m.id)?.date | localDate: "d MMM" }}
                   @if (profile.demo) {
-                    · données fictives
+                    {{ "· données fictives" | t }}
                   }
                 </span>
               </div>
               <mini-chart
                 [values]="values(m.id)"
                 [color]="m.color"
-                [label]="'Historique : ' + m.label"
+                [label]="tr('Historique : ') + tr(m.label)"
               />
             </article>
           }
           <a class="subtle-link" routerLink="/journal"
-            >Voir toutes mes mesures <ui-icon name="arrow"
+            >{{ "Voir toutes mes mesures" | t }} <ui-icon name="arrow"
           /></a>
         </section>
       </div>
       <div class="lower-grid">
         <section class="future-card">
           <div class="eyebrow">
-            <span class="tiny-square"></span> LE FUTUR N’EST PAS ÉCRIT
+            <span class="tiny-square"></span>
+            {{ "LE FUTUR N’EST PAS ÉCRIT" | t }}
           </div>
-          <h2>Et si tu changeais<br />une petite habitude ?</h2>
+          <h2>
+            {{ "Et si tu changeais" | t }}<br />{{
+              "une petite habitude ?" | t
+            }}
+          </h2>
           <p>
-            Prépare un scénario et découvre les hypothèses<br
-              class="desktop-break"
-            />
-            nécessaires pour comparer tes futurs.
+            {{ "Prépare un scénario et découvre les hypothèses" | t
+            }}<br class="desktop-break" />
+
+            {{ "nécessaires pour comparer tes futurs." | t }}
           </p>
           <a class="button primary" routerLink="/futurs"
-            >Explorer mes futurs <ui-icon name="arrow"
+            >{{ "Explorer mes futurs" | t }} <ui-icon name="arrow"
           /></a>
           <div class="future-art" aria-hidden="true">
             <span class="orbit o1"></span><span class="orbit o2"></span
             ><span class="orbit o3"></span><span class="gem g1">◆</span
             ><span class="gem g2">◆</span><span class="gem g3">◆</span>
           </div>
-          <span class="lab-note">LAB · Modèle scientifique en validation</span>
+          <span class="lab-note">{{
+            "LAB · Modèle scientifique en validation" | t
+          }}</span>
         </section>
         <section class="panel trend-card">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">LES PETITS PAS COMPTENT</span>
-              <h2>Ton activité au fil du temps</h2>
+              <span class="eyebrow">{{ "LES PETITS PAS COMPTENT" | t }}</span>
+              <h2>{{ "Ton activité au fil du temps" | t }}</h2>
             </div>
-            <span class="pill muted">28 MESURES</span>
+            <span class="pill muted">{{ "28 MESURES" | t }}</span>
           </div>
           <div class="chart-legend">
-            <span class="legend-dot"></span> Pas enregistrés
-            <span>· observations</span>
+            <span class="legend-dot"></span> {{ "Pas enregistrés" | t }}
+            <span>{{ "· observations" | t }}</span>
           </div>
           <mini-chart
             [values]="values('steps')"
-            label="Pas enregistrés, jusqu’aux 28 dernières mesures"
+            [label]="'Pas enregistrés, jusqu’aux 28 dernières mesures' | t"
           />
           <div class="chart-range">
-            <span>{{ store.series("steps")[0]?.date | date: "d MMM" }}</span
-            ><span>{{ store.latest("steps")?.date | date: "d MMM" }}</span>
+            <span>{{
+              store.series("steps")[0]?.date | localDate: "d MMM"
+            }}</span
+            ><span>{{ store.latest("steps")?.date | localDate: "d MMM" }}</span>
           </div>
           <div class="info-footnote">
-            <ui-icon name="info" />Les tendances décrivent ton historique, sans
-            prédire ta santé.
+            <ui-icon name="info" />{{
+              "Les tendances décrivent ton historique, sans prédire ta santé."
+                | t
+            }}
           </div>
         </section>
       </div>
       <section class="panel habit-today-card">
         <div>
-          <span class="eyebrow">MON CHECK-IN</span>
-          <h2>Mes habitudes aujourd’hui</h2>
+          <span class="eyebrow">{{ "MON CHECK-IN" | t }}</span>
+          <h2>{{ "Mes habitudes aujourd’hui" | t }}</h2>
           @if (habitToday().total) {
             <p>
-              {{ habitToday().answered }} / {{ habitToday().total }} réponses
+              {{ habitToday().answered }} / {{ habitToday().total }}
+              {{ "réponses" | t }}
               {{
-                habitToday().validated ? "· journée validée" : "· à compléter"
+                habitToday().validated
+                  ? tr("· journée validée")
+                  : tr("· à compléter")
               }}
             </p>
           } @else {
-            <p>Choisis les habitudes que tu veux suivre au quotidien.</p>
+            <p>
+              {{ "Choisis les habitudes que tu veux suivre au quotidien." | t }}
+            </p>
           }
         </div>
         <a class="button primary" routerLink="/habitudes">
           <ui-icon name="check" />
           {{
             habitToday().total
-              ? "Renseigner ma journée"
-              : "Configurer mes habitudes"
+              ? tr("Renseigner ma journée")
+              : tr("Configurer mes habitudes")
           }}
         </a>
       </section>
       <section class="panel day-panel">
         <div class="panel-heading day-panel-heading">
           <div>
-            <span class="eyebrow">LES 24 DERNIÈRES HEURES</span>
-            <h2>La journée de {{ profile.name }}</h2>
+            <span class="eyebrow">{{ "LES 24 DERNIÈRES HEURES" | t }}</span>
+            <h2>{{ "La journée de" | t }} {{ profile.name }}</h2>
             <p class="day-intro">
-              Fais défiler les activités et regarde ton avatar les rejouer dans
-              l’ordre. Chaque moment est résumé en une courte séquence.
+              {{
+                "Fais défiler les activités et regarde ton avatar les rejouer dans l’ordre. Chaque moment est résumé en une courte séquence."
+                  | t
+              }}
             </p>
           </div>
           <button
@@ -224,14 +259,16 @@ import { AvatarScene } from "../scene/avatar";
             [disabled]="!store.dayEvents().length"
           >
             <ui-icon [name]="replaying() ? 'pause' : 'play'" />{{
-              replaying() ? "Arrêter la relecture" : "Rejouer la journée"
+              replaying()
+                ? tr("Arrêter la relecture")
+                : tr("Rejouer la journée")
             }}
           </button>
         </div>
         <div
           class="timeline-scroll"
           tabindex="0"
-          aria-label="Timeline des dernières 24 heures"
+          [attr.aria-label]="'Timeline des dernières 24 heures' | t"
         >
           @for (event of store.dayEvents(); track event.observation.id) {
             <button
@@ -245,85 +282,91 @@ import { AvatarScene } from "../scene/avatar";
               <span class="timeline-time">{{ event.observation.at }}</span>
               <span class="timeline-dot"></span>
               <strong>{{
-                store.metric(event.observation.metric).label
+                tr(store.metric(event.observation.metric).label)
               }}</strong>
               <span class="timeline-value"
-                >{{ event.observation.value | number: "1.0-0" }}
-                {{ event.observation.unit }}</span
+                >{{ event.observation.value | localNumber: "1.0-0" }}
+                {{ tr(event.observation.unit) }}</span
               >
             </button>
           } @empty {
             <div class="timeline-empty">
-              <ui-icon name="info" />Aucune activité horodatée sur les dernières
-              24 h. Ajoute un moment dans le journal.
+              <ui-icon name="info" />{{
+                "Aucune activité horodatée sur les dernières 24 h. Ajoute un moment dans le journal."
+                  | t
+              }}
             </div>
           }
         </div>
         <div class="day-recap">
           <div class="recap-title">
-            <ui-icon name="journal" /> Récap de la journée
-            <span>{{ store.dayRecap().events }} moments</span>
+            <ui-icon name="journal" /> {{ "Récap de la journée" | t }}
+            <span>{{ store.dayRecap().events }} {{ "moments" | t }}</span>
           </div>
           <div class="recap-grid">
             <div>
-              <span>Actif</span
+              <span>{{ "Actif" | t }}</span
               ><strong
-                >{{ store.dayRecap().activeMinutes }}<small> min</small></strong
+                >{{ store.dayRecap().activeMinutes
+                }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div>
-              <span>Sommeil récent</span
+              <span>{{ "Sommeil récent" | t }}</span
               ><strong
                 >{{ store.dayRecap().sleepHours ?? "—"
-                }}<small> h</small></strong
+                }}<small> {{ "h" | t }}</small></strong
               >
             </div>
             <div>
-              <span>Social</span
+              <span>{{ "Social" | t }}</span
               ><strong
-                >{{ store.dayRecap().socialMinutes }}<small> min</small></strong
+                >{{ store.dayRecap().socialMinutes
+                }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
-              <span>Écran + jeux</span
+              <span>{{ "Écran + jeux" | t }}</span
               ><strong
                 >{{
                   store.dayRecap().screenMinutes +
                     store.dayRecap().gamingMinutes
-                }}<small> min</small></strong
+                }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
-              <span>Alcool</span
+              <span>{{ "Alcool" | t }}</span
               ><strong
-                >{{ store.dayRecap().alcohol }}<small> verres</small></strong
+                >{{ store.dayRecap().alcohol
+                }}<small> {{ "verres" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
-              <span>Tabac</span
+              <span>{{ "Tabac" | t }}</span
               ><strong
                 >{{ store.dayRecap().tobaccoCigarettes
-                }}<small> cigarettes</small></strong
+                }}<small> {{ "cigarettes" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
-              <span>Vapotage</span
+              <span>{{ "Vapotage" | t }}</span
               ><strong
-                >{{ store.dayRecap().vapingMinutes }}<small> min</small></strong
+                >{{ store.dayRecap().vapingMinutes
+                }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
-              <span>Écran le soir</span
+              <span>{{ "Écran le soir" | t }}</span
               ><strong
                 >{{ store.dayRecap().eveningScreenMinutes
-                }}<small> min</small></strong
+                }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
-              <span>Sédentarité</span
+              <span>{{ "Sédentarité" | t }}</span
               ><strong
                 >{{ store.dayRecap().sedentaryMinutes
-                }}<small> min</small></strong
+                }}<small> {{ "min" | t }}</small></strong
               >
             </div>
           </div>
@@ -333,15 +376,16 @@ import { AvatarScene } from "../scene/avatar";
         <section class="panel target-editor">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">PROFIL TARGET</span>
-              <h2>Ma journée idéale, à ma portée</h2>
+              <span class="eyebrow">{{ "PROFIL TARGET" | t }}</span>
+              <h2>{{ "Ma journée idéale, à ma portée" | t }}</h2>
             </div>
-            <span class="pill target-pill">CIBLE LOCALE</span>
+            <span class="pill target-pill">{{ "CIBLE LOCALE" | t }}</span>
           </div>
           <p class="target-copy">
-            Décris une journée que tu veux atteindre. Les écarts servent de
-            repère personnel, jamais de note médicale. Les valeurs de départ
-            sont modifiables et ne constituent pas des recommandations.
+            {{
+              "Décris une journée que tu veux atteindre. Les écarts servent de repère personnel, jamais de note médicale. Les valeurs de départ sont modifiables et ne constituent pas des recommandations."
+                | t
+            }}
           </p>
           <form
             class="target-form"
@@ -350,7 +394,8 @@ import { AvatarScene } from "../scene/avatar";
           >
             <div class="target-fields">
               <label
-                >Sommeil cible (h)<input
+                >{{ "Sommeil cible (h)" | t
+                }}<input
                   type="number"
                   formControlName="sleepHours"
                   min="0"
@@ -358,7 +403,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="0.5"
               /></label>
               <label
-                >Pas cibles<input
+                >{{ "Pas cibles" | t
+                }}<input
                   type="number"
                   formControlName="steps"
                   min="0"
@@ -366,7 +412,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="500"
               /></label>
               <label
-                >Activité totale (min)<input
+                >{{ "Activité totale (min)" | t
+                }}<input
                   type="number"
                   formControlName="activityMinutes"
                   min="0"
@@ -374,7 +421,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Sport (min)<input
+                >{{ "Sport (min)" | t
+                }}<input
                   type="number"
                   formControlName="exerciseMinutes"
                   min="0"
@@ -382,7 +430,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Marche (min)<input
+                >{{ "Marche (min)" | t
+                }}<input
                   type="number"
                   formControlName="walkMinutes"
                   min="0"
@@ -390,7 +439,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Temps social (min)<input
+                >{{ "Temps social (min)" | t
+                }}<input
                   type="number"
                   formControlName="socialMinutes"
                   min="0"
@@ -398,7 +448,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Réseaux / écran max (min)<input
+                >{{ "Réseaux / écran max (min)" | t
+                }}<input
                   type="number"
                   formControlName="screenMinutes"
                   min="0"
@@ -406,7 +457,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Jeux vidéo max (min)<input
+                >{{ "Jeux vidéo max (min)" | t
+                }}<input
                   type="number"
                   formControlName="gamingMinutes"
                   min="0"
@@ -414,7 +466,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Alcool max (verres)<input
+                >{{ "Alcool max (verres)" | t
+                }}<input
                   type="number"
                   formControlName="alcoholGlasses"
                   min="0"
@@ -422,7 +475,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="1"
               /></label>
               <label
-                >Tabac max (cigarettes)<input
+                >{{ "Tabac max (cigarettes)" | t
+                }}<input
                   type="number"
                   formControlName="tobaccoCigarettes"
                   min="0"
@@ -430,7 +484,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="1"
               /></label>
               <label
-                >Vapotage max (min)<input
+                >{{ "Vapotage max (min)" | t
+                }}<input
                   type="number"
                   formControlName="vapingMinutes"
                   min="0"
@@ -438,7 +493,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Écran le soir max (min)<input
+                >{{ "Écran le soir max (min)" | t
+                }}<input
                   type="number"
                   formControlName="eveningScreenMinutes"
                   min="0"
@@ -446,7 +502,8 @@ import { AvatarScene } from "../scene/avatar";
                   step="5"
               /></label>
               <label
-                >Sédentarité max (min)<input
+                >{{ "Sédentarité max (min)" | t
+                }}<input
                   type="number"
                   formControlName="sedentaryMinutes"
                   min="0"
@@ -458,26 +515,30 @@ import { AvatarScene } from "../scene/avatar";
               class="button primary"
               [disabled]="targetForm.invalid || store.busy()"
             >
-              <ui-icon name="check" /> Enregistrer ma cible
+              <ui-icon name="check" /> {{ "Enregistrer ma cible" | t }}
             </button>
           </form>
         </section>
         <section class="panel deviation-panel">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">TRAJECTOIRE</span>
-              <h2>Ma déviation vers le Target</h2>
+              <span class="eyebrow">{{ "TRAJECTOIRE" | t }}</span>
+              <h2>{{ "Ma déviation vers le Target" | t }}</h2>
             </div>
-            <span class="pill muted">7 JOURS</span>
+            <span class="pill muted">{{ "7 JOURS" | t }}</span>
           </div>
           <p class="deviation-copy">
-            0 % correspond à ta journée cible. Plus la barre monte, plus les
-            observations s’en éloignent.
+            {{
+              "0 % correspond à ta journée cible. Plus la barre monte, plus les observations s’en éloignent."
+                | t
+            }}
           </p>
           <div
             class="deviation-chart"
             role="img"
-            aria-label="Déviation de la trajectoire sur les sept derniers jours"
+            [attr.aria-label]="
+              'Déviation de la trajectoire sur les sept derniers jours' | t
+            "
           >
             @for (point of store.targetTrajectory(); track point.date) {
               <div class="deviation-day">
@@ -492,37 +553,44 @@ import { AvatarScene } from "../scene/avatar";
                   ></span>
                 </div>
                 <span class="deviation-date">{{
-                  point.date | date: "EEE"
+                  point.date | localDate: "EEE"
                 }}</span>
               </div>
             }
           </div>
           <div class="deviation-legend">
-            <span class="legend-dot"></span> observations disponibles
-            <span class="legend-unknown">?</span> données manquantes
+            <span class="legend-dot"></span>
+            {{ "observations disponibles" | t }}
+            <span class="legend-unknown">?</span> {{ "données manquantes" | t }}
           </div>
         </section>
       </div>
     } @else {
       <section class="empty-state panel">
         <span class="empty-gem">◆</span>
-        <h2>Ton histoire commence ici.</h2>
-        <p>Crée ton premier profil ou explore un monde de démonstration.</p>
+        <h2>{{ "Ton histoire commence ici." | t }}</h2>
+        <p>
+          {{
+            "Crée ton premier profil ou explore un monde de démonstration." | t
+          }}
+        </p>
         <div class="button-row">
           <a class="button primary" routerLink="/profils"
-            >Créer mon profil <ui-icon name="arrow" /></a
+            >{{ "Créer mon profil" | t }} <ui-icon name="arrow" /></a
           ><button
             class="button secondary"
             (click)="store.mutate({ type: 'demo' })"
             [disabled]="store.busy()"
           >
-            Explorer la démo
+            {{ "Explorer la démo" | t }}
           </button>
         </div>
       </section>
     }`,
 })
 export class Dashboard implements OnDestroy {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   @ViewChild(AvatarScene) avatar?: AvatarScene;
   store = inject(Store);
   fb = inject(FormBuilder);
@@ -592,10 +660,15 @@ export class Dashboard implements OnDestroy {
       [Validators.min(0), Validators.max(1440)],
     ],
   });
+  private targetFormSource = "";
   constructor() {
-    effect(() =>
-      this.targetForm.patchValue(this.store.target(), { emitEvent: false }),
-    );
+    effect(() => {
+      const target = this.store.target();
+      const source = JSON.stringify([this.store.activeId(), target]);
+      if (source === this.targetFormSource) return;
+      this.targetFormSource = source;
+      this.targetForm.patchValue(target, { emitEvent: false });
+    });
     effect(() => {
       this.store.activeId();
       this.stopReplay();

@@ -139,12 +139,30 @@ pub struct SimulationRun {
     pub inputs: serde_json::Value,
     pub results: serde_json::Value,
 }
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Language {
+    #[default]
+    Fr,
+    En,
+}
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Theme {
+    #[default]
+    Dark,
+    Light,
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Settings {
     pub animations: bool,
     pub jitter: bool,
     pub force_2d: bool,
+    #[serde(default)]
+    pub language: Language,
+    #[serde(default)]
+    pub theme: Theme,
 }
 impl Default for Settings {
     fn default() -> Self {
@@ -152,6 +170,8 @@ impl Default for Settings {
             animations: true,
             jitter: false,
             force_2d: false,
+            language: Language::Fr,
+            theme: Theme::Dark,
         }
     }
 }

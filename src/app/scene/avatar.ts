@@ -1,6 +1,8 @@
+import { I18n, TranslatePipe } from "../core/i18n";
 import {
   AfterViewInit,
   Component,
+  inject,
   ElementRef,
   OnDestroy,
   ViewChild,
@@ -11,6 +13,7 @@ import {
 import type { CameraState, Room } from "./room";
 @Component({
   selector: "avatar-scene",
+  imports: [TranslatePipe],
   template: `<div
     class="scene"
     [class.compact]="compact()"
@@ -20,8 +23,11 @@ import type { CameraState, Room } from "./room";
       #host
       class="render-host"
       role="img"
-      [attr.tabindex]="cameraReady() && !force2d() && !fallback() ? 0 : null"
-      aria-label="Scène 3D : glisser pour tourner, molette pour zoomer. Au clavier : flèches pour tourner, plus ou moins pour zoomer, R pour réinitialiser."
+      [attr.tabindex]="cameraReady() &amp;&amp; !force2d() &amp;&amp; !fallback() ? 0 : null"
+      [attr.aria-label]="
+        'Scène 3D : glisser pour tourner, molette pour zoomer. Au clavier : flèches pour tourner, plus ou moins pour zoomer, R pour réinitialiser.'
+          | t
+      "
       (keydown)="cameraKey($event)"
       (pointerdown)="focusCamera()"
     ></div>
@@ -38,27 +44,31 @@ import type { CameraState, Room } from "./room";
             ><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i>
           </div>
         }
-        <span>Vue 2D · ton avatar</span>
+        <span>{{ "Vue 2D · ton avatar" | t }}</span>
       </div>
     }
     @if (cameraReady() && !fallback() && !force2d()) {
-      <div class="camera-controls" role="group" aria-label="Caméra 3D">
+      <div
+        class="camera-controls"
+        role="group"
+        [attr.aria-label]="'Caméra 3D' | t"
+      >
         <button
           type="button"
-          aria-label="Dézoomer la scène"
-          title="Dézoomer (−)"
+          [attr.aria-label]="'Dézoomer la scène' | t"
+          [title]="'Dézoomer (−)' | t"
           [disabled]="!cameraState().canZoomOut"
           (click)="zoomCamera(-1)"
         >
           <span aria-hidden="true">−</span>
         </button>
-        <output class="camera-zoom" aria-label="Niveau de zoom"
+        <output class="camera-zoom" [attr.aria-label]="'Niveau de zoom' | t"
           >{{ zoomPercent() }} %</output
         >
         <button
           type="button"
-          aria-label="Zoomer la scène"
-          title="Zoomer (+)"
+          [attr.aria-label]="'Zoomer la scène' | t"
+          [title]="'Zoomer (+)' | t"
           [disabled]="!cameraState().canZoomIn"
           (click)="zoomCamera(1)"
         >
@@ -66,29 +76,29 @@ import type { CameraState, Room } from "./room";
         </button>
         <button
           type="button"
-          aria-label="Réinitialiser la caméra"
-          title="Réinitialiser la caméra (R)"
+          [attr.aria-label]="'Réinitialiser la caméra' | t"
+          [title]="'Réinitialiser la caméra (R)' | t"
           (click)="resetCamera()"
         >
           <span aria-hidden="true">↺</span>
         </button>
       </div>
       <div class="camera-hint" aria-hidden="true">
-        Glisser : tourner<br />Molette : zoomer
+        {{ "Glisser : tourner" | t }}<br />{{ "Molette : zoomer" | t }}
       </div>
     }
     <div class="scene-grid"></div>
-    <div class="scene-corner">{{ label() }}</div>
+    <div class="scene-corner">{{ label() | t }}</div>
     <div class="scene-caption">
       <span class="tiny-dot"></span>
       {{
         force2d() || fallback()
-          ? "MODE 2D"
+          ? tr("MODE 2D")
           : source() === "artist"
-            ? "ANIMATION GLB"
-            : "SCÈNE 3D"
+            ? tr("ANIMATION GLB")
+            : tr("SCÈNE 3D")
       }}
-      <span class="separator">/</span> PS1 EDITION
+      <span class="separator">/</span> {{ "PS1 EDITION" | t }}
     </div>
   </div>`,
   styles: [
@@ -566,6 +576,8 @@ import type { CameraState, Room } from "./room";
   ],
 })
 export class AvatarScene implements AfterViewInit, OnDestroy {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   @ViewChild("host") host!: ElementRef<HTMLDivElement>;
   color = input("#bde883");
   animations = input(true);

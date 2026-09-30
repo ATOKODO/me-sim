@@ -248,14 +248,14 @@ test("profiles isolate observations and journal supports edit/delete", async ({
   await page.getByLabel("Valeur · kg").fill("68.5");
   await page.getByRole("button", { name: "Ajouter au journal" }).click();
   await expect(page.getByRole("cell", { name: "68,5 kg" })).toBeVisible();
-  await page.getByRole("button", { name: /Modifier weight/ }).click();
+  await page.getByRole("button", { name: /Modifier Poids/ }).click();
   await page.getByLabel("Valeur · kg").fill("69.2");
   await page.getByRole("button", { name: "Enregistrer la correction" }).click();
   await expect(page.getByRole("cell", { name: "69,2 kg" })).toBeVisible();
   await page.getByLabel("Profil actif").selectOption({ label: "Alex · Démo" });
   await expect(page.getByRole("cell", { name: "69,2 kg" })).toHaveCount(0);
   await page.getByLabel("Profil actif").selectOption({ label: "Camille" });
-  await page.getByRole("button", { name: /Supprimer weight/ }).click();
+  await page.getByRole("button", { name: /Supprimer Poids/ }).click();
   await page.getByRole("button", { name: "Supprimer", exact: true }).click();
   await expect(page.getByText("Aucune mesure pour le moment.")).toBeVisible();
 });

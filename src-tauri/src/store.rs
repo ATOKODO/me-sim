@@ -254,3 +254,51 @@ mod concurrency {
         assert_eq!(b.load().unwrap().profiles.len(), 1);
     }
 }
+
+#[cfg(test)]
+mod presentation_tests {
+    use super::*;
+    #[test]
+    fn legacy_settings_and_backup_default_to_french_dark() {
+        let db = Store::init(Connection::open_in_memory().unwrap()).unwrap();
+        db.conn.execute("INSERT INTO settings VALUES(1,?1)", [r#"{"animations":false,"jitter":true,"force2d":true}"#]).unwrap();
+        let snapshot = db.load().unwrap();
+        assert_eq!(snapshot.settings.language, Language::Fr);
+        assert_eq!(snapshot.settings.theme, Theme::Dark);
+        assert!(!snapshot.settings.animations);
+        assert!(snapshot.settings.jitter && snapshot.settings.force_2d);
+        let mut backup = serde_json::to_value(&snapshot).unwrap();
+        backup["settings"].as_object_mut().unwrap().remove("language");
+        backup["settings"].as_object_mut().unwrap().remove("theme");
+        let restored: Snapshot = serde_json::from_value(backup).unwrap();
+        validate(&restored).unwrap();
+        assert_eq!(restored.settings.language, Language::Fr);
+        assert_eq!(restored.settings.theme, Theme::Dark);
+    }
+    #[test]
+    fn presentation_preferences_survive_disk_and_json_round_trip() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("presentation.db");
+        let mut db = Store::open(&path).unwrap();
+        let mut snapshot = db.load().unwrap();
+        mutate(&mut snapshot, Mutation::Demo).unwrap();
+        let original_name = snapshot.profiles[0].name.clone();
+        snapshot.settings.language = Language::En;
+        snapshot.settings.theme = Theme::Light;
+        db.replace(&snapshot).unwrap();
+        drop(db);
+        let mut db = Store::open(&path).unwrap();
+        let saved = db.load().unwrap();
+        assert_eq!(saved.settings.language, Language::En);
+        assert_eq!(saved.settings.theme, Theme::Light);
+        let restored: Snapshot = serde_json::from_str(&serde_json::to_string(&saved).unwrap()).unwrap();
+        db.replace(&restored).unwrap();
+        assert_eq!(db.load().unwrap().profiles[0].name, original_name);
+        assert_eq!(serde_json::to_value(&saved).unwrap(), serde_json::to_value(&restored).unwrap());
+        for (field, value) in [("language", "de"), ("theme", "automatic")] {
+            let mut invalid = serde_json::to_value(&saved).unwrap();
+            invalid["settings"][field] = value.into();
+            assert!(serde_json::from_value::<Snapshot>(invalid).is_err());
+        }
+    }
+}

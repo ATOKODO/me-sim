@@ -1,3 +1,4 @@
+import { I18n, TranslatePipe } from "../core/i18n";
 import { FocusDialog } from "../core/focus-dialog";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -5,60 +6,73 @@ import { Store } from "../core/store";
 import { DEFAULT_TARGET, Profile, uid, today } from "../core/models";
 import { Icon } from "../core/icon";
 @Component({
-  imports: [FocusDialog, ReactiveFormsModule, Icon],
+  imports: [TranslatePipe, FocusDialog, ReactiveFormsModule, Icon],
   template: `<div class="page-heading">
       <div>
-        <div class="eyebrow">À CHACUN SON HISTOIRE</div>
-        <h1>Mes profils<span class="accent">.</span></h1>
-        <p>Des espaces distincts sur cet appareil, sans compte à créer.</p>
+        <div class="eyebrow">{{ "À CHACUN SON HISTOIRE" | t }}</div>
+        <h1>{{ "Mes profils" | t }}<span class="accent">.</span></h1>
+        <p>
+          {{
+            "Des espaces distincts sur cet appareil, sans compte à créer." | t
+          }}
+        </p>
       </div>
       <button
         class="button secondary"
         [disabled]="store.busy()"
         (click)="store.mutate({ type: 'demo' })"
       >
-        <ui-icon name="play" /> Ajouter un profil démo
+        <ui-icon name="play" /> {{ "Ajouter un profil démo" | t }}
       </button>
     </div>
     <div class="profiles-layout">
       <section class="panel form-panel">
-        <h2>{{ editing() ? "Modifier le profil" : "Créer un profil" }}</h2>
+        <h2>
+          {{ editing() ? tr("Modifier le profil") : tr("Créer un profil") }}
+        </h2>
         <form [formGroup]="form" (ngSubmit)="save()">
           <label
-            >Prénom ou pseudonyme<input
+            >{{ "Prénom ou pseudonyme" | t
+            }}<input
               formControlName="name"
               maxlength="120"
-              placeholder="Comment t’appelles-tu ?"
+              [placeholder]="'Comment t’appelles-tu ?' | t"
               required
           /></label>
           <div class="form-pair">
             <label
-              >Date de naissance<input
+              >{{ "Date de naissance" | t
+              }}<input
                 formControlName="birthDate"
                 type="date"
                 [max]="today" /></label
             ><label
-              >Taille (cm)<input
+              >{{ "Taille (cm)" | t
+              }}<input
                 formControlName="heightCm"
                 type="number"
                 min="50"
                 max="250"
-                placeholder="Facultatif"
+                [placeholder]="'Facultatif' | t"
             /></label>
           </div>
           <label
-            >Sexe physiologique · pour le modèle<select formControlName="sex">
-              <option value="">Non renseigné</option>
-              <option value="female">Féminin</option>
-              <option value="male">Masculin</option>
+            >{{ "Sexe physiologique · pour le modèle" | t
+            }}<select formControlName="sex">
+              <option value="">{{ "Non renseigné" | t }}</option>
+              <option value="female">{{ "Féminin" | t }}</option>
+              <option value="male">{{ "Masculin" | t }}</option>
             </select></label
           >
           <p class="field-help">
-            Ces informations sont facultatives pour le journal. Elles seront
-            nécessaires aux modèles scientifiques concernés.
+            {{
+              "Ces informations sont facultatives pour le journal. Elles seront nécessaires aux modèles scientifiques concernés."
+                | t
+            }}
           </p>
           <label class="color-field"
-            >Couleur de ton avatar<input type="color" formControlName="color"
+            >{{ "Couleur de ton avatar" | t
+            }}<input type="color" formControlName="color"
           /></label>
           <div class="button-row">
             <button
@@ -66,12 +80,12 @@ import { Icon } from "../core/icon";
               [disabled]="form.invalid || store.busy()"
             >
               <ui-icon name="check" />{{
-                editing() ? "Enregistrer" : "Créer le profil"
+                editing() ? tr("Enregistrer") : tr("Créer le profil")
               }}
             </button>
             @if (editing()) {
               <button type="button" class="button ghost" (click)="reset()">
-                Annuler
+                {{ "Annuler" | t }}
               </button>
             }
           </div>
@@ -89,9 +103,9 @@ import { Icon } from "../core/icon";
             <div class="profile-details">
               <h2>{{ p.name }}</h2>
               <p>
-                {{ count(p.id) }} mesures
+                {{ count(p.id) }} {{ "mesures" | t }}
                 @if (p.demo) {
-                  <span class="pill">FICTIF</span>
+                  <span class="pill">{{ "FICTIF" | t }}</span>
                 }
               </p>
             </div>
@@ -101,17 +115,19 @@ import { Icon } from "../core/icon";
                 [disabled]="store.activeId() === p.id"
                 (click)="store.select(p.id)"
               >
-                {{ store.activeId() === p.id ? "Actif" : "Ouvrir" }}</button
+                {{
+                  store.activeId() === p.id ? tr("Actif") : tr("Ouvrir")
+                }}</button
               ><button
                 class="icon-button"
                 (click)="edit(p)"
-                [attr.aria-label]="'Modifier ' + p.name"
+                [attr.aria-label]="tr('Modifier ') + p.name"
               >
                 <ui-icon name="edit" /></button
               ><button
                 class="icon-button"
                 (click)="deleting.set(p)"
-                [attr.aria-label]="'Supprimer ' + p.name"
+                [attr.aria-label]="tr('Supprimer ') + p.name"
               >
                 <ui-icon name="trash" />
               </button>
@@ -120,13 +136,15 @@ import { Icon } from "../core/icon";
         } @empty {
           <div class="panel empty-state">
             <span class="empty-gem">◆</span>
-            <h2>Une place pour toi.</h2>
-            <p>Ton premier profil apparaîtra ici.</p>
+            <h2>{{ "Une place pour toi." | t }}</h2>
+            <p>{{ "Ton premier profil apparaîtra ici." | t }}</p>
           </div>
         }
         <div class="info-footnote standalone">
-          <ui-icon name="lock" />Les profils partagent la même session Windows.
-          Ils ne sont pas protégés les uns des autres par un mot de passe.
+          <ui-icon name="lock" />{{
+            "Les profils partagent la même session Windows. Ils ne sont pas protégés les uns des autres par un mot de passe."
+              | t
+          }}
         </div>
       </div>
     </div>
@@ -140,21 +158,22 @@ import { Icon } from "../core/icon";
           aria-modal="true"
           aria-labelledby="profile-delete"
         >
-          <h2 id="profile-delete">Supprimer {{ p.name }} ?</h2>
+          <h2 id="profile-delete">{{ "Supprimer" | t }} {{ p.name }} ?</h2>
           <p>
-            Ses mesures, habitudes, journées suivies, imports et scénarios
-            seront supprimés de la base. Les fichiers déjà exportés resteront
-            sur le disque.
+            {{
+              "Ses mesures, habitudes, journées suivies, imports et scénarios seront supprimés de la base. Les fichiers déjà exportés resteront sur le disque."
+                | t
+            }}
           </p>
           <div class="button-row">
             <button class="button secondary" (click)="deleting.set(null)">
-              Annuler</button
+              {{ "Annuler" | t }}</button
             ><button
               class="button danger"
               [disabled]="store.busy()"
               (click)="remove(p)"
             >
-              Supprimer le profil
+              {{ "Supprimer le profil" | t }}
             </button>
           </div>
         </section>
@@ -162,6 +181,8 @@ import { Icon } from "../core/icon";
     }`,
 })
 export class Profiles {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   store = inject(Store);
   fb = inject(FormBuilder);
   today = today();

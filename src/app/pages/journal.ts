@@ -1,6 +1,11 @@
+import {
+  I18n,
+  TranslatePipe,
+  LocalDatePipe,
+  LocalNumberPipe,
+} from "../core/i18n";
 import { FocusDialog } from "../core/focus-dialog";
 import { Component, inject, signal, effect } from "@angular/core";
-import { DatePipe, DecimalPipe } from "@angular/common";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { Store } from "../core/store";
@@ -8,94 +13,114 @@ import { METRICS, Metric, Observation, today, uid } from "../core/models";
 import { Icon } from "../core/icon";
 @Component({
   imports: [
+    TranslatePipe,
+    LocalDatePipe,
+    LocalNumberPipe,
     FocusDialog,
     ReactiveFormsModule,
-    DatePipe,
-    DecimalPipe,
     Icon,
     RouterLink,
   ],
   template: `<div class="page-heading">
       <div>
-        <div class="eyebrow">TES OBSERVATIONS, AU QUOTIDIEN</div>
-        <h1>Mon journal<span class="accent">.</span></h1>
-        <p>Quelques repères pour mieux comprendre tes habitudes.</p>
+        <div class="eyebrow">{{ "TES OBSERVATIONS, AU QUOTIDIEN" | t }}</div>
+        <h1>{{ "Mon journal" | t }}<span class="accent">.</span></h1>
+        <p>{{ "Quelques repères pour mieux comprendre tes habitudes." | t }}</p>
       </div>
       <a routerLink="/donnees" class="button secondary"
-        ><ui-icon name="upload" />Importer un fichier</a
+        ><ui-icon name="upload" />{{ "Importer un fichier" | t }}</a
       >
     </div>
     @if (store.profile()) {
       <div class="journal-layout">
         <section class="panel form-panel">
           <div class="eyebrow">
-            {{ editing() ? "MODIFIER UNE MESURE" : "UN NOUVEAU REPÈRE" }}
+            {{
+              editing() ? tr("MODIFIER UNE MESURE") : tr("UN NOUVEAU REPÈRE")
+            }}
           </div>
           <h2>
             {{
               editing()
-                ? "Corriger mon journal"
-                : "Comment vas-tu aujourd’hui ?"
+                ? tr("Corriger mon journal")
+                : tr("Comment vas-tu aujourd’hui ?")
             }}
           </h2>
-          <div class="quick-habits" aria-label="Saisie rapide d’une activité">
-            <span class="quick-label">Ajouter vite</span>
+          <div
+            class="quick-habits"
+            [attr.aria-label]="'Saisie rapide d’une activité' | t"
+          >
+            <span class="quick-label">{{ "Ajouter vite" | t }}</span>
             @for (m of quickMetrics; track m.id) {
               <button type="button" class="quick-habit" (click)="choose(m.id)">
-                <ui-icon [name]="m.icon" />{{ m.label }}
+                <ui-icon [name]="m.icon" />{{ tr(m.label) }}
               </button>
             }
           </div>
           <form [formGroup]="form" (ngSubmit)="save()">
             <label
-              >Date<input type="date" formControlName="date" required /></label
+              >{{ "Date" | t
+              }}<input type="date" formControlName="date" required /></label
             ><label
-              >Repère ou activité<select formControlName="metric">
-                <optgroup label="Repères quotidiens">
+              >{{ "Repère ou activité" | t
+              }}<select formControlName="metric">
+                <optgroup [label]="'Repères quotidiens' | t">
                   @for (m of dailyMetrics; track m.id) {
-                    <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
+                    <option [value]="m.id">
+                      {{ tr(m.label) }} ({{ tr(m.unit) }})
+                    </option>
                   }
                 </optgroup>
-                <optgroup label="Habitudes positives">
+                <optgroup [label]="'Habitudes positives' | t">
                   @for (m of positiveMetrics; track m.id) {
-                    <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
+                    <option [value]="m.id">
+                      {{ tr(m.label) }} ({{ tr(m.unit) }})
+                    </option>
                   }
                 </optgroup>
-                <optgroup label="Habitudes à observer">
+                <optgroup [label]="'Habitudes à observer' | t">
                   @for (m of negativeMetrics; track m.id) {
-                    <option [value]="m.id">{{ m.label }} ({{ m.unit }})</option>
+                    <option [value]="m.id">
+                      {{ tr(m.label) }} ({{ tr(m.unit) }})
+                    </option>
                   }
                 </optgroup>
               </select></label
             ><label
-              >{{ currentMetric().valueLabel ?? "Valeur" }} ·
-              {{ currentMetric().unit
+              >{{ tr(currentMetric().valueLabel ?? "Valeur") }} ·
+              {{ tr(currentMetric().unit)
               }}<input
                 type="number"
                 formControlName="value"
                 [min]="currentMetric().id === 'weight' ? 0.1 : 0"
                 [max]="currentMetric().max"
                 [step]="currentMetric().id === 'steps' ? 1 : 0.1"
-                placeholder="Ta mesure"
+                [placeholder]="'Ta mesure' | t"
                 required
             /></label>
             @if (currentMetric().event) {
               <label
-                >Heure de début<input
-                  type="time"
-                  formControlName="time"
-                  required
+                >{{ "Heure de début" | t
+                }}<input type="time" formControlName="time" required
               /></label>
             }
             <p class="field-help">
               {{
                 currentMetric().id === "stress"
-                  ? "De 0 (aucun stress) à 10 (stress maximal), selon ton ressenti."
+                  ? tr(
+                      "De 0 (aucun stress) à 10 (stress maximal), selon ton ressenti."
+                    )
                   : currentMetric().event
                     ? currentMetric().positive
-                      ? "Note aussi ce qui te fait du bien : le personnage le rejouera dans l’ordre de ta journée."
-                      : "Tu peux le documenter sans jugement : cette trace sert à comprendre ta journée."
-                    : "Une valeur par mesure et par jour. Tu peux la corriger à tout moment."
+                      ? tr(
+                          "Note aussi ce qui te fait du bien : le personnage le rejouera dans l’ordre de ta journée."
+                        )
+                      : tr(
+                          "Tu peux le documenter sans jugement : cette trace sert à comprendre ta journée."
+                        )
+                    : tr(
+                        "Une valeur par mesure et par jour. Tu peux la corriger à tout moment."
+                      )
               }}
             </p>
             <button
@@ -103,12 +128,14 @@ import { Icon } from "../core/icon";
               [disabled]="form.invalid || store.busy()"
             >
               <ui-icon name="check" />{{
-                editing() ? "Enregistrer la correction" : "Ajouter au journal"
+                editing()
+                  ? tr("Enregistrer la correction")
+                  : tr("Ajouter au journal")
               }}
             </button>
             @if (editing()) {
               <button type="button" class="button ghost full" (click)="reset()">
-                Annuler
+                {{ "Annuler" | t }}
               </button>
             }
           </form>
@@ -116,17 +143,17 @@ import { Icon } from "../core/icon";
         <section class="panel">
           <div class="panel-heading">
             <h2>
-              Mes observations
+              {{ "Mes observations" | t }}
               <span class="count">{{ filtered().length }}</span>
             </h2>
             <select
-              aria-label="Filtrer les mesures"
+              [attr.aria-label]="'Filtrer les mesures' | t"
               [value]="filter()"
               (change)="filter.set($any($event.target).value); page.set(0)"
             >
-              <option value="">Toutes les mesures</option>
+              <option value="">{{ "Toutes les mesures" | t }}</option>
               @for (m of metrics; track m.id) {
-                <option [value]="m.id">{{ m.label }}</option>
+                <option [value]="m.id">{{ tr(m.label) }}</option>
               }
             </select>
           </div>
@@ -134,18 +161,20 @@ import { Icon } from "../core/icon";
             <table>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Mesure</th>
-                  <th>Valeur</th>
-                  <th>Source</th>
-                  <th><span class="sr-only">Actions</span></th>
+                  <th>{{ "Date" | t }}</th>
+                  <th>{{ "Mesure" | t }}</th>
+                  <th>{{ "Valeur" | t }}</th>
+                  <th>{{ "Source" | t }}</th>
+                  <th>
+                    <span class="sr-only">{{ "Actions" | t }}</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 @for (o of paged(); track o.id) {
                   <tr>
                     <td>
-                      {{ o.date | date: "dd MMM yyyy" }}
+                      {{ o.date | localDate: "dd MMM yyyy" }}
                       @if (o.at) {
                         <span class="dim">· {{ o.at }}</span>
                       }
@@ -153,22 +182,25 @@ import { Icon } from "../core/icon";
                     <td>
                       <span class="table-metric"
                         ><ui-icon [name]="store.metric(o.metric).icon" />{{
-                          store.metric(o.metric).label
+                          tr(store.metric(o.metric).label)
                         }}</span
                       >
                     </td>
                     <td class="numeric">
-                      {{ o.value | number: "1.0-2" }}
-                      <span class="dim">{{ o.unit }}</span>
+                      {{ o.value | localNumber: "1.0-2" }}
+                      <span class="dim">{{ tr(o.unit) }}</span>
                     </td>
-                    <td class="source-cell">{{ o.source }}</td>
+                    <td class="source-cell">{{ tr(o.source) }}</td>
                     <td>
                       <div class="row-actions">
                         <button
                           class="icon-button"
                           (click)="edit(o)"
                           [attr.aria-label]="
-                            'Modifier ' + o.metric + ' du ' + o.date
+                            tr('Modifier ') +
+                            tr(store.metric(o.metric).label) +
+                            tr(' du ') +
+                            o.date
                           "
                         >
                           <ui-icon name="edit" /></button
@@ -176,7 +208,10 @@ import { Icon } from "../core/icon";
                           class="icon-button"
                           (click)="deleting.set(o)"
                           [attr.aria-label]="
-                            'Supprimer ' + o.metric + ' du ' + o.date
+                            tr('Supprimer ') +
+                            tr(store.metric(o.metric).label) +
+                            tr(' du ') +
+                            o.date
                           "
                         >
                           <ui-icon name="trash" />
@@ -187,7 +222,7 @@ import { Icon } from "../core/icon";
                 } @empty {
                   <tr>
                     <td colspan="5" class="empty-cell">
-                      Aucune mesure pour le moment.
+                      {{ "Aucune mesure pour le moment." | t }}
                     </td>
                   </tr>
                 }
@@ -200,22 +235,24 @@ import { Icon } from "../core/icon";
               (click)="page.set(page() - 1)"
               [disabled]="page() === 0"
             >
-              Précédent</button
-            ><span>Page {{ page() + 1 }} / {{ pages() }}</span
+              {{ "Précédent" | t }}</button
+            ><span>{{ "Page" | t }} {{ page() + 1 }} / {{ pages() }}</span
             ><button
               class="button ghost small"
               (click)="page.set(page() + 1)"
               [disabled]="page() + 1 >= pages()"
             >
-              Suivant
+              {{ "Suivant" | t }}
             </button>
           </div>
         </section>
       </div>
     } @else {
       <div class="empty-state panel">
-        <h2>Un profil pour commencer</h2>
-        <a routerLink="/profils" class="button primary">Créer un profil</a>
+        <h2>{{ "Un profil pour commencer" | t }}</h2>
+        <a routerLink="/profils" class="button primary">{{
+          "Créer un profil" | t
+        }}</a>
       </div>
     }
     @if (deleting(); as o) {
@@ -228,20 +265,21 @@ import { Icon } from "../core/icon";
           aria-modal="true"
           aria-labelledby="delete-title"
         >
-          <h2 id="delete-title">Supprimer cette mesure ?</h2>
+          <h2 id="delete-title">{{ "Supprimer cette mesure ?" | t }}</h2>
           <p>
-            {{ store.metric(o.metric).label }} ·
-            {{ o.date | date: "dd MMM yyyy" }} · {{ o.value }} {{ o.unit }}
+            {{ tr(store.metric(o.metric).label) }} ·
+            {{ o.date | localDate: "dd MMM yyyy" }} · {{ o.value }}
+            {{ tr(o.unit) }}
           </p>
           <div class="button-row">
             <button class="button secondary" (click)="deleting.set(null)">
-              Annuler</button
+              {{ "Annuler" | t }}</button
             ><button
               class="button danger"
               [disabled]="store.busy()"
               (click)="remove(o)"
             >
-              Supprimer
+              {{ "Supprimer" | t }}
             </button>
           </div>
         </section>
@@ -249,6 +287,8 @@ import { Icon } from "../core/icon";
     }`,
 })
 export class Journal {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   store = inject(Store);
   fb = inject(FormBuilder);
   metrics = METRICS;

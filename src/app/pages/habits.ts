@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { I18n, TranslatePipe, LocalDatePipe } from "../core/i18n";
 import { Component, computed, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
@@ -19,44 +19,52 @@ import {
 import { Icon } from "../core/icon";
 
 @Component({
-  imports: [DatePipe, FormsModule, RouterLink, Icon],
+  imports: [TranslatePipe, LocalDatePipe, FormsModule, RouterLink, Icon],
   template: `
     <div class="page-heading">
       <div>
-        <div class="eyebrow">UN GESTE À LA FOIS</div>
-        <h1>Mes habitudes<span class="accent">.</span></h1>
-        <p>Choisis ce que tu veux cultiver ou réduire, puis note ta journée.</p>
+        <div class="eyebrow">{{ "UN GESTE À LA FOIS" | t }}</div>
+        <h1>{{ "Mes habitudes" | t }}<span class="accent">.</span></h1>
+        <p>
+          {{
+            "Choisis ce que tu veux cultiver ou réduire, puis note ta journée."
+              | t
+          }}
+        </p>
       </div>
       <a class="button secondary" routerLink="/journal"
-        ><ui-icon name="journal" /> Journal détaillé</a
+        ><ui-icon name="journal" /> {{ "Journal détaillé" | t }}</a
       >
     </div>
     @if (store.profile(); as profile) {
       <div class="habit-intro">
         <span class="pill">{{
-          profile.demo ? "DÉMONSTRATION" : "PROFIL LOCAL"
+          profile.demo ? tr("DÉMONSTRATION") : tr("PROFIL LOCAL")
         }}</span>
         <p>
-          Le cap souhaité est simple : faire tes bonnes habitudes et éviter
-          celles que tu veux réduire. Une coche indique seulement « oui » ou «
-          non » ; les quantités restent dans le journal. Ce repère personnel
-          n’est pas une évaluation médicale.
+          {{
+            "Le cap souhaité est simple : faire tes bonnes habitudes et éviter celles que tu veux réduire. Une coche indique seulement « oui » ou « non » ; les quantités restent dans le journal. Ce repère personnel n’est pas une évaluation médicale."
+              | t
+          }}
         </p>
       </div>
       <div class="habits-layout">
         <section class="panel habit-calendar-panel">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">AU JOUR LE JOUR</span>
-              <h2>Mon calendrier</h2>
+              <span class="eyebrow">{{ "AU JOUR LE JOUR" | t }}</span>
+              <h2>{{ "Mon calendrier" | t }}</h2>
             </div>
             <div class="habit-month-nav">
-              <button aria-label="Mois précédent" (click)="moveMonth(-1)">
+              <button
+                [attr.aria-label]="'Mois précédent' | t"
+                (click)="moveMonth(-1)"
+              >
                 ‹
               </button>
-              <strong>{{ month() | date: "MMMM yyyy" }}</strong>
+              <strong>{{ month() | localDate: "MMMM yyyy" }}</strong>
               <button
-                aria-label="Mois suivant"
+                [attr.aria-label]="'Mois suivant' | t"
                 (click)="moveMonth(1)"
                 [disabled]="month() >= currentMonth"
               >
@@ -64,8 +72,12 @@ import { Icon } from "../core/icon";
               </button>
             </div>
           </div>
-          <div class="habit-calendar" role="group" aria-label="Choisir un jour">
-            @for (weekday of weekdays; track $index) {
+          <div
+            class="habit-calendar"
+            role="group"
+            [attr.aria-label]="'Choisir un jour' | t"
+          >
+            @for (weekday of weekdays(); track $index) {
               <span class="habit-weekday">{{ weekday }}</span>
             }
             @for (cell of calendar(); track cell.date) {
@@ -86,29 +98,32 @@ import { Icon } from "../core/icon";
             }
           </div>
           <div class="habit-calendar-legend">
-            <span><i class="good-dot"></i> Validée</span>
-            <span><i class="partial-dot"></i> En cours</span>
-            <span><i class="empty-dot"></i> Non renseignée</span>
+            <span><i class="good-dot"></i> {{ "Validée" | t }}</span>
+            <span><i class="partial-dot"></i> {{ "En cours" | t }}</span>
+            <span><i class="empty-dot"></i> {{ "Non renseignée" | t }}</span>
           </div>
         </section>
 
         <section class="panel habit-check-panel">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">MES RÉPONSES</span>
-              <h2>{{ selectedDate() | date: "EEEE d MMMM" }}</h2>
+              <span class="eyebrow">{{ "MES RÉPONSES" | t }}</span>
+              <h2>{{ selectedDate() | localDate: "EEEE d MMMM" }}</h2>
             </div>
             <span class="pill" [class.target-pill]="selectedStatus().validated">
-              {{ selectedStatus().validated ? "VALIDÉE" : "À COMPLÉTER" }}
+              {{
+                selectedStatus().validated ? tr("VALIDÉE") : tr("À COMPLÉTER")
+              }}
             </span>
           </div>
           @if (selectedHabits().length) {
             <p class="habit-progress">
               {{ selectedStatus().answered }} / {{ selectedStatus().total }}
-              habitudes renseignées
+              {{ "habitudes renseignées" | t }}
               @if (selectedStatus().preview !== null) {
-                · {{ selectedStatus().preview }} % en accord avec ton cap
-                {{ selectedStatus().validated ? "" : "(aperçu)" }}
+                · {{ selectedStatus().preview }}
+                {{ "% en accord avec ton cap" | t }}
+                {{ selectedStatus().validated ? "" : tr("(aperçu)") }}
               }
             </p>
             <div class="habit-check-list">
@@ -121,7 +136,9 @@ import { Icon } from "../core/icon";
                     <div>
                       <strong>{{ habit.label }}</strong>
                       <small>{{
-                        habit.kind === "good" ? "À cultiver" : "À réduire"
+                        habit.kind === "good"
+                          ? tr("À cultiver")
+                          : tr("À réduire")
                       }}</small>
                     </div>
                   </div>
@@ -135,7 +152,7 @@ import { Icon } from "../core/icon";
                       [disabled]="store.busy()"
                       (click)="setAnswer(habit, true)"
                     >
-                      Oui
+                      {{ "Oui" | t }}
                     </button>
                     <button
                       [class.chosen]="answerFor(habit) === false"
@@ -143,18 +160,18 @@ import { Icon } from "../core/icon";
                       [disabled]="store.busy()"
                       (click)="setAnswer(habit, false)"
                     >
-                      Non
+                      {{ "Non" | t }}
                     </button>
                     @if (answerFor(habit) !== null) {
                       <button
                         class="habit-clear"
                         [attr.aria-label]="
-                          'Effacer la réponse : ' + habit.label
+                          tr('Effacer la réponse : ') + habit.label
                         "
                         [disabled]="store.busy()"
                         (click)="setAnswer(habit, null)"
                       >
-                        ×
+                        {{ "×" | t }}
                       </button>
                     }
                   </div>
@@ -174,16 +191,21 @@ import { Icon } from "../core/icon";
                 <ui-icon name="check" />
                 {{
                   selectedStatus().validated
-                    ? "Journée validée"
-                    : "Valider la journée"
+                    ? tr("Journée validée")
+                    : tr("Valider la journée")
                 }}
               </button>
-              <span>Tu peux corriger une réponse, puis revalider ce jour.</span>
+              <span>{{
+                "Tu peux corriger une réponse, puis revalider ce jour." | t
+              }}</span>
             </div>
           } @else {
             <div class="habit-empty-day">
-              <ui-icon name="info" /> Aucune habitude suivie à cette date.
-              Ajoute-en une ci-dessous pour commencer aujourd’hui.
+              <ui-icon name="info" />
+              {{
+                "Aucune habitude suivie à cette date. Ajoute-en une ci-dessous pour commencer aujourd’hui."
+                  | t
+              }}
             </div>
           }
         </section>
@@ -193,29 +215,37 @@ import { Icon } from "../core/icon";
         <section class="panel habit-trajectory-panel">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">TRAJECTOIRE PERSONNELLE</span>
-              <h2>Vers la journée souhaitée</h2>
+              <span class="eyebrow">{{ "TRAJECTOIRE PERSONNELLE" | t }}</span>
+              <h2>{{ "Vers la journée souhaitée" | t }}</h2>
             </div>
-            <span class="pill muted">14 JOURS</span>
+            <span class="pill muted">{{ "14 JOURS" | t }}</span>
           </div>
           <p>
-            100 % signifie que toutes les habitudes suivies ont correspondu à
-            ton cap ce jour-là. La ligne pointillée est le cap souhaité ; les
-            jours non validés restent vides.
+            {{
+              "100 % signifie que toutes les habitudes suivies ont correspondu à ton cap ce jour-là. La ligne pointillée est le cap souhaité ; les jours non validés restent vides."
+                | t
+            }}
           </p>
           <svg
             class="habit-trajectory"
             viewBox="0 0 600 190"
             role="img"
-            aria-label="Alignement quotidien avec la journée souhaitée sur quatorze jours"
+            [attr.aria-label]="
+              'Alignement quotidien avec la journée souhaitée sur quatorze jours'
+                | t
+            "
           >
             <path
               d="M32 20H552"
-              stroke="#bde883"
+              [attr.stroke]="i18n.color('#bde883')"
               stroke-dasharray="6 6"
               opacity=".7"
             />
-            <path d="M32 90H552M32 160H552" stroke="#66716e" opacity=".3" />
+            <path
+              d="M32 90H552M32 160H552"
+              [attr.stroke]="i18n.color('#66716e')"
+              opacity=".3"
+            />
             <text x="0" y="24">100</text>
             <text x="8" y="94">50</text>
             <text x="16" y="164">0</text>
@@ -223,7 +253,7 @@ import { Icon } from "../core/icon";
               <path
                 [attr.d]="trajectoryPath()"
                 fill="none"
-                stroke="#f2b988"
+                [attr.stroke]="i18n.color('#f2b988')"
                 stroke-width="3"
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -235,7 +265,7 @@ import { Icon } from "../core/icon";
                   [attr.cx]="x(i)"
                   [attr.cy]="y(point.score)"
                   r="4"
-                  fill="#f2b988"
+                  [attr.fill]="i18n.color('#f2b988')"
                 >
                   <title>{{ point.date }} : {{ point.score }} %</title>
                 </circle>
@@ -247,35 +277,44 @@ import { Icon } from "../core/icon";
                   [attr.cy]="y(point.preview)"
                   r="6"
                   fill="none"
-                  stroke="#f2b988"
+                  [attr.stroke]="i18n.color('#f2b988')"
                   stroke-width="2"
                   stroke-dasharray="3 2"
                 >
-                  <title>Aperçu non validé : {{ point.preview }} %</title>
+                  <title>
+                    {{ "Aperçu non validé :" | t }} {{ point.preview }} %
+                  </title>
                 </circle>
               }
             }
             <text x="32" y="185">
-              {{ trajectory()[0].date | date: "d MMM" }}
+              {{ trajectory()[0].date | localDate: "d MMM" }}
             </text>
             <text x="552" y="185" text-anchor="end">
-              {{ trajectory()[13].date | date: "d MMM" }}
+              {{ trajectory()[13].date | localDate: "d MMM" }}
             </text>
           </svg>
           <div class="habit-chart-legend">
-            <span><i class="target-line"></i> Journée souhaitée</span>
-            <span><i class="observed-line"></i> Jours validés</span>
-            <span><i class="preview-ring"></i> Aperçu du jour sélectionné</span>
+            <span
+              ><i class="target-line"></i> {{ "Journée souhaitée" | t }}</span
+            >
+            <span><i class="observed-line"></i> {{ "Jours validés" | t }}</span>
+            <span
+              ><i class="preview-ring"></i>
+              {{ "Aperçu du jour sélectionné" | t }}</span
+            >
           </div>
         </section>
 
         <section class="panel habit-config-panel">
           <div class="panel-heading">
             <div>
-              <span class="eyebrow">PERSONNALISER</span>
-              <h2>Les habitudes que je suis</h2>
+              <span class="eyebrow">{{ "PERSONNALISER" | t }}</span>
+              <h2>{{ "Les habitudes que je suis" | t }}</h2>
             </div>
-            <span class="pill muted">{{ currentHabits().length }} ACTIVES</span>
+            <span class="pill muted"
+              >{{ currentHabits().length }} {{ "ACTIVES" | t }}</span
+            >
           </div>
           <div class="habit-config-list">
             @for (habit of currentHabits(); track habit.id) {
@@ -283,55 +322,57 @@ import { Icon } from "../core/icon";
                 <div>
                   <strong>{{ habit.label }}</strong>
                   <small>{{
-                    habit.kind === "good" ? "Bonne habitude" : "À réduire"
+                    habit.kind === "good"
+                      ? tr("Bonne habitude")
+                      : tr("À réduire")
                   }}</small>
                 </div>
                 <button
                   class="text-button"
-                  [attr.aria-label]="'Retirer du suivi : ' + habit.label"
+                  [attr.aria-label]="tr('Retirer du suivi : ') + habit.label"
                   [disabled]="store.busy()"
                   (click)="archive(habit)"
                 >
-                  Retirer
+                  {{ "Retirer" | t }}
                 </button>
               </div>
             } @empty {
-              <p>Aucune habitude configurée pour ce profil.</p>
+              <p>{{ "Aucune habitude configurée pour ce profil." | t }}</p>
             }
           </div>
           <div class="habit-add-form">
-            <h3>Ajouter une habitude</h3>
+            <h3>{{ "Ajouter une habitude" | t }}</h3>
             <label
-              >Choisir un exemple
+              >{{ "Choisir un exemple" | t }}
               <select
-                aria-label="Choisir un exemple d’habitude"
+                [attr.aria-label]="'Choisir un exemple d’habitude' | t"
                 [ngModel]="preset()"
                 (ngModelChange)="choosePreset($event)"
               >
-                <option value="">Personnalisée</option>
+                <option value="">{{ "Personnalisée" | t }}</option>
                 @for (metric of presets; track metric.id) {
-                  <option [value]="metric.id">{{ metric.label }}</option>
+                  <option [value]="metric.id">{{ tr(metric.label) }}</option>
                 }
               </select></label
             >
             <label
-              >Nom de l’habitude
+              >{{ "Nom de l’habitude" | t }}
               <input
                 [ngModel]="newLabel()"
                 (ngModelChange)="newLabel.set($event)"
                 maxlength="100"
-                placeholder="Ex. Courir, fumer, méditer…"
+                [placeholder]="'Ex. Courir, fumer, méditer…' | t"
               />
             </label>
             <label
-              >Je souhaite
+              >{{ "Je souhaite" | t }}
               <select
-                aria-label="Objectif de l’habitude"
+                [attr.aria-label]="'Objectif de l’habitude' | t"
                 [ngModel]="newKind()"
                 (ngModelChange)="newKind.set($event)"
               >
-                <option value="good">La faire chaque jour</option>
-                <option value="bad">L’éviter chaque jour</option>
+                <option value="good">{{ "La faire chaque jour" | t }}</option>
+                <option value="bad">{{ "L’éviter chaque jour" | t }}</option>
               </select></label
             >
             <button
@@ -343,21 +384,30 @@ import { Icon } from "../core/icon";
               "
               (click)="addHabit()"
             >
-              <ui-icon name="plus" /> Ajouter au suivi
+              <ui-icon name="plus" /> {{ "Ajouter au suivi" | t }}
             </button>
           </div>
         </section>
       </div>
     } @else {
       <section class="panel empty-state">
-        <h2>Commence par créer un profil.</h2>
-        <p>Tes habitudes et ton calendrier resteront attachés à ce profil.</p>
-        <a class="button primary" routerLink="/profils">Créer un profil</a>
+        <h2>{{ "Commence par créer un profil." | t }}</h2>
+        <p>
+          {{
+            "Tes habitudes et ton calendrier resteront attachés à ce profil."
+              | t
+          }}
+        </p>
+        <a class="button primary" routerLink="/profils">{{
+          "Créer un profil" | t
+        }}</a>
       </section>
     }
   `,
 })
 export class Habits {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   store = inject(Store);
   todayKey = today();
   currentMonth = `${this.todayKey.slice(0, 7)}-01`;
@@ -366,7 +416,11 @@ export class Habits {
   preset = signal("");
   newLabel = signal("");
   newKind = signal<"good" | "bad">("good");
-  weekdays = ["L", "M", "M", "J", "V", "S", "D"];
+  weekdays = computed(() =>
+    this.i18n.language() === "fr"
+      ? ["L", "M", "M", "J", "V", "S", "D"]
+      : ["M", "T", "W", "T", "F", "S", "S"],
+  );
   presets = HABIT_METRICS;
   currentHabits = computed(() =>
     activeHabits(this.store.habits(), this.todayKey),
@@ -455,12 +509,15 @@ export class Habits {
       : null;
   }
   calendarLabel(date: string, status: string) {
-    const name = new Date(`${date}T12:00:00`).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    return `${name} · ${status === "validated" ? "validée" : status === "partial" ? "en cours" : "non renseignée"}`;
+    const name = new Date(`${date}T12:00:00`).toLocaleDateString(
+      this.i18n.locale(),
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      },
+    );
+    return `${name} · ${this.tr(status === "validated" ? "validée" : status === "partial" ? "en cours" : "non renseignée")}`;
   }
   moveMonth(delta: number) {
     const [year, month] = this.month().split("-").map(Number);
@@ -470,7 +527,7 @@ export class Habits {
     this.preset.set(metric);
     const match = HABIT_METRICS.find((item) => item.id === metric);
     if (match) {
-      this.newLabel.set(match.label);
+      this.newLabel.set(this.tr(match.label));
       this.newKind.set(match.positive ? "good" : "bad");
     }
   }

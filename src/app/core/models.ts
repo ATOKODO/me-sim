@@ -1,3 +1,4 @@
+import { Language, Theme, readPresentation } from "./presentation";
 export type Metric =
   | "weight"
   | "sleep"
@@ -92,6 +93,8 @@ export interface Settings {
   animations: boolean;
   jitter: boolean;
   force2d: boolean;
+  language: Language;
+  theme: Theme;
 }
 export interface SimulationRun {
   id: string;
@@ -435,6 +438,7 @@ export function emptySnapshot(): Snapshot {
       animations: !matchMedia("(prefers-reduced-motion: reduce)").matches,
       jitter: false,
       force2d: false,
+      ...readPresentation(),
     },
   };
 }

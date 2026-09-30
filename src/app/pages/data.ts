@@ -1,7 +1,12 @@
+import {
+  I18n,
+  TranslatePipe,
+  LocalDatePipe,
+  LocalNumberPipe,
+} from "../core/i18n";
 import { FocusDialog } from "../core/focus-dialog";
 import { Component, inject, signal, effect } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder } from "@angular/forms";
-import { DatePipe, DecimalPipe } from "@angular/common";
 import { invoke } from "@tauri-apps/api/core";
 import { Store } from "../core/store";
 import {
@@ -14,64 +19,76 @@ import {
 } from "../core/models";
 import { Icon } from "../core/icon";
 @Component({
-  imports: [FocusDialog, ReactiveFormsModule, DatePipe, DecimalPipe, Icon],
+  imports: [
+    TranslatePipe,
+    LocalDatePipe,
+    LocalNumberPipe,
+    FocusDialog,
+    ReactiveFormsModule,
+    Icon,
+  ],
   template: `<div class="page-heading">
       <div>
-        <div class="eyebrow">TES DONNÉES T’APPARTIENNENT</div>
-        <h1>Mes données<span class="accent">.</span></h1>
-        <p>Fais entrer ton historique. Emporte-le quand tu veux.</p>
+        <div class="eyebrow">{{ "TES DONNÉES T’APPARTIENNENT" | t }}</div>
+        <h1>{{ "Mes données" | t }}<span class="accent">.</span></h1>
+        <p>{{ "Fais entrer ton historique. Emporte-le quand tu veux." | t }}</p>
       </div>
       <span class="local-badge"
-        ><ui-icon name="lock" /> Traitement sur cet appareil</span
+        ><ui-icon name="lock" /> {{ "Traitement sur cet appareil" | t }}</span
       >
     </div>
     @if (!store.desktop) {
       <div class="notice">
-        Les échanges de fichiers sont disponibles dans l’application Windows.
-        Cet aperçu ne lit ni n’enregistre de fichiers personnels.
+        {{
+          "Les échanges de fichiers sont disponibles dans l’application Windows. Cet aperçu ne lit ni n’enregistre de fichiers personnels."
+            | t
+        }}
       </div>
     }
     <div class="data-grid">
       <section class="panel import-panel">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">01 / IMPORTER</span>
-            <h2>Retrouver mes repères</h2>
+            <span class="eyebrow">{{ "01 / IMPORTER" | t }}</span>
+            <h2>{{ "Retrouver mes repères" | t }}</h2>
           </div>
           <ui-icon name="upload" />
         </div>
         <div class="drop-area">
           <div class="file-stack">
-            <span>CSV</span><span>XLS</span><span>JSON</span>
+            <span>{{ "CSV" | t }}</span
+            ><span>{{ "XLS" | t }}</span
+            ><span>{{ "JSON" | t }}</span>
           </div>
-          <h3>Un historique, plusieurs formats.</h3>
+          <h3>{{ "Un historique, plusieurs formats." | t }}</h3>
           <p>
-            CSV, XLS, XLSX ou tableau JSON · jusqu’à 25 Mo<br />Choisis les
-            colonnes et vérifie avant d’importer.
+            {{ "CSV, XLS, XLSX ou tableau JSON · jusqu’à 25 Mo" | t }}<br />{{
+              "Choisis les colonnes et vérifie avant d’importer." | t
+            }}
           </p>
           <button
             class="button primary"
             (click)="choose()"
             [disabled]="!store.desktop || !store.profile() || store.busy()"
           >
-            <ui-icon name="plus" /> Choisir un fichier
+            <ui-icon name="plus" /> {{ "Choisir un fichier" | t }}
           </button>
           @if (!store.profile()) {
-            <p>Crée un profil avant d’importer des mesures.</p>
+            <p>{{ "Crée un profil avant d’importer des mesures." | t }}</p>
           }
         </div>
       </section>
       <section class="panel export-panel">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">02 / EXPORTER</span>
-            <h2>Emporter mes données</h2>
+            <span class="eyebrow">{{ "02 / EXPORTER" | t }}</span>
+            <h2>{{ "Emporter mes données" | t }}</h2>
           </div>
           <ui-icon name="download" />
         </div>
         <div class="export-body">
           <p>
-            Mesures du profil
+            {{ "Mesures du profil" | t }}
             <strong>{{ store.profile()?.name || "—" }}</strong>
           </p>
           <div class="export-formats">
@@ -82,22 +99,25 @@ import { Icon } from "../core/icon";
                 (click)="export(f)"
               >
                 <ui-icon name="download" />{{ f.toUpperCase()
-                }}<span>Mesures</span>
+                }}<span>{{ "Mesures" | t }}</span>
               </button>
             }
           </div>
           <div class="divider"></div>
-          <h3>Sauvegarde complète</h3>
+          <h3>{{ "Sauvegarde complète" | t }}</h3>
           <p>
-            Tous les profils, observations, scénarios et préférences dans un
-            fichier JSON versionné.
+            {{
+              "Tous les profils, observations, scénarios et préférences dans un fichier JSON versionné."
+                | t
+            }}
           </p>
           <button
             class="button secondary full"
             (click)="export('json')"
             [disabled]="!store.desktop || store.busy()"
           >
-            <ui-icon name="download" /> Sauvegarder tout l’espace (.json)
+            <ui-icon name="download" />
+            {{ "Sauvegarder tout l’espace (.json)" | t }}
           </button>
         </div>
       </section>
@@ -106,104 +126,124 @@ import { Icon } from "../core/icon";
       <section class="panel mapping-panel">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">CORRESPONDANCE DES COLONNES</span>
+            <span class="eyebrow">{{ "CORRESPONDANCE DES COLONNES" | t }}</span>
             <h2>{{ b.filename }}</h2>
           </div>
-          <button class="text-button" (click)="cancelImport()">Fermer ×</button>
+          <button class="text-button" (click)="cancelImport()">
+            {{ "Fermer ×" | t }}
+          </button>
         </div>
         <form [formGroup]="form" (ngSubmit)="preview()">
           <div class="mapping-grid">
             <label
-              >Feuille<select formControlName="sheet">
+              >{{ "Feuille" | t
+              }}<select formControlName="sheet">
                 @for (sheet of b.sheets; track $index) {
                   <option [ngValue]="$index">
-                    {{ sheet.name }} · {{ sheet.rows.length }} lignes
+                    {{ sheet.name }} · {{ sheet.rows.length }}
+                    {{ "lignes" | t }}
                   </option>
                 }
               </select></label
             ><label
-              >Colonne date<select formControlName="dateColumn">
+              >{{ "Colonne date" | t
+              }}<select formControlName="dateColumn">
                 @for (h of headers(); track $index) {
                   <option [ngValue]="$index">
-                    {{ h || "Colonne " + ($index + 1) }}
+                    {{ h || tr("Colonne ") + ($index + 1) }}
                   </option>
                 }
               </select></label
             ><label
-              >Format des dates<select formControlName="dateFormat">
-                <option value="">Choisir explicitement…</option>
-                <option value="iso">AAAA-MM-JJ</option>
-                <option value="dmy">JJ/MM/AAAA</option>
-                <option value="mdy">MM/JJ/AAAA</option>
+              >{{ "Format des dates" | t
+              }}<select formControlName="dateFormat">
+                <option value="">{{ "Choisir explicitement…" | t }}</option>
+                <option value="iso">{{ "AAAA-MM-JJ" | t }}</option>
+                <option value="dmy">{{ "JJ/MM/AAAA" | t }}</option>
+                <option value="mdy">{{ "MM/JJ/AAAA" | t }}</option>
               </select></label
             ><label
-              >Colonne valeur<select formControlName="valueColumn">
+              >{{ "Colonne valeur" | t
+              }}<select formControlName="valueColumn">
                 @for (h of headers(); track $index) {
                   <option [ngValue]="$index">
-                    {{ h || "Colonne " + ($index + 1) }}
+                    {{ h || tr("Colonne ") + ($index + 1) }}
                   </option>
                 }
               </select></label
             ><label
-              >Mesure par ligne<select formControlName="metricColumn">
+              >{{ "Mesure par ligne" | t
+              }}<select formControlName="metricColumn">
                 <option [ngValue]="null">
-                  Une seule mesure pour le fichier
+                  {{ "Une seule mesure pour le fichier" | t }}
                 </option>
                 @for (h of headers(); track $index) {
                   <option [ngValue]="$index">
-                    {{ h || "Colonne " + ($index + 1) }}
+                    {{ h || tr("Colonne ") + ($index + 1) }}
                   </option>
                 }
               </select></label
             ><label
-              >Mesure fixe<select formControlName="metric">
+              >{{ "Mesure fixe" | t
+              }}<select formControlName="metric">
                 @for (m of metrics; track m.id) {
-                  <option [value]="m.id">{{ m.label }}</option>
+                  <option [value]="m.id">{{ tr(m.label) }}</option>
                 }
               </select></label
             ><label
-              >Unité par ligne<select formControlName="unitColumn">
-                <option [ngValue]="null">Une unité fixe pour le fichier</option>
+              >{{ "Unité par ligne" | t
+              }}<select formControlName="unitColumn">
+                <option [ngValue]="null">
+                  {{ "Une unité fixe pour le fichier" | t }}
+                </option>
                 @for (h of headers(); track $index) {
                   <option [ngValue]="$index">
-                    {{ h || "Colonne " + ($index + 1) }}
+                    {{ h || tr("Colonne ") + ($index + 1) }}
                   </option>
                 }
               </select></label
             ><label
-              >Unité fixe<select formControlName="unit">
-                <option value="">Choisir explicitement…</option>
+              >{{ "Unité fixe" | t
+              }}<select formControlName="unit">
+                <option value="">{{ "Choisir explicitement…" | t }}</option>
                 @for (u of units; track u) {
-                  <option [value]="u">{{ u }}</option>
+                  <option [value]="u">{{ tr(u) }}</option>
                 }
               </select></label
             ><label
-              >Heure (optionnel)<select formControlName="timeColumn">
-                <option [ngValue]="null">Aucune heure</option>
+              >{{ "Heure (optionnel)" | t
+              }}<select formControlName="timeColumn">
+                <option [ngValue]="null">{{ "Aucune heure" | t }}</option>
                 @for (h of headers(); track $index) {
                   <option [ngValue]="$index">
-                    {{ h || "Colonne " + ($index + 1) }}
+                    {{ h || tr("Colonne ") + ($index + 1) }}
                   </option>
                 }
               </select></label
             ><label
-              >Durée (optionnel)<select formControlName="durationColumn">
-                <option [ngValue]="null">Utiliser la valeur</option>
+              >{{ "Durée (optionnel)" | t
+              }}<select formControlName="durationColumn">
+                <option [ngValue]="null">{{ "Utiliser la valeur" | t }}</option>
                 @for (h of headers(); track $index) {
                   <option [ngValue]="$index">
-                    {{ h || "Colonne " + ($index + 1) }}
+                    {{ h || tr("Colonne ") + ($index + 1) }}
                   </option>
                 }
               </select></label
             >
           </div>
           <p class="field-help">
-            Profil destinataire : <strong>{{ store.profile()?.name }}</strong
-            >. Les unités seront converties vers kg, h, pas, min, kcal, verre ou
-            /10. Les formules et macros ne sont jamais exécutées.
+            {{ "Profil destinataire :" | t }}
+            <strong>{{ store.profile()?.name }}</strong
+            >{{
+              ". Les unités seront converties vers kg, h, pas, min, kcal, verre ou /10. Les formules et macros ne sont jamais exécutées."
+                | t
+            }}
           </p>
           <details>
-            <summary>Voir les 5 premières lignes du fichier</summary>
+            <summary>
+              {{ "Voir les 5 premières lignes du fichier" | t }}
+            </summary>
             <div class="table-scroll">
               <table>
                 <thead>
@@ -230,11 +270,11 @@ import { Icon } from "../core/icon";
             [disabled]="
               store.busy() ||
               !form.controls.dateFormat.value ||
-              (!form.controls.unit.value &&
+              (!form.controls.unit.value &amp;&amp;
                 form.controls.unitColumn.value === null)
             "
           >
-            Vérifier les lignes <ui-icon name="arrow" />
+            {{ "Vérifier les lignes" | t }} <ui-icon name="arrow" />
           </button>
         </form>
       </section>
@@ -242,24 +282,26 @@ import { Icon } from "../core/icon";
     @if (previewData(); as p) {
       <section class="panel preview-panel">
         <div class="panel-heading">
-          <h2>Vérifier avant d’ajouter</h2>
-          <span class="pill">{{ p.rows.length }} LIGNES</span>
+          <h2>{{ "Vérifier avant d’ajouter" | t }}</h2>
+          <span class="pill">{{ p.rows.length }} {{ "LIGNES" | t }}</span>
         </div>
         <div class="import-counts">
-          <span>{{ count("new") }} nouvelles</span
-          ><span>{{ count("duplicate") }} doublons</span
-          ><span>{{ count("conflict") }} conflits</span
-          ><span class="danger-text">{{ count("error") }} erreurs</span>
+          <span>{{ count("new") }} {{ "nouvelles" | t }}</span
+          ><span>{{ count("duplicate") }} {{ "doublons" | t }}</span
+          ><span>{{ count("conflict") }} {{ "conflits" | t }}</span
+          ><span class="danger-text"
+            >{{ count("error") }} {{ "erreurs" | t }}</span
+          >
         </div>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Ligne</th>
-                <th>Date</th>
-                <th>Mesure</th>
-                <th>Valeur convertie</th>
-                <th>Vérification</th>
+                <th>{{ "Ligne" | t }}</th>
+                <th>{{ "Date" | t }}</th>
+                <th>{{ "Mesure" | t }}</th>
+                <th>{{ "Valeur convertie" | t }}</th>
+                <th>{{ "Vérification" | t }}</th>
               </tr>
             </thead>
             <tbody>
@@ -267,13 +309,19 @@ import { Icon } from "../core/icon";
                 <tr>
                   <td>{{ r.row }}</td>
                   <td>{{ r.observation?.date || "—" }}</td>
-                  <td>{{ r.observation?.metric || "—" }}</td>
                   <td>
-                    {{ r.observation?.value | number: "1.0-3" }}
-                    {{ r.observation?.unit }}
+                    {{
+                      r.observation
+                        ? tr(store.metric(r.observation.metric).label)
+                        : "—"
+                    }}
+                  </td>
+                  <td>
+                    {{ r.observation?.value | localNumber: "1.0-3" }}
+                    {{ tr(r.observation?.unit) }}
                   </td>
                   <td [class.danger-text]="r.status === 'error'">
-                    {{ r.message }}
+                    {{ r.message | t }}
                   </td>
                 </tr>
               }
@@ -286,25 +334,30 @@ import { Icon } from "../core/icon";
             [disabled]="previewPage() === 0"
             (click)="previewPage.set(previewPage() - 1)"
           >
-            Précédent</button
-          ><span>Page {{ previewPage() + 1 }} / {{ previewPages() }}</span
+            {{ "Précédent" | t }}</button
+          ><span
+            >{{ "Page" | t }} {{ previewPage() + 1 }} /
+            {{ previewPages() }}</span
           ><button
             class="button ghost small"
             [disabled]="previewPage() + 1 >= previewPages()"
             (click)="previewPage.set(previewPage() + 1)"
           >
-            Suivant
+            {{ "Suivant" | t }}
           </button>
         </div>
         <div class="import-confirm">
           <label
-            >En cas de conflit<select
+            >{{ "En cas de conflit" | t
+            }}<select
               [value]="policy()"
               (change)="policy.set($any($event.target).value)"
             >
-              <option value="skip">Conserver la valeur déjà présente</option>
+              <option value="skip">
+                {{ "Conserver la valeur déjà présente" | t }}
+              </option>
               <option value="replace">
-                Remplacer par la valeur du fichier (dernière ligne)
+                {{ "Remplacer par la valeur du fichier (dernière ligne)" | t }}
               </option>
             </select></label
           >
@@ -314,16 +367,16 @@ import { Icon } from "../core/icon";
                 type="checkbox"
                 [checked]="skipErrors()"
                 (change)="skipErrors.set($any($event.target).checked)"
-              />Ignorer explicitement les {{ count("error") }} lignes
-              invalides</label
+              />{{ "Ignorer explicitement les" | t }} {{ count("error") }}
+              {{ "lignes invalides" | t }}</label
             >
           }
           <button
             class="button primary"
-            [disabled]="store.busy() || (count('error') > 0 && !skipErrors())"
+            [disabled]="store.busy() || (count('error') > 0 &amp;&amp; !skipErrors())"
             (click)="commit()"
           >
-            <ui-icon name="check" /> Confirmer l’import dans
+            <ui-icon name="check" /> {{ "Confirmer l’import dans" | t }}
             {{ store.profile()?.name }}
           </button>
         </div>
@@ -331,10 +384,12 @@ import { Icon } from "../core/icon";
     }
     <section class="panel restore-panel">
       <div>
-        <h2>Restaurer une sauvegarde</h2>
+        <h2>{{ "Restaurer une sauvegarde" | t }}</h2>
         <p>
-          Remplace tout l’espace local par une sauvegarde JSON. Un aperçu et une
-          copie de l’état actuel précèdent la restauration.
+          {{
+            "Remplace tout l’espace local par une sauvegarde JSON. Un aperçu et une copie de l’état actuel précèdent la restauration."
+              | t
+          }}
         </p>
       </div>
       <button
@@ -342,25 +397,27 @@ import { Icon } from "../core/icon";
         [disabled]="!store.desktop || store.busy()"
         (click)="restorePreview()"
       >
-        <ui-icon name="data" /> Choisir une sauvegarde
+        <ui-icon name="data" /> {{ "Choisir une sauvegarde" | t }}
       </button>
     </section>
     @if (store.batches().length) {
       <section class="panel">
-        <div class="panel-heading"><h2>Historique des imports</h2></div>
+        <div class="panel-heading">
+          <h2>{{ "Historique des imports" | t }}</h2>
+        </div>
         <table>
           <thead>
             <tr>
-              <th>Fichier</th>
-              <th>Date</th>
-              <th>Mesures traitées</th>
+              <th>{{ "Fichier" | t }}</th>
+              <th>{{ "Date" | t }}</th>
+              <th>{{ "Mesures traitées" | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (b of store.batches(); track b.id) {
               <tr>
                 <td>{{ b.filename }}</td>
-                <td>{{ b.importedAt | date: "dd/MM/yyyy HH:mm" }}</td>
+                <td>{{ b.importedAt | localDate: "dd/MM/yyyy HH:mm" }}</td>
                 <td>{{ b.count }}</td>
               </tr>
             }
@@ -378,25 +435,31 @@ import { Icon } from "../core/icon";
           aria-modal="true"
           aria-labelledby="restore-title"
         >
-          <h2 id="restore-title">Remplacer tout l’espace local ?</h2>
+          <h2 id="restore-title">
+            {{ "Remplacer tout l’espace local ?" | t }}
+          </h2>
           <p>
-            {{ r.profiles.length }} profils · {{ r.observations }} mesures ·
-            {{ r.habitDays }} journées d’habitudes · {{ r.scenarios }} scénarios
+            {{ r.profiles.length }} {{ "profils ·" | t }} {{ r.observations }}
+            {{ "mesures ·" | t }} {{ r.habitDays }}
+            {{ "journées d’habitudes ·" | t }} {{ r.scenarios }}
+            {{ "scénarios" | t }}
           </p>
-          <p>{{ r.profiles.join(", ") || "Sauvegarde vide" }}</p>
+          <p>{{ r.profiles.join(", ") || tr("Sauvegarde vide") }}</p>
           <p>
-            Une copie JSON de l’état actuel sera enregistrée à côté de la base
-            avant le remplacement.
+            {{
+              "Une copie JSON de l’état actuel sera enregistrée à côté de la base avant le remplacement."
+                | t
+            }}
           </p>
           <div class="button-row">
             <button class="button secondary" (click)="restore.set(null)">
-              Annuler</button
+              {{ "Annuler" | t }}</button
             ><button
               class="button danger"
               [disabled]="store.busy()"
               (click)="restoreCommit()"
             >
-              Sauvegarder puis remplacer
+              {{ "Sauvegarder puis remplacer" | t }}
             </button>
           </div>
         </section>
@@ -404,6 +467,8 @@ import { Icon } from "../core/icon";
     }`,
 })
 export class DataPage {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   store = inject(Store);
   fb = inject(FormBuilder);
   metrics = METRICS;

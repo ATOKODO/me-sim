@@ -2,9 +2,9 @@
 
 ## Vérifié sur ce poste Windows
 
-- Build Angular de production : réussi ; environ 365 Ko initiaux, Three.js chargé séparément à la demande.
-- 11 tests Rust : isolation et suppression des profils, références croisées, sauvegarde/restauration sans perte, refus des versions inconnues et des données invalides, annulation transactionnelle après échec SQL, concurrence entre deux connexions SQLite, formats CSV/XLS/XLSX/JSON, nombres et dates Excel, feuilles multiples, conversions d’unités, doublons/conflits, formules et fichiers malformés, verrou scientifique.
-- 16 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, habitudes et Target, modification/suppression, scénarios sans projection inventée, mode 2D et perte du contexte WebGL, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les sept routes. Le personnage fourni joue les quinze clips avec un seul chargement du GLB, y compris pendant la timeline ; l’arrêt des animations et la recréation de la scène sont vérifiés. L’aperçu utilise une CSP avec nonce, comme la version native.
+- Build Angular de production : réussi ; environ 407 Ko initiaux, Three.js chargé séparément à la demande.
+- 15 tests Rust : isolation et suppression des profils, références croisées, sauvegarde/restauration sans perte, refus des versions inconnues et des données invalides, annulation transactionnelle après échec SQL, concurrence entre deux connexions SQLite, formats CSV/XLS/XLSX/JSON, nombres et dates Excel, feuilles multiples, conversions d’unités, doublons/conflits, formules et fichiers malformés, verrou scientifique.
+- 23 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, habitudes et Target, modification/suppression, scénarios sans projection inventée, mode 2D et perte du contexte WebGL, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les sept routes. Le personnage fourni joue les quinze clips avec un seul chargement du GLB, y compris pendant la timeline ; l’arrêt des animations et la recréation de la scène sont vérifiés. L’aperçu utilise une CSP avec nonce, comme la version native.
 - Exécutable Tauri debug : lancement réel dans WebView2, création de profil, ajout d’une observation, rechargement et lecture de la donnée persistée dans SQLite ; aucune erreur JavaScript capturée. Quinze modes du personnage fourni vérifiés dans WebView2. Test de données dans `.tmp/native-smoke/avatar` et test de caméra dans `.tmp/native-smoke/camera`, avec caches WebView2 isolés, sans donnée personnelle.
 - Capture native : `docs/native-dashboard.png`.
 
@@ -25,6 +25,16 @@
 - Orbite par glisser-déposer et flèches du clavier ; bouton de réinitialisation, touche R et touche Début. L’image du rendu, animations arrêtées, est comparée avant manipulation et après réinitialisation : le cadrage d’origine est retrouvé exactement.
 - Zoom conservé lors du redimensionnement, caméras de comparaison indépendantes, commandes masquées et focus retiré en mode 2D. Les écouteurs OrbitControls sont libérés avec la scène.
 - Test natif WebView2 avec une base isolée : orbite, zoom à la molette et restauration exacte de l’image vérifiés, sans erreur JavaScript. Reproductible avec `node scripts/native-camera-smoke.mjs` après lancement du binaire debug dans `.tmp/native-smoke/` et ouverture de son port de débogage local (défaut 9224, configurable par `ME_SIM_NATIVE_DEBUG_URL`).
+
+## Langues et thème clair — vérification du 1er octobre 2026
+
+- Menu Français / English et bouton de thème dans la barre supérieure ; les préférences proposent aussi les deux langues et les deux thèmes. Traductions embarquées sur les sept routes, commandes de caméra, formulaires, dialogues et messages d’import. Dates, nombres et calendrier suivent la langue choisie.
+- Thème clair inspecté visuellement dans Edge à 960 px puis dans WebView2. Audits automatisés WCAG A/AA des sept routes en français et en anglais ; audit supplémentaire de l’aperçu natif d’import avec conflits et erreurs. Les couleurs des textures et du personnage sont conservées.
+- Changement immédiat, conservation des brouillons de journal, Target et scénario, ainsi que des noms de profils, habitudes, feuilles et fichiers. Les identifiants de métriques et unités stockées ne sont pas traduits.
+- Persistance SQLite et aller-retour JSON vérifiés en Rust, valeurs de langue/thème inconnues refusées, anciennes préférences et sauvegardes chargées avec français/sombre par défaut. Le cache navigateur ne contient que les deux préférences de présentation.
+- Test réel WebView2 : préférences anglais/clair conservées après rechargement, priorité à SQLite face à un cache d’affichage obsolète, profils/observations/journées inchangés, fiche scientifique traduite et scène GLB fonctionnelle. Aucune erreur JavaScript. Base et cache de test isolés sous `.tmp/native-smoke/appearance/`.
+- Reproduction native : `node scripts/native-presentation-smoke.mjs`, avec le port local 9226 (ou `ME_SIM_NATIVE_DEBUG_URL`) et une base placée sous `.tmp/native-smoke/appearance/`. Le script refuse une autre base.
+- Serveur de développement sur 127.0.0.1:1420 : menu de langue et thème clair vérifiés sur la version actuellement servie. Build Angular et binaire debug Tauri reconstruits ; les installateurs de `release/` n’ont pas été reconstruits pour cette modification.
 
 ## Limites de vérification
 

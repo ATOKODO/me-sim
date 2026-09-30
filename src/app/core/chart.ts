@@ -1,11 +1,13 @@
-import { Component, computed, input } from "@angular/core";
+import { I18n, TranslatePipe } from "./i18n";
+import { Component, inject, computed, input } from "@angular/core";
 @Component({
   selector: "mini-chart",
+  imports: [TranslatePipe],
   template: `<svg
     viewBox="0 0 400 100"
     preserveAspectRatio="none"
     role="img"
-    [attr.aria-label]="label()"
+    [attr.aria-label]="label() | t"
   >
     <path
       d="M0 25H400M0 50H400M0 75H400"
@@ -14,17 +16,23 @@ import { Component, computed, input } from "@angular/core";
       fill="none"
     />
     @if (values().length > 1) {
-      <path [attr.d]="area()" [attr.fill]="color()" opacity=".09" />
+      <path [attr.d]="area()" [attr.fill]="i18n.color(color())" opacity=".09" />
       <path
         [attr.d]="line()"
-        [attr.stroke]="color()"
+        [attr.stroke]="i18n.color(color())"
         fill="none"
         stroke-width="2"
         vector-effect="non-scaling-stroke"
       />
     } @else {
-      <text x="200" y="55" text-anchor="middle" fill="#8f9b9c" font-size="12">
-        Historique insuffisant
+      <text
+        x="200"
+        y="55"
+        text-anchor="middle"
+        fill="var(--muted)"
+        font-size="12"
+      >
+        {{ "Historique insuffisant" | t }}
       </text>
     }
   </svg>`,
@@ -33,6 +41,8 @@ import { Component, computed, input } from "@angular/core";
   ],
 })
 export class Chart {
+  i18n = inject(I18n);
+  tr = this.i18n.t;
   values = input<number[]>([]);
   color = input("#bde883");
   label = input("Évolution des mesures observées");
