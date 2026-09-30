@@ -8,7 +8,7 @@ import {
   input,
   signal,
 } from "@angular/core";
-import type { Room } from "./room";
+import type { CameraState, Room } from "./room";
 @Component({
   selector: "avatar-scene",
   template: `<div
@@ -20,7 +20,10 @@ import type { Room } from "./room";
       #host
       class="render-host"
       role="img"
-      aria-label="Avatar rétro dans une pièce isométrique"
+      [attr.tabindex]="cameraReady() && !force2d() && !fallback() ? 0 : null"
+      aria-label="Scène 3D : glisser pour tourner, molette pour zoomer. Au clavier : flèches pour tourner, plus ou moins pour zoomer, R pour réinitialiser."
+      (keydown)="cameraKey($event)"
+      (pointerdown)="focusCamera()"
     ></div>
     @if (fallback() || force2d()) {
       <div class="fallback">
@@ -36,6 +39,42 @@ import type { Room } from "./room";
           </div>
         }
         <span>Vue 2D · ton avatar</span>
+      </div>
+    }
+    @if (cameraReady() && !fallback() && !force2d()) {
+      <div class="camera-controls" role="group" aria-label="Caméra 3D">
+        <button
+          type="button"
+          aria-label="Dézoomer la scène"
+          title="Dézoomer (−)"
+          [disabled]="!cameraState().canZoomOut"
+          (click)="zoomCamera(-1)"
+        >
+          <span aria-hidden="true">−</span>
+        </button>
+        <output class="camera-zoom" aria-label="Niveau de zoom"
+          >{{ zoomPercent() }} %</output
+        >
+        <button
+          type="button"
+          aria-label="Zoomer la scène"
+          title="Zoomer (+)"
+          [disabled]="!cameraState().canZoomIn"
+          (click)="zoomCamera(1)"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+        <button
+          type="button"
+          aria-label="Réinitialiser la caméra"
+          title="Réinitialiser la caméra (R)"
+          (click)="resetCamera()"
+        >
+          <span aria-hidden="true">↺</span>
+        </button>
+      </div>
+      <div class="camera-hint" aria-hidden="true">
+        Glisser : tourner<br />Molette : zoomer
       </div>
     }
     <div class="scene-grid"></div>
@@ -77,6 +116,69 @@ import type { Room } from "./room";
       .render-host {
         position: absolute;
         inset: 0;
+        cursor: grab;
+      }
+      .render-host:focus-visible {
+        outline: 2px solid #bde883;
+        outline-offset: -4px;
+      }
+      .camera-controls {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid #5c7362;
+        border-radius: 7px;
+        background: #17241df2;
+      }
+      .camera-controls button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 1px solid #607466;
+        border-radius: 4px;
+        color: #dae7d4;
+        background: #26372d;
+        font:
+          19px Consolas,
+          monospace;
+        cursor: pointer;
+      }
+      .camera-controls button:hover:not(:disabled) {
+        background: #3a513d;
+      }
+      .camera-controls button:focus-visible {
+        outline: 2px solid #bde883;
+        outline-offset: 2px;
+      }
+      .camera-controls button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .camera-zoom {
+        min-width: 43px;
+        text-align: center;
+        color: #dae7d4;
+        font:
+          10px Consolas,
+          monospace;
+      }
+      .camera-hint {
+        position: absolute;
+        top: 66px;
+        right: 18px;
+        text-align: right;
+        color: #c1d0bf;
+        font:
+          9px/1.6 Consolas,
+          monospace;
+        pointer-events: none;
+        padding: 3px 5px;
+        border-radius: 4px;
+        background: #17241df2;
       }
       .render-host:empty {
         display: none;
@@ -98,12 +200,16 @@ import type { Room } from "./room";
         top: 23px;
         left: 25px;
         color: #cbdac1;
+        max-width: calc(100% - 200px);
+        line-height: 1.5;
+        pointer-events: none;
         font:
           10px Consolas,
           monospace;
         letter-spacing: 2px;
       }
       .scene-caption {
+        pointer-events: none;
         position: absolute;
         bottom: 22px;
         left: 25px;
@@ -471,6 +577,13 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
   label = input("TON ESPACE");
   fallback = signal(false);
   source = signal<"artist" | "procedural">("procedural");
+  cameraReady = signal(false);
+  cameraState = signal<CameraState>({
+    zoom: 1,
+    canZoomIn: true,
+    canZoomOut: true,
+  });
+  zoomPercent = () => Math.round(this.cameraState().zoom * 100);
   private room?: Room;
   private destroyed = false;
   private ready = signal(false);
@@ -490,6 +603,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
       if (options.hidden || this.fallback()) {
         this.room?.dispose();
         this.room = undefined;
+        this.cameraReady.set(false);
         this.source.set("procedural");
       } else if (this.room) this.room.update(options);
       else if (!this.creating) this.roomTask = this.createRoom();
@@ -507,6 +621,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         this.host.nativeElement,
         () => this.fallback.set(true),
         (source) => this.source.set(source),
+        (state) => this.cameraState.set(state),
       );
       this.room.update({
         color: this.color(),
@@ -516,11 +631,54 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         replayKey: this.replayKey(),
         hidden: this.force2d(),
       });
+      this.cameraReady.set(true);
     } catch {
       this.fallback.set(true);
     } finally {
       this.creating = false;
     }
+  }
+  focusCamera() {
+    if (this.cameraReady() && !this.force2d() && !this.fallback())
+      this.host.nativeElement.focus({ preventScroll: true });
+  }
+  zoomCamera(direction: number) {
+    this.room?.zoomCamera(direction);
+  }
+  resetCamera() {
+    this.room?.resetCamera();
+  }
+  cameraKey(event: KeyboardEvent) {
+    if (!this.room || event.altKey || event.ctrlKey || event.metaKey) return;
+    switch (event.key) {
+      case "ArrowLeft":
+        this.room.rotateCamera(-1, 0);
+        break;
+      case "ArrowRight":
+        this.room.rotateCamera(1, 0);
+        break;
+      case "ArrowUp":
+        this.room.rotateCamera(0, -1);
+        break;
+      case "ArrowDown":
+        this.room.rotateCamera(0, 1);
+        break;
+      case "+":
+      case "=":
+        this.zoomCamera(1);
+        break;
+      case "-":
+        this.zoomCamera(-1);
+        break;
+      case "r":
+      case "R":
+      case "Home":
+        this.resetCamera();
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
   }
   async prepareModes(modes: string[]) {
     if (this.destroyed || this.force2d() || this.fallback()) return;

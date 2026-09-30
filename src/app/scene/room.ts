@@ -1,9 +1,24 @@
 import * as T from "three";
 import { ArtistAnimations } from "./artist-animations";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+export interface CameraState {
+  zoom: number;
+  canZoomIn: boolean;
+  canZoomOut: boolean;
+}
 export class Room {
   private renderer: T.WebGLRenderer;
   private scene = new T.Scene();
   private camera = new T.OrthographicCamera(-5.3, 5.3, 4, -4, 0.1, 80);
+  private controls: OrbitControls;
+  private readonly emitCameraState = () => {
+    this.onCameraState?.({
+      zoom: this.camera.zoom,
+      canZoomIn: this.camera.zoom < this.controls.maxZoom,
+      canZoomOut: this.camera.zoom > this.controls.minZoom,
+    });
+  };
   private frame = 0;
   private observer: ResizeObserver;
   private root = new T.Group();
@@ -38,6 +53,7 @@ export class Room {
     private host: HTMLElement,
     private onFallback: () => void,
     private onAnimationSource?: (source: "artist" | "procedural") => void,
+    private onCameraState?: (state: CameraState) => void,
   ) {
     this.renderer = new T.WebGLRenderer({
       antialias: false,
@@ -52,7 +68,17 @@ export class Room {
     host.append(this.renderer.domElement);
     this.renderer.domElement.addEventListener("webglcontextlost", this.onLost);
     this.camera.position.set(9, 8, 11);
-    this.camera.lookAt(0, 1, 0);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.target.set(0, 1, 0);
+    this.controls.enablePan = false;
+    this.controls.minZoom = 0.7;
+    this.controls.maxZoom = 4;
+    this.controls.minPolarAngle = 0.15;
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    this.controls.update();
+    this.controls.saveState();
+    this.controls.addEventListener("change", this.emitCameraState);
+    this.renderer.domElement.setAttribute("aria-hidden", "true");
     this.scene.add(new T.AmbientLight(0xcbdac5, 2));
     const sun = new T.DirectionalLight(0xffdfac, 3);
     sun.position.set(-3, 8, 5);
@@ -80,6 +106,7 @@ export class Room {
     this.observer.observe(host);
     this.resize();
     this.tick(0);
+    this.emitCameraState();
   }
   private box(
     w: number,
@@ -394,6 +421,37 @@ export class Room {
   async preloadModes(modes: string[]) {
     await this.artist.preload(modes);
   }
+  zoomCamera(direction: number) {
+    if (this.dead) return;
+    this.camera.zoom = T.MathUtils.clamp(
+      this.camera.zoom * Math.pow(1.25, direction),
+      this.controls.minZoom,
+      this.controls.maxZoom,
+    );
+    this.camera.updateProjectionMatrix();
+    this.controls.update();
+    this.emitCameraState();
+  }
+  rotateCamera(horizontal: number, vertical: number) {
+    if (this.dead) return;
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    const spherical = new T.Spherical().setFromVector3(offset);
+    spherical.theta += (horizontal * Math.PI) / 12;
+    spherical.phi = T.MathUtils.clamp(
+      spherical.phi + (vertical * Math.PI) / 12,
+      this.controls.minPolarAngle,
+      this.controls.maxPolarAngle,
+    );
+    this.camera.position
+      .copy(this.controls.target)
+      .add(offset.setFromSpherical(spherical));
+    this.controls.update();
+  }
+  resetCamera() {
+    if (this.dead) return;
+    this.controls.reset();
+    this.emitCameraState();
+  }
   private resize() {
     const w = this.host.clientWidth,
       h = this.host.clientHeight;
@@ -540,6 +598,8 @@ export class Room {
   dispose() {
     this.dead = true;
     this.artist.dispose();
+    this.controls.removeEventListener("change", this.emitCameraState);
+    this.controls.dispose();
     cancelAnimationFrame(this.frame);
     this.observer.disconnect();
     this.renderer.domElement.removeEventListener(
