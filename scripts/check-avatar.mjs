@@ -125,6 +125,6 @@ if (errors.length) {
   process.exitCode = 1;
 } else {
   console.log(
-    `Manifeste valide : ${Object.keys(manifest.overrides).length} animation(s) GLB, ${modes.size - 1} habitudes couvertes par le repli procédural.`,
+    `Manifeste valide : ${Object.keys(manifest.overrides).length} animation(s) GLB, ${[...modes].filter((mode) => mode !== "idle" && !manifest.overrides[mode]).length} habitude(s) utilisant le repli procédural.`,
   );
 }

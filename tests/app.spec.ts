@@ -77,7 +77,10 @@ test("local artist GLB replaces one habit animation", async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         version: 1,
-        overrides: { walk: { file: "clips/walk.glb", clip: "Walk" } },
+        overrides: {
+          walk: { file: "clips/walk.glb", clip: "Walk" },
+          reading: { file: "clips/walk.glb", clip: "MissingClip" },
+        },
       }),
     }),
   );
@@ -99,6 +102,13 @@ test("local artist GLB replaces one habit animation", async ({ page }) => {
     .selectOption("reading");
   await expect(page.locator(".scene[data-mode='reading']")).toContainText(
     "SCÈNE 3D",
+  );
+  // A missing clip must not dispose the model used by another habit.
+  await page
+    .getByLabel("Prévisualiser l’animation d’une habitude")
+    .selectOption("walk");
+  await expect(page.locator(".scene[data-mode='walk']")).toContainText(
+    "ANIMATION GLB",
   );
 });
 
@@ -163,7 +173,8 @@ test("dashboard renders locally and captures the PS1 scene", async ({
   const requests: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("request", (r) => {
-    if (!r.url().startsWith("http://127.0.0.1:1421")) requests.push(r.url());
+    if (new URL(r.url()).origin !== "http://127.0.0.1:1421")
+      requests.push(r.url());
   });
   await page.goto("/");
   await expect(

@@ -41,7 +41,7 @@ Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `s
 - Écran Mes habitudes : choisir des habitudes à cultiver ou à réduire, en créer de personnalisées, répondre oui/non chaque jour, valider les journées et suivre leur alignement avec le cap souhaité sur 14 jours. Les jours incomplets restent absents de la courbe ; les habitudes retirées restent dans l’historique.
 - Historique et courbes d’observations ; données absentes indiquées comme inconnues.
 - Scène PS1, animations contextuelles propres à chaque activité (pause, marche, repos, sport, travail, social, écran, écran du soir, jeu, tabac, vapotage, sédentarité, lecture, repas et boisson), accessoires 3D associés, couleur d’avatar, préférences d’animation et rendu 2D de remplacement.
-- Remplacement progressif des animations 3D par des GLB locaux, un fichier par habitude ; [guide pour l’artiste](docs/artist-animation-guide.md) et commande `npm run check:avatar` pour vérifier les exports.
+- Personnage FBX fourni, texture embarquée et quinze clips sur son rig, avec un fichier Blender éditable. Remplacement des animations par des GLB locaux partagés ou séparés ; [guide pour l’artiste](docs/artist-animation-guide.md) et commande `npm run check:avatar` pour vérifier les exports.
 - Scénarios personnels enregistrés et deux avatars illustratifs côte à côte.
 - Imports CSV UTF-8, XLS binaire, XLSX multifeuille et tableaux JSON, avec mapping, unités, dates et aperçu paginé.
 - Exports CSV, XLS binaire BIFF8, XLSX et sauvegarde JSON complète ; restauration transactionnelle précédée d’une copie JSON.

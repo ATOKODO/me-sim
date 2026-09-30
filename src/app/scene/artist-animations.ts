@@ -6,6 +6,12 @@ interface Override {
   clip: string;
 }
 
+interface LoadedModel {
+  scene: T.Group;
+  mixer: T.AnimationMixer;
+  clips: T.AnimationClip[];
+}
+
 interface LoadedAnimation {
   scene: T.Group;
   mixer: T.AnimationMixer;
@@ -30,14 +36,17 @@ function materialsIn(root: T.Object3D) {
 /** Releases a GLB that finished loading after its room was destroyed. */
 function disposeModel(root: T.Object3D) {
   const geometries = new Set<T.BufferGeometry>();
+  const skeletons = new Set<T.Skeleton>();
   root.traverse((object) => {
     if (object instanceof T.Mesh) geometries.add(object.geometry);
+    if (object instanceof T.SkinnedMesh) skeletons.add(object.skeleton);
   });
   const materials = materialsIn(root);
   const textures = new Set<T.Texture>();
   for (const material of materials)
     for (const value of Object.values(material))
       if (value instanceof T.Texture) textures.add(value);
+  skeletons.forEach((skeleton) => skeleton.dispose());
   geometries.forEach((geometry) => geometry.dispose());
   materials.forEach((material) => material.dispose());
   textures.forEach((texture) => {
@@ -58,6 +67,12 @@ export class ArtistAnimations {
   );
   private readonly anchor = new T.Group();
   private readonly specs: Record<string, Override> = {};
+  // One model and mixer per file, even when many habits use its clips.
+  private readonly models = new Map<string, LoadedModel>();
+  private readonly modelPending = new Map<
+    string,
+    Promise<LoadedModel | null>
+  >();
   private readonly loaded = new Map<string, LoadedAnimation>();
   private readonly pending = new Map<string, Promise<void>>();
   private readonly failed = new Set<string>();
@@ -87,7 +102,7 @@ export class ArtistAnimations {
 
   setColor(color: string) {
     this.color = color;
-    for (const asset of this.loaded.values()) this.colorShirt(asset.scene);
+    for (const asset of this.models.values()) this.colorShirt(asset.scene);
   }
 
   play(mode: string, replayKey: number, animate: boolean) {
@@ -122,12 +137,14 @@ export class ArtistAnimations {
 
   dispose() {
     this.disposed = true;
-    for (const asset of this.loaded.values()) {
+    for (const asset of this.models.values()) {
       asset.mixer.stopAllAction();
       asset.mixer.uncacheRoot(asset.scene);
       asset.scene.removeFromParent();
       disposeModel(asset.scene);
     }
+    this.active = null;
+    this.models.clear();
     this.loaded.clear();
     this.anchor.removeFromParent();
   }
@@ -184,43 +201,21 @@ export class ArtistAnimations {
     if (existing) return existing;
     const task = (async () => {
       try {
-        const { GLTFLoader } =
-          await import("three/addons/loaders/GLTFLoader.js");
-        const url = new URL(spec.file, this.manifestUrl);
-        const gltf = await new GLTFLoader().loadAsync(url.href);
-        if (this.disposed) {
-          disposeModel(gltf.scene);
-          return;
-        }
-        const clip = gltf.animations.find(
+        const model = await this.loadModel(spec.file);
+        if (!model || this.disposed) return;
+        const clip = model.clips.find(
           (animation) =>
             animation.name === spec.clip &&
             animation.duration > 0 &&
             animation.tracks.length > 0,
         );
-        let hasMesh = false;
-        gltf.scene.traverse((object) => {
-          if (object instanceof T.Mesh) hasMesh = true;
+        if (!clip)
+          throw new Error(`Clip « ${spec.clip} » introuvable ou vide.`);
+        this.loaded.set(mode, {
+          scene: model.scene,
+          mixer: model.mixer,
+          action: model.mixer.clipAction(clip),
         });
-        if (!clip || !hasMesh) {
-          disposeModel(gltf.scene);
-          throw new Error(
-            `Modèle ou clip « ${spec.clip} » introuvable ou vide.`,
-          );
-        }
-        const mixer = new T.AnimationMixer(gltf.scene);
-        const action = mixer.clipAction(clip);
-        for (const material of materialsIn(gltf.scene))
-          for (const value of Object.values(material))
-            if (value instanceof T.Texture) {
-              value.magFilter = T.NearestFilter;
-              value.minFilter = T.NearestFilter;
-              value.needsUpdate = true;
-            }
-        gltf.scene.visible = false;
-        this.anchor.add(gltf.scene);
-        this.colorShirt(gltf.scene);
-        this.loaded.set(mode, { scene: gltf.scene, mixer, action });
       } catch (error) {
         this.failed.add(mode);
         console.warn(`Animation 3D « ${mode} » indisponible.`, error);
@@ -228,6 +223,57 @@ export class ArtistAnimations {
     })();
     this.pending.set(mode, task);
     void task.finally(() => this.pending.delete(mode));
+    return task;
+  }
+
+  private loadModel(file: string): Promise<LoadedModel | null> {
+    if (this.disposed) return Promise.resolve(null);
+    const loaded = this.models.get(file);
+    if (loaded) return Promise.resolve(loaded);
+    const existing = this.modelPending.get(file);
+    if (existing) return existing;
+    const task = (async () => {
+      const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+      if (this.disposed) return null;
+      const gltf = await new GLTFLoader().loadAsync(
+        new URL(file, this.manifestUrl).href,
+      );
+      if (this.disposed) {
+        disposeModel(gltf.scene);
+        return null;
+      }
+      let hasMesh = false;
+      gltf.scene.traverse((object) => {
+        if (object instanceof T.Mesh) hasMesh = true;
+      });
+      if (!hasMesh) {
+        disposeModel(gltf.scene);
+        throw new Error("Modèle sans géométrie.");
+      }
+      for (const material of materialsIn(gltf.scene))
+        for (const value of Object.values(material))
+          if (value instanceof T.Texture) {
+            value.magFilter = T.NearestFilter;
+            value.minFilter = T.NearestFilter;
+            value.needsUpdate = true;
+          }
+      gltf.scene.visible = false;
+      this.anchor.add(gltf.scene);
+      this.colorShirt(gltf.scene);
+      const model = {
+        scene: gltf.scene,
+        mixer: new T.AnimationMixer(gltf.scene),
+        clips: gltf.animations,
+      };
+      this.models.set(file, model);
+      return model;
+    })();
+    this.modelPending.set(file, task);
+    // Both handlers consume rejection; cleanup must not create an unhandled promise.
+    void task.then(
+      () => this.modelPending.delete(file),
+      () => this.modelPending.delete(file),
+    );
     return task;
   }
 

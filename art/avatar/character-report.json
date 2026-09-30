@@ -1,0 +1,28 @@
+{
+  "source": "male_casual.fbx",
+  "texture": "character-texture.png",
+  "sourceAnimationClips": [],
+  "sourceBones": 25,
+  "generatedPropBones": 15,
+  "characterVertices": 498,
+  "characterTriangles": 952,
+  "textureSha256": "698f10310f95cb779456a91d7f3b164139a3e03e78759247ae956b00dafd3532",
+  "generatedAnimationClips": [
+    "Idle",
+    "Walk",
+    "Exercise",
+    "Work",
+    "Social",
+    "Screen",
+    "ScreenEvening",
+    "Gaming",
+    "Read",
+    "Meal",
+    "Alcohol",
+    "Tobacco",
+    "Vaping",
+    "Sedentary",
+    "Rest"
+  ],
+  "heightUnits": 2.2
+}

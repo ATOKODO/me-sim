@@ -10,6 +10,7 @@ const mime = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".json": "application/json",
+  ".glb": "model/gltf-binary",
 };
 export const server = http
   .createServer((req, res) => {
@@ -40,7 +41,7 @@ export const server = http
         );
         res.setHeader(
           "Content-Security-Policy",
-          `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-${nonce}'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; frame-src 'none'`,
+          `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-${nonce}'; img-src 'self' data: blob:; connect-src 'self' blob:; font-src 'self'; object-src 'none'; frame-src 'none'`,
         );
       }
       res.setHeader(

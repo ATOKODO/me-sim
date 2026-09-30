@@ -2,11 +2,22 @@
 
 ## Vérifié sur ce poste Windows
 
-- Build Angular de production : réussi ; environ 348 Ko initiaux, Three.js chargé séparément à la demande.
+- Build Angular de production : réussi ; environ 365 Ko initiaux, Three.js chargé séparément à la demande.
 - 11 tests Rust : isolation et suppression des profils, références croisées, sauvegarde/restauration sans perte, refus des versions inconnues et des données invalides, annulation transactionnelle après échec SQL, concurrence entre deux connexions SQLite, formats CSV/XLS/XLSX/JSON, nombres et dates Excel, feuilles multiples, conversions d’unités, doublons/conflits, formules et fichiers malformés, verrou scientifique.
-- 7 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, modification/suppression, scénarios sans projection inventée, mode 2D et perte du contexte WebGL, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les six routes. L’aperçu utilise une CSP avec nonce, comme la version native.
-- Exécutable Tauri debug : lancement réel dans WebView2, création de profil, ajout d’une observation, rechargement et lecture de la donnée persistée dans SQLite ; aucune erreur JavaScript capturée. Test effectué dans `.cache/native-smoke`, sans donnée personnelle.
+- 13 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, habitudes et Target, modification/suppression, scénarios sans projection inventée, mode 2D et perte du contexte WebGL, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les sept routes. Le personnage fourni joue les quinze clips avec un seul chargement du GLB, y compris pendant la timeline ; l’arrêt des animations et la recréation de la scène sont vérifiés. L’aperçu utilise une CSP avec nonce, comme la version native.
+- Exécutable Tauri debug : lancement réel dans WebView2, création de profil, ajout d’une observation, rechargement et lecture de la donnée persistée dans SQLite ; aucune erreur JavaScript capturée. Quinze modes du personnage fourni vérifiés dans WebView2. Dernier test effectué dans `.tmp/native-smoke/avatar`, avec un cache WebView2 isolé, sans donnée personnelle.
 - Capture native : `docs/native-dashboard.png`.
+
+## Personnage fourni — vérification du 30 septembre 2026
+
+- FBX d’origine préservé à l’identique : 25 os, 498 sommets, 952 triangles, UV et poids du rig conservés dans le `.blend`.
+- Aucun clip d’animation dans le FBX d’origine ; quinze actions créées, enregistrées et exportées en clips GLB nommés.
+- Atlas PNG 256 × 256 embarqué : comparaison des pixels RGBA avec la texture fournie, sans différence.
+- `.blend` compressé, texture intégrée et actions conservées avec utilisateurs fictifs. Export du fichier enregistré vérifié avec `scripts/export-avatar.py`.
+- GLB autonome d’environ 757 Ko : un squelette de 40 articulations, comprenant les 25 os d’origine et 15 os d’accessoires. Quinze correspondances du manifeste vérifiées par `npm run check:avatar`.
+- Captures visuelles des quinze modes inspectées dans Edge, puis personnage texturé confirmé dans la capture native. Les images de test sont dans `test-results/` ; la capture Windows est `docs/native-dashboard.png`.
+- `connect-src blob:` autorise la lecture en mémoire de la texture intégrée par Three.js. Aucun serveur distant n’est ajouté à la CSP.
+- Installateurs NSIS standard et hors ligne reconstruits avec succès ; exécutable direct actualisé dans `release/`. L’installation sur une machine vierge n’a pas été répétée pour ce changement.
 
 ## Limites de vérification
 
