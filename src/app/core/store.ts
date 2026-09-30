@@ -27,6 +27,12 @@ export class Store {
   readonly profile = computed(
     () => this.profiles().find((p) => p.id === this.activeId()) ?? null,
   );
+  readonly habits = computed(() => this.profile()?.habits ?? []);
+  readonly habitDays = computed(() =>
+    (this.data().habitDays ?? []).filter(
+      (day) => day.profileId === this.activeId(),
+    ),
+  );
   readonly target = computed(() => ({
     ...DEFAULT_TARGET,
     ...(this.profile()?.target ?? {}),
@@ -269,6 +275,9 @@ export class Store {
       case "deleteProfile":
         s.profiles = s.profiles.filter((p) => p.id !== op.value);
         s.observations = s.observations.filter((o) => o.profileId !== op.value);
+        s.habitDays = (s.habitDays ?? []).filter(
+          (o) => o.profileId !== op.value,
+        );
         s.scenarios = s.scenarios.filter((o) => o.profileId !== op.value);
         s.batches = s.batches.filter((o) => o.profileId !== op.value);
         s.runs = s.runs.filter((o) => o.profileId !== op.value);
@@ -289,6 +298,15 @@ export class Store {
           );
         s.observations = s.observations.filter((o) => o.id !== op.value.id);
         s.observations.push(op.value);
+        break;
+      case "saveHabitDay":
+        if (!s.profiles.some((p) => p.id === op.value.profileId))
+          throw Error("Profil introuvable.");
+        s.habitDays = (s.habitDays ?? []).filter(
+          (day) =>
+            day.profileId !== op.value.profileId || day.date !== op.value.date,
+        );
+        s.habitDays.push(op.value);
         break;
       case "deleteObservation":
         s.observations = s.observations.filter(

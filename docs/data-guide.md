@@ -14,6 +14,12 @@ Tabac se saisit en nombre entier de cigarettes par moment. Vapotage, écran le s
 
 Le tableau de bord permet d’enregistrer, pour le profil actif, une journée de référence : heures de sommeil, pas, minutes d’activité, sport, marche et temps social, ainsi que les plafonds d’écran, de jeux vidéo, d’alcool, de tabac, de vapotage, d’écran le soir et de sédentarité. Les valeurs initiales sont modifiables ; elles servent de repères personnels, pas de recommandations médicales. La trajectoire affiche la déviation moyenne des observations disponibles pour chacun des sept derniers jours ; une barre plus haute signifie que les données s’éloignent davantage de la cible. Un jour sans observation reste marqué `?` et n’est pas compté comme zéro. La cible est incluse dans la sauvegarde JSON et restaurée avec son profil.
 
+## Calendrier des habitudes
+
+Dans **Mes habitudes**, choisir des exemples ou ajouter une habitude personnalisée. Une bonne habitude est souhaitée chaque jour ; une habitude à réduire est souhaitée absente. La configuration appartient au profil actif. Retirer une habitude arrête son suivi à partir du jour courant et conserve les journées historiques.
+
+Choisir une date dans le calendrier, répondre **Oui** ou **Non** pour chaque habitude, puis sélectionner **Valider la journée**. Une réponse peut être effacée ou corrigée ; il faut alors revalider. La courbe sur 14 jours compare les journées validées à un cap de 100 % : chaque habitude répondue compte autant, sans prétention clinique. Les jours non validés forment des trous dans la courbe ; une réponse partielle apparaît seulement comme aperçu du jour choisi. Le suivi binaire et les observations détaillées du journal sont distincts : cocher « Oui » ne crée pas de mesure chiffrée ni d’événement dans la timeline. Les profils, configurations et journées sont inclus dans la sauvegarde JSON complète, mais pas dans les exports tabulaires de mesures.
+
 ## Import
 
 1. Choisir un profil puis un fichier dans Mes données.
@@ -32,7 +38,7 @@ Limites : 25 Mo par fichier d’import, 50 000 lignes par feuille, 256 colonnes 
 
 CSV, XLS (vrai BIFF8) et XLSX contiennent les observations du profil actif, avec les colonnes `time` et `durationMinutes` lorsqu’elles existent. Le CSV protège les chaînes commençant par un caractère de formule avec une apostrophe. XLS est limité à 65 535 observations, utiliser XLSX au-delà.
 
-La sauvegarde JSON contient l’intégralité des profils, mesures, lots d’import, scénarios, résultats enregistrés et préférences. Les exports tabulaires ne remplacent pas cette sauvegarde.
+La sauvegarde JSON contient l’intégralité des profils, habitudes, journées validées ou en cours, mesures, lots d’import, scénarios, résultats enregistrés et préférences. Les exports tabulaires ne remplacent pas cette sauvegarde.
 
 Restaurer remplace tous les profils après aperçu. L’état précédent est sauvegardé en `avant-restauration-<uuid>.json` à côté de la base. Si la sauvegarde préventive échoue, la restauration n’a pas lieu. Une version inconnue ou des références invalides sont refusées avant modification. Pour revenir en arrière, restaurer le fichier préventif.
 

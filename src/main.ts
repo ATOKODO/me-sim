@@ -21,6 +21,11 @@ bootstrapApplication(App, {
             import("./app/pages/journal").then((m) => m.Journal),
         },
         {
+          path: "habitudes",
+          loadComponent: () =>
+            import("./app/pages/habits").then((m) => m.Habits),
+        },
+        {
           path: "futurs",
           loadComponent: () =>
             import("./app/pages/futures").then((m) => m.Futures),

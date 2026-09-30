@@ -381,7 +381,7 @@ import { Icon } from "../core/icon";
           <h2 id="restore-title">Remplacer tout l’espace local ?</h2>
           <p>
             {{ r.profiles.length }} profils · {{ r.observations }} mesures ·
-            {{ r.scenarios }} scénarios
+            {{ r.habitDays }} journées d’habitudes · {{ r.scenarios }} scénarios
           </p>
           <p>{{ r.profiles.join(", ") || "Sauvegarde vide" }}</p>
           <p>

@@ -132,6 +132,7 @@ struct RestorePreview {
     token: String,
     profiles: Vec<String>,
     observations: usize,
+    habit_days: usize,
     scenarios: usize,
 }
 #[tauri::command]
@@ -151,6 +152,7 @@ async fn preview_restore(state: State<'_, AppState>) -> Result<Option<RestorePre
         token: token.clone(),
         profiles: s.profiles.iter().map(|p| p.name.clone()).collect(),
         observations: s.observations.len(),
+        habit_days: s.habit_days.len(),
         scenarios: s.scenarios.len(),
     };
     let mut restores = lock(&state.restores)?;

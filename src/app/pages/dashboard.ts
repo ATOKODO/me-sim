@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   effect,
   inject,
   OnDestroy,
@@ -16,7 +17,9 @@ import {
   METRICS,
   Observation,
   TargetDay,
+  today,
 } from "../core/models";
+import { evaluateHabitDay } from "../core/habit-tracking";
 import { Icon } from "../core/icon";
 import { Chart } from "../core/chart";
 import { AvatarScene } from "../scene/avatar";
@@ -181,6 +184,30 @@ import { AvatarScene } from "../scene/avatar";
           </div>
         </section>
       </div>
+      <section class="panel habit-today-card">
+        <div>
+          <span class="eyebrow">MON CHECK-IN</span>
+          <h2>Mes habitudes aujourd’hui</h2>
+          @if (habitToday().total) {
+            <p>
+              {{ habitToday().answered }} / {{ habitToday().total }} réponses
+              {{
+                habitToday().validated ? "· journée validée" : "· à compléter"
+              }}
+            </p>
+          } @else {
+            <p>Choisis les habitudes que tu veux suivre au quotidien.</p>
+          }
+        </div>
+        <a class="button primary" routerLink="/habitudes">
+          <ui-icon name="check" />
+          {{
+            habitToday().total
+              ? "Renseigner ma journée"
+              : "Configurer mes habitudes"
+          }}
+        </a>
+      </section>
       <section class="panel day-panel">
         <div class="panel-heading day-panel-heading">
           <div>
@@ -500,6 +527,13 @@ export class Dashboard implements OnDestroy {
   store = inject(Store);
   fb = inject(FormBuilder);
   date = new Date();
+  habitToday = computed(() =>
+    evaluateHabitDay(
+      this.store.habits(),
+      this.store.habitDays().find((day) => day.date === today()),
+      today(),
+    ),
+  );
   essentials = METRICS.slice(0, 3);
   mode = signal("idle");
   replayKey = signal(0);

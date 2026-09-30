@@ -142,8 +142,9 @@ import { Icon } from "../core/icon";
         >
           <h2 id="profile-delete">Supprimer {{ p.name }} ?</h2>
           <p>
-            Ses mesures, imports et scénarios seront supprimés de la base. Les
-            fichiers déjà exportés resteront sur le disque.
+            Ses mesures, habitudes, journées suivies, imports et scénarios
+            seront supprimés de la base. Les fichiers déjà exportés resteront
+            sur le disque.
           </p>
           <div class="button-row">
             <button class="button secondary" (click)="deleting.set(null)">
@@ -215,6 +216,7 @@ export class Profiles {
       color: v.color!,
       demo: this.editing()?.demo ?? false,
       target: this.editing()?.target ?? { ...DEFAULT_TARGET },
+      habits: this.editing()?.habits ?? [],
     };
     if (await this.store.mutate({ type: "saveProfile", value: p })) {
       this.store.select(id);

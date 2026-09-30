@@ -123,6 +123,7 @@ export class App {
   links = [
     { path: "/", label: "Mon aperçu", icon: "home" },
     { path: "/journal", label: "Mon journal", icon: "journal" },
+    { path: "/habitudes", label: "Mes habitudes", icon: "check" },
     { path: "/futurs", label: "Mes futurs", icon: "future" },
     { path: "/donnees", label: "Mes données", icon: "data" },
     { path: "/profils", label: "Mes profils", icon: "profiles" },

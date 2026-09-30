@@ -13,16 +13,19 @@ impl Store {
     pub fn init(conn: Connection) -> Result<Self> {
         conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;")?;
         let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
-        if version > 2 {
+        if version > 3 {
             return Err(AppError::new(
                 "UNSUPPORTED_VERSION",
                 "Base créée par une version plus récente.",
             ));
         }
         if version == 0 {
-            conn.execute_batch("BEGIN; CREATE TABLE IF NOT EXISTS profiles(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS observations(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,metric TEXT NOT NULL,at TEXT NOT NULL DEFAULT '',data TEXT NOT NULL,UNIQUE(profile_id,date,metric,at)); CREATE TABLE IF NOT EXISTS batches(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS scenarios(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS metadata(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL); INSERT OR IGNORE INTO metadata VALUES(1,0); PRAGMA user_version=2; COMMIT;")?;
+            conn.execute_batch("BEGIN; CREATE TABLE IF NOT EXISTS profiles(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS observations(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,metric TEXT NOT NULL,at TEXT NOT NULL DEFAULT '',data TEXT NOT NULL,UNIQUE(profile_id,date,metric,at)); CREATE TABLE IF NOT EXISTS habit_days(profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,data TEXT NOT NULL,PRIMARY KEY(profile_id,date)); CREATE TABLE IF NOT EXISTS batches(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS scenarios(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS metadata(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL); INSERT OR IGNORE INTO metadata VALUES(1,0); PRAGMA user_version=3; COMMIT;")?;
         } else if version == 1 {
             conn.execute_batch("BEGIN; CREATE TABLE observations_v2(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,metric TEXT NOT NULL,at TEXT NOT NULL DEFAULT '',data TEXT NOT NULL,UNIQUE(profile_id,date,metric,at)); INSERT INTO observations_v2(id,profile_id,date,metric,at,data) SELECT id,profile_id,date,metric,COALESCE(json_extract(data,'$.at'),''),data FROM observations; DROP TABLE observations; ALTER TABLE observations_v2 RENAME TO observations; PRAGMA user_version=2; COMMIT;")?;
+        }
+        if version == 1 || version == 2 {
+            conn.execute_batch("BEGIN; CREATE TABLE habit_days(profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,data TEXT NOT NULL,PRIMARY KEY(profile_id,date)); PRAGMA user_version=3; COMMIT;")?;
         }
         let revision =
             conn.query_row("SELECT revision FROM metadata WHERE id=1", [], |r| r.get(0))?;
@@ -50,6 +53,7 @@ impl Store {
             version: 1,
             profiles: self.rows("profiles")?,
             observations: self.rows("observations")?,
+            habit_days: self.rows("habit_days")?,
             batches: self.rows("batches")?,
             scenarios: self.rows("scenarios")?,
             runs: self.rows("runs")?,
@@ -73,7 +77,7 @@ impl Store {
         if current != self.revision.get() {
             return Err(AppError::new("CONCURRENT_CHANGE","Les données ont changé dans une autre fenêtre. Réessayez pour utiliser leur dernière version."));
         }
-        tx.execute_batch("DELETE FROM observations; DELETE FROM batches; DELETE FROM scenarios; DELETE FROM runs; DELETE FROM profiles; DELETE FROM settings;")?;
+        tx.execute_batch("DELETE FROM observations; DELETE FROM habit_days; DELETE FROM batches; DELETE FROM scenarios; DELETE FROM runs; DELETE FROM profiles; DELETE FROM settings;")?;
         for p in &s.profiles {
             tx.execute(
                 "INSERT INTO profiles VALUES(?1,?2)",
@@ -91,6 +95,12 @@ impl Store {
                     o.at.clone().unwrap_or_default(),
                     serde_json::to_string(o)?
                 ],
+            )?;
+        }
+        for day in &s.habit_days {
+            tx.execute(
+                "INSERT INTO habit_days(profile_id,date,data) VALUES(?1,?2,?3)",
+                params![day.profile_id, day.date, serde_json::to_string(day)?],
             )?;
         }
         for b in &s.batches {
@@ -143,6 +153,31 @@ mod tests {
         assert_eq!(raw, serde_json::to_string(&db.load().unwrap()).unwrap());
     }
     #[test]
+    fn migrates_v2_database_and_persists_habit_days() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE profiles(id TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE observations(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,date TEXT NOT NULL,metric TEXT NOT NULL,at TEXT NOT NULL DEFAULT '',data TEXT NOT NULL); CREATE TABLE batches(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE scenarios(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE runs(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE settings(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL); CREATE TABLE metadata(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL); INSERT INTO metadata VALUES(1,0); PRAGMA user_version=2;").unwrap();
+        let mut db = Store::init(conn).unwrap();
+        let version: i64 = db
+            .conn
+            .query_row("PRAGMA user_version", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(version, 3);
+        let mut snapshot = Snapshot::default();
+        mutate(&mut snapshot, Mutation::Demo).unwrap();
+        assert_eq!(snapshot.habit_days.len(), 14);
+        db.replace(&snapshot).unwrap();
+        let loaded = db.load().unwrap();
+        assert_eq!(loaded.habit_days.len(), 14);
+        assert_eq!(loaded.profiles[0].habits.len(), 4);
+        mutate(
+            &mut snapshot,
+            Mutation::DeleteProfile(loaded.profiles[0].id.clone()),
+        )
+        .unwrap();
+        db.replace(&snapshot).unwrap();
+        assert!(db.load().unwrap().habit_days.is_empty());
+    }
+    #[test]
     fn delete_one_profile_preserves_other() {
         let mut s = Snapshot::default();
         mutate(&mut s, Mutation::Demo).unwrap();
@@ -168,6 +203,7 @@ mod tests {
             color: "#bde883".into(),
             demo: false,
             target: None,
+            habits: vec![],
         };
         conn.execute(
             "INSERT INTO profiles VALUES(?1,?2)",

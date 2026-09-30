@@ -1642,6 +1642,319 @@ summary {
   white-space: nowrap;
   border: 0;
 }
+.habit-intro {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 4px 0 24px;
+}
+.habit-today-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  margin-bottom: 22px;
+}
+.habit-today-card h2 {
+  margin: 8px 0 4px;
+}
+.habit-today-card p {
+  font-size: 12px;
+}
+.habit-intro .pill {
+  flex: none;
+  margin-top: 3px;
+}
+.habit-intro p {
+  max-width: 850px;
+}
+.habits-layout {
+  display: grid;
+  grid-template-columns: minmax(330px, 0.9fr) minmax(460px, 1.1fr);
+  gap: 22px;
+  margin-bottom: 22px;
+}
+.habits-layout > .panel {
+  min-width: 0;
+}
+.habit-month-nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-transform: capitalize;
+  font-size: 12px;
+}
+.habit-month-nav button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #222b2a;
+  color: #d4e1d0;
+  font-size: 19px;
+}
+.habit-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  padding: 10px 22px 20px;
+}
+.habit-weekday {
+  text-align: center;
+  padding: 8px 0;
+  color: #82918b;
+  font:
+    10px Consolas,
+    monospace;
+}
+.habit-calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 42px;
+  border: 1px solid #333d3b;
+  border-radius: 8px;
+  background: #1c2426;
+  color: #d4ddd3;
+}
+.habit-calendar-day.outside {
+  color: #aeb9ae;
+  background: #192021;
+}
+.habit-calendar-day:disabled {
+  opacity: 1;
+  color: #a3ada5;
+  background: #192021;
+}
+.habit-calendar-day.selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.habit-calendar-day i,
+.habit-calendar-legend i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #56615b;
+}
+.habit-calendar-day.validated i,
+.habit-calendar-legend .good-dot {
+  background: var(--accent);
+}
+.habit-calendar-day.partial i,
+.habit-calendar-legend .partial-dot {
+  background: #f2b988;
+}
+.habit-calendar-legend,
+.habit-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 17px;
+  padding: 0 22px 22px;
+  color: #a0aca4;
+  font-size: 11px;
+}
+.habit-calendar-legend span,
+.habit-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.habit-progress {
+  padding: 0 22px 18px;
+  font-size: 12px;
+}
+.habit-check-list {
+  display: grid;
+  gap: 8px;
+  padding: 0 22px;
+}
+.habit-check-row,
+.habit-config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #333d3b;
+  background: #1c2426;
+  padding: 12px;
+  border-radius: 9px;
+}
+.habit-check-name {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.habit-kind-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  background: #334334;
+  color: var(--accent);
+}
+.habit-check-row.bad .habit-kind-icon {
+  background: #473533;
+  color: #e5ad9b;
+}
+.habit-check-name strong,
+.habit-config-row strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.habit-check-name small,
+.habit-config-row small {
+  display: block;
+  margin-top: 3px;
+  color: #899a8d;
+  font-size: 10px;
+}
+.habit-answer-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+}
+.habit-answer-buttons button {
+  min-width: 40px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  border: 1px solid #47534c;
+  background: transparent;
+  color: #ccd7ce;
+  font-size: 11px;
+}
+.habit-check-row:not(.bad) .habit-answer-buttons button:first-child.chosen,
+.habit-check-row.bad .habit-answer-buttons button:nth-child(2).chosen {
+  border-color: #bde883;
+  background: #344633;
+  color: #e2f6ca;
+}
+.habit-check-row.bad .habit-answer-buttons button:first-child.chosen,
+.habit-check-row:not(.bad) .habit-answer-buttons button:nth-child(2).chosen {
+  border-color: #d89785;
+  background: #493532;
+  color: #f4c2b0;
+}
+.habit-answer-buttons .habit-clear {
+  min-width: 26px;
+  border: none;
+  font-size: 17px;
+}
+.habit-validation {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px 22px;
+}
+.habit-validation span {
+  color: #91a096;
+  font-size: 11px;
+}
+.habit-empty-day {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 22px 24px;
+  color: #a4b0a4;
+  font-size: 12px;
+}
+.habit-trajectory-panel > p {
+  padding: 0 22px;
+  max-width: 630px;
+  font-size: 12px;
+}
+.habit-trajectory {
+  display: block;
+  width: calc(100% - 40px);
+  height: 230px;
+  margin: 15px 20px 0;
+  overflow: visible;
+}
+.habit-trajectory text {
+  fill: #87958d;
+  font:
+    11px Consolas,
+    monospace;
+}
+.habit-chart-legend i {
+  width: 17px;
+  height: 0;
+  border-top: 2px solid;
+}
+.habit-chart-legend .target-line {
+  border-color: #bde883;
+  border-top-style: dashed;
+}
+.habit-chart-legend .observed-line {
+  border-color: #f2b988;
+}
+.habit-chart-legend .preview-ring {
+  width: 8px;
+  height: 8px;
+  border: 1px dashed #f2b988;
+  border-radius: 50%;
+}
+.habit-config-list {
+  display: grid;
+  gap: 7px;
+  padding: 0 22px 20px;
+}
+.habit-config-row {
+  padding: 10px 12px;
+}
+.habit-config-row .text-button {
+  color: #bbc8be;
+}
+.habit-add-form {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-top: 1px solid var(--line);
+}
+.habit-add-form h3 {
+  margin-bottom: 2px;
+}
+.habit-add-form .button {
+  justify-self: start;
+}
+@media (max-width: 1250px) {
+  .habits-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .habit-today-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .habit-intro,
+  .habit-validation {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .habit-check-row {
+    flex-wrap: wrap;
+  }
+  .habit-answer-buttons {
+    margin-left: 46px;
+  }
+  .habit-calendar {
+    padding: 8px 14px 16px;
+    gap: 3px;
+  }
+  .habit-calendar-day {
+    min-height: 38px;
+  }
+}
 @media (min-width: 1600px) {
   .main-scene {
     height: 460px;

@@ -102,6 +102,60 @@ test("local artist GLB replaces one habit animation", async ({ page }) => {
   );
 });
 
+test("habit check-ins validate a day and update its trajectory without mixing profiles", async ({
+  page,
+}) => {
+  await page.goto("/#/profils");
+  await page.getByLabel("Prénom ou pseudonyme").fill("Camille");
+  await page
+    .getByRole("button", { name: "Créer le profil", exact: true })
+    .click();
+  await page.getByRole("link", { name: "Mes habitudes" }).click();
+  await expect(
+    page.getByText("Aucune habitude configurée pour ce profil."),
+  ).toBeVisible();
+
+  await page
+    .getByLabel("Choisir un exemple d’habitude")
+    .selectOption("exercise");
+  await page.getByRole("button", { name: "Ajouter au suivi" }).click();
+  await page
+    .getByLabel("Choisir un exemple d’habitude")
+    .selectOption("tobacco");
+  await page.getByRole("button", { name: "Ajouter au suivi" }).click();
+
+  const sport = page
+    .locator(".habit-check-row")
+    .filter({ hasText: "Sport / entraînement" });
+  const tobacco = page.locator(".habit-check-row").filter({ hasText: "Tabac" });
+  await sport.getByRole("button", { name: "Oui" }).click();
+  await tobacco.getByRole("button", { name: "Oui" }).click();
+  await expect(page.getByText(/50 % en accord avec ton cap/)).toBeVisible();
+  await page.getByRole("button", { name: "Valider la journée" }).click();
+  await expect(
+    page.getByText("Journée validée", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".habit-trajectory circle[fill='#f2b988']"),
+  ).toHaveCount(1);
+
+  await tobacco.getByRole("button", { name: "Non" }).click();
+  await expect(page.getByText(/100 % en accord avec ton cap/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Valider la journée" }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "Valider la journée" }).click();
+  await expect(
+    page.locator(".habit-trajectory circle[fill='#f2b988']"),
+  ).toHaveCount(1);
+
+  await page.screenshot({ path: "test-results/habits.png", fullPage: true });
+  await page.getByLabel("Profil actif").selectOption({ label: "Alex · Démo" });
+  await expect(page.locator(".habit-check-row")).toHaveCount(4);
+  await page.getByLabel("Profil actif").selectOption({ label: "Camille" });
+  await expect(page.locator(".habit-check-row")).toHaveCount(2);
+});
+
 test("dashboard renders locally and captures the PS1 scene", async ({
   page,
 }) => {
@@ -234,6 +288,7 @@ test("all routes work at minimum desktop width", async ({ page }) => {
   for (const route of [
     "/",
     "/journal",
+    "/habitudes",
     "/futurs",
     "/profils",
     "/donnees",
@@ -274,6 +329,7 @@ test("essential accessibility semantics on each route", async ({ page }) => {
   for (const route of [
     "/",
     "/journal",
+    "/habitudes",
     "/futurs",
     "/profils",
     "/donnees",

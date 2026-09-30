@@ -28,6 +28,21 @@ export interface Profile {
   color: string;
   demo: boolean;
   target?: TargetDay | null;
+  habits?: HabitDefinition[];
+}
+export interface HabitDefinition {
+  id: string;
+  label: string;
+  kind: "good" | "bad";
+  startDate: string;
+  archivedAt: string | null;
+  metric: Metric | null;
+}
+export interface HabitDay {
+  profileId: string;
+  date: string;
+  answers: Record<string, boolean>;
+  validatedAt: string | null;
 }
 export interface TargetDay {
   sleepHours: number;
@@ -89,6 +104,7 @@ export interface Snapshot {
   version: 1;
   profiles: Profile[];
   observations: Observation[];
+  habitDays?: HabitDay[];
   batches: ImportBatch[];
   scenarios: Scenario[];
   runs: SimulationRun[];
@@ -141,6 +157,7 @@ export interface RestorePreview {
   token: string;
   profiles: string[];
   observations: number;
+  habitDays: number;
   scenarios: number;
 }
 export type Mutation =
@@ -148,6 +165,7 @@ export type Mutation =
   | { type: "deleteProfile"; value: string }
   | { type: "saveObservation"; value: Observation }
   | { type: "deleteObservation"; value: { id: string; profileId: string } }
+  | { type: "saveHabitDay"; value: HabitDay }
   | { type: "saveScenario"; value: Scenario }
   | { type: "deleteScenario"; value: { id: string; profileId: string } }
   | { type: "settings"; value: Settings }
@@ -383,6 +401,22 @@ export const METRICS: {
 ];
 /** The journal is the source of truth for playable timeline habits. */
 export const HABIT_METRICS = METRICS.filter((metric) => metric.event);
+export const DEFAULT_HABITS: Omit<HabitDefinition, "id" | "startDate">[] = [
+  {
+    label: "Courir / faire du sport",
+    kind: "good",
+    metric: "exercise",
+    archivedAt: null,
+  },
+  { label: "Lire", kind: "good", metric: "reading", archivedAt: null },
+  { label: "Fumer", kind: "bad", metric: "tobacco", archivedAt: null },
+  {
+    label: "Écran le soir",
+    kind: "bad",
+    metric: "screen_evening",
+    archivedAt: null,
+  },
+];
 export const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -393,6 +427,7 @@ export function emptySnapshot(): Snapshot {
     version: 1,
     profiles: [],
     observations: [],
+    habitDays: [],
     batches: [],
     scenarios: [],
     runs: [],
@@ -404,6 +439,9 @@ export function emptySnapshot(): Snapshot {
   };
 }
 export function addDemo(s: Snapshot): Profile {
+  const start = new Date();
+  start.setDate(start.getDate() - 13);
+  const startDate = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
   const p: Profile = {
     id: uid(),
     name: "Alex · Démo",
@@ -413,8 +451,26 @@ export function addDemo(s: Snapshot): Profile {
     color: "#bde883",
     demo: true,
     target: { ...DEFAULT_TARGET },
+    habits: DEFAULT_HABITS.map((habit) => ({ ...habit, id: uid(), startDate })),
   };
   s.profiles.push(p);
+  for (let offset = 13; offset >= 0; offset--) {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() - offset);
+    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const answers: Record<string, boolean> = {};
+    p.habits!.forEach((habit, index) => {
+      answers[habit.id] =
+        index < 2 ? (offset + index) % 4 !== 0 : (offset + index) % 5 === 0;
+    });
+    s.habitDays!.push({
+      profileId: p.id,
+      date,
+      answers,
+      validatedAt: new Date().toISOString(),
+    });
+  }
   for (let i = 0; i < 28; i++) {
     const d = new Date();
     d.setDate(d.getDate() - 27 + i);

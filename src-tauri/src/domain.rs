@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 pub type Result<T> = std::result::Result<T, AppError>;
 #[derive(Debug, Serialize)]
 pub struct AppError {
@@ -68,6 +68,32 @@ pub struct Profile {
     pub demo: bool,
     #[serde(default)]
     pub target: Option<TargetDay>,
+    #[serde(default)]
+    pub habits: Vec<HabitDefinition>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum HabitKind {
+    Good,
+    Bad,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct HabitDefinition {
+    pub id: String,
+    pub label: String,
+    pub kind: HabitKind,
+    pub start_date: String,
+    pub archived_at: Option<String>,
+    pub metric: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct HabitDay {
+    pub profile_id: String,
+    pub date: String,
+    pub answers: BTreeMap<String, bool>,
+    pub validated_at: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -135,6 +161,8 @@ pub struct Snapshot {
     pub version: u32,
     pub profiles: Vec<Profile>,
     pub observations: Vec<Observation>,
+    #[serde(default)]
+    pub habit_days: Vec<HabitDay>,
     pub batches: Vec<ImportBatch>,
     pub scenarios: Vec<Scenario>,
     pub runs: Vec<SimulationRun>,
@@ -146,6 +174,7 @@ impl Default for Snapshot {
             version: 1,
             profiles: vec![],
             observations: vec![],
+            habit_days: vec![],
             batches: vec![],
             scenarios: vec![],
             runs: vec![],
@@ -268,10 +297,11 @@ pub fn validate(s: &Snapshot) -> Result<()> {
             "Version de sauvegarde non prise en charge.",
         ));
     }
-    if s.profiles.len() > 100 || s.observations.len() > 100_000 {
+    if s.profiles.len() > 100 || s.observations.len() > 100_000 || s.habit_days.len() > 100_000 {
         return Err(invalid("Limite : 100 profils et 100 000 observations."));
     }
     let mut ids = HashSet::new();
+    let mut habit_ids = HashSet::new();
     for p in &s.profiles {
         if p.id.is_empty()
             || !ids.insert(p.id.as_str())
@@ -292,12 +322,57 @@ pub fn validate(s: &Snapshot) -> Result<()> {
         if let Some(target) = &p.target {
             validate_target(target)?;
         }
+        if p.habits.len() > 100 {
+            return Err(invalid("Limite : 100 habitudes par profil."));
+        }
+        for habit in &p.habits {
+            if habit.id.is_empty()
+                || !habit_ids.insert((p.id.as_str(), habit.id.as_str()))
+                || habit.label.trim().is_empty()
+                || habit.label.len() > 100
+                || NaiveDate::parse_from_str(&habit.start_date, "%Y-%m-%d").is_err()
+                || habit.start_date.len() != 10
+                || habit.archived_at.as_ref().is_some_and(|date| {
+                    NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err()
+                        || date.len() != 10
+                        || date < &habit.start_date
+                })
+                || habit.metric.as_ref().is_some_and(|metric| {
+                    unit(metric).is_none()
+                        || matches!(
+                            metric.as_str(),
+                            "weight" | "sleep" | "steps" | "activity" | "intake" | "stress"
+                        )
+                })
+            {
+                return Err(invalid("Habitude invalide."));
+            }
+        }
         if let Some(d) = &p.birth_date {
             let date = NaiveDate::parse_from_str(d, "%Y-%m-%d")
                 .map_err(|_| invalid("Date de naissance invalide."))?;
             if date > chrono::Local::now().date_naive() {
                 return Err(invalid("Date de naissance future."));
             }
+        }
+    }
+    let mut day_keys = HashSet::new();
+    for day in &s.habit_days {
+        let profile = s.profiles.iter().find(|p| p.id == day.profile_id);
+        if profile.is_none()
+            || !day_keys.insert((day.profile_id.as_str(), day.date.as_str()))
+            || NaiveDate::parse_from_str(&day.date, "%Y-%m-%d").is_err()
+            || day.date.len() != 10
+            || day
+                .validated_at
+                .as_ref()
+                .is_some_and(|stamp| chrono::DateTime::parse_from_rfc3339(stamp).is_err())
+            || day
+                .answers
+                .keys()
+                .any(|id| !habit_ids.contains(&(day.profile_id.as_str(), id.as_str())))
+        {
+            return Err(invalid("Journée d’habitudes invalide."));
         }
     }
     let mut batches = HashSet::new();
@@ -364,6 +439,7 @@ pub enum Mutation {
     SaveProfile(Profile),
     DeleteProfile(String),
     SaveObservation(Observation),
+    SaveHabitDay(HabitDay),
     DeleteObservation {
         id: String,
         #[serde(rename = "profileId")]
@@ -387,6 +463,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
         Mutation::DeleteProfile(id) => {
             s.profiles.retain(|x| x.id != id);
             s.observations.retain(|x| x.profile_id != id);
+            s.habit_days.retain(|x| x.profile_id != id);
             s.batches.retain(|x| x.profile_id != id);
             s.scenarios.retain(|x| x.profile_id != id);
             s.runs.retain(|x| x.profile_id != id);
@@ -400,6 +477,11 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
             }
             s.observations.retain(|x| x.id != o.id);
             s.observations.push(o);
+        }
+        Mutation::SaveHabitDay(day) => {
+            s.habit_days
+                .retain(|x| x.profile_id != day.profile_id || x.date != day.date);
+            s.habit_days.push(day);
         }
         Mutation::DeleteObservation { id, profile_id } => s
             .observations
@@ -420,6 +502,24 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
         Mutation::Settings(v) => s.settings = v,
         Mutation::Demo => {
             let pid = id();
+            let start_date =
+                (chrono::Local::now().date_naive() - chrono::Duration::days(13)).to_string();
+            let demo_habits: Vec<HabitDefinition> = [
+                ("Courir / faire du sport", HabitKind::Good, "exercise"),
+                ("Lire", HabitKind::Good, "reading"),
+                ("Fumer", HabitKind::Bad, "tobacco"),
+                ("Écran le soir", HabitKind::Bad, "screen_evening"),
+            ]
+            .into_iter()
+            .map(|(label, kind, metric)| HabitDefinition {
+                id: id(),
+                label: label.into(),
+                kind,
+                start_date: start_date.clone(),
+                archived_at: None,
+                metric: Some(metric.into()),
+            })
+            .collect();
             s.profiles.push(Profile {
                 id: pid.clone(),
                 name: "Alex · Démo".into(),
@@ -429,7 +529,32 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
                 color: "#bde883".into(),
                 demo: true,
                 target: Some(TargetDay::default()),
+                habits: demo_habits.clone(),
             });
+            for offset in (0..14).rev() {
+                let date = (chrono::Local::now().date_naive() - chrono::Duration::days(offset))
+                    .to_string();
+                let answers = demo_habits
+                    .iter()
+                    .enumerate()
+                    .map(|(index, habit)| {
+                        (
+                            habit.id.clone(),
+                            if index < 2 {
+                                (offset + index as i64) % 4 != 0
+                            } else {
+                                (offset + index as i64) % 5 == 0
+                            },
+                        )
+                    })
+                    .collect();
+                s.habit_days.push(HabitDay {
+                    profile_id: pid.clone(),
+                    date,
+                    answers,
+                    validated_at: Some(chrono::Utc::now().to_rfc3339()),
+                });
+            }
             for day in 0..28 {
                 let d = (chrono::Local::now().date_naive() - chrono::Duration::days(27 - day))
                     .to_string();
