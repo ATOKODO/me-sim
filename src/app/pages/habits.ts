@@ -1,5 +1,12 @@
 import { I18n, TranslatePipe, LocalDatePipe } from "../core/i18n";
-import { Component, computed, effect, inject, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { Store } from "../core/store";
@@ -7,7 +14,6 @@ import {
   HABIT_METRICS,
   HabitDefinition,
   HabitDay,
-  today,
   uid,
 } from "../core/models";
 import {
@@ -66,7 +72,7 @@ import { Icon } from "../core/icon";
               <button
                 [attr.aria-label]="'Mois suivant' | t"
                 (click)="moveMonth(1)"
-                [disabled]="month() >= currentMonth"
+                [disabled]="month() >= currentMonth()"
               >
                 ›
               </button>
@@ -87,7 +93,7 @@ import { Icon } from "../core/icon";
                 [class.selected]="selectedDate() === cell.date"
                 [class.validated]="cell.status === 'validated'"
                 [class.partial]="cell.status === 'partial'"
-                [disabled]="cell.date > todayKey"
+                [disabled]="cell.date > todayKey()"
                 [attr.aria-label]="calendarLabel(cell.date, cell.status)"
                 [attr.aria-pressed]="selectedDate() === cell.date"
                 (click)="selectedDate.set(cell.date)"
@@ -409,10 +415,10 @@ export class Habits {
   i18n = inject(I18n);
   tr = this.i18n.t;
   store = inject(Store);
-  todayKey = today();
-  currentMonth = `${this.todayKey.slice(0, 7)}-01`;
-  month = signal(this.currentMonth);
-  selectedDate = signal(this.todayKey);
+  todayKey = this.store.clock.today;
+  currentMonth = computed(() => this.todayKey().slice(0, 7) + "-01");
+  month = signal(`${this.todayKey().slice(0, 7)}-01`);
+  selectedDate = signal(this.todayKey());
   preset = signal("");
   newLabel = signal("");
   newKind = signal<"good" | "bad">("good");
@@ -423,7 +429,7 @@ export class Habits {
   );
   presets = HABIT_METRICS;
   currentHabits = computed(() =>
-    activeHabits(this.store.habits(), this.todayKey),
+    activeHabits(this.store.habits(), this.todayKey()),
   );
   selectedHabits = computed(() =>
     activeHabits(this.store.habits(), this.selectedDate()),
@@ -461,7 +467,7 @@ export class Habits {
   });
   trajectory = computed(() =>
     Array.from({ length: 14 }, (_, index) => {
-      const date = shiftDate(this.todayKey, index - 13);
+      const date = shiftDate(this.todayKey(), index - 13);
       const day = this.store.habitDays().find((item) => item.date === date);
       return { date, ...evaluateHabitDay(this.store.habits(), day, date) };
     }),
@@ -483,10 +489,22 @@ export class Habits {
   });
 
   constructor() {
+    let previousProfile = this.store.activeId();
+    let previousDay = this.todayKey();
     effect(() => {
-      this.store.activeId();
-      this.selectedDate.set(this.todayKey);
-      this.month.set(this.currentMonth);
+      const profile = this.store.activeId();
+      const day = this.todayKey();
+      untracked(() => {
+        if (
+          profile !== previousProfile ||
+          (day !== previousDay && this.selectedDate() === previousDay)
+        ) {
+          this.selectedDate.set(day);
+          this.month.set(day.slice(0, 7) + "-01");
+        }
+      });
+      previousProfile = profile;
+      previousDay = day;
     });
   }
 
@@ -539,7 +557,7 @@ export class Habits {
       id: uid(),
       label,
       kind: this.newKind(),
-      startDate: this.todayKey,
+      startDate: this.todayKey(),
       archivedAt: null,
       metric: (this.preset() || null) as HabitDefinition["metric"],
     };
@@ -562,7 +580,9 @@ export class Habits {
       value: {
         ...profile,
         habits: (profile.habits ?? []).map((item) =>
-          item.id === habit.id ? { ...item, archivedAt: this.todayKey } : item,
+          item.id === habit.id
+            ? { ...item, archivedAt: this.todayKey() }
+            : item,
         ),
       },
     });

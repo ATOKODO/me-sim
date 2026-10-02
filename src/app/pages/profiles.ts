@@ -3,7 +3,7 @@ import { FocusDialog } from "../core/focus-dialog";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Store } from "../core/store";
-import { DEFAULT_TARGET, Profile, uid, today } from "../core/models";
+import { DEFAULT_TARGET, Profile, uid } from "../core/models";
 import { Icon } from "../core/icon";
 @Component({
   imports: [TranslatePipe, FocusDialog, ReactiveFormsModule, Icon],
@@ -45,7 +45,7 @@ import { Icon } from "../core/icon";
               }}<input
                 formControlName="birthDate"
                 type="date"
-                [max]="today" /></label
+                [max]="today()" /></label
             ><label
               >{{ "Taille (cm)" | t
               }}<input
@@ -185,7 +185,7 @@ export class Profiles {
   tr = this.i18n.t;
   store = inject(Store);
   fb = inject(FormBuilder);
-  today = today();
+  today = this.store.clock.today;
   editing = signal<Profile | null>(null);
   deleting = signal<Profile | null>(null);
   form = this.fb.group({
@@ -227,7 +227,13 @@ export class Profiles {
       this.store.error.set("Le nom ne peut pas être vide.");
       return;
     }
-    const id = this.editing()?.id ?? uid();
+    const original = this.editing();
+    const id = original?.id ?? uid();
+    const latest = this.store.profiles().find((profile) => profile.id === id);
+    if (original && !latest) {
+      this.store.error.set("Profil introuvable.");
+      return;
+    }
     const p: Profile = {
       id,
       name: v.name.trim(),
@@ -235,10 +241,22 @@ export class Profiles {
       sex: v.sex || null,
       heightCm: v.heightCm,
       color: v.color!,
-      demo: this.editing()?.demo ?? false,
-      target: this.editing()?.target ?? { ...DEFAULT_TARGET },
-      habits: this.editing()?.habits ?? [],
+      demo: latest?.demo ?? false,
+      target: latest ? (latest.target ?? null) : { ...DEFAULT_TARGET },
+      habits: latest?.habits ?? [],
     };
+    // After an explicit retry, retain fields changed elsewhere when they were not edited here.
+    if (original && latest) {
+      for (const key of [
+        "name",
+        "birthDate",
+        "sex",
+        "heightCm",
+        "color",
+      ] as const) {
+        if (p[key] === original[key]) Object.assign(p, { [key]: latest[key] });
+      }
+    }
     if (await this.store.mutate({ type: "saveProfile", value: p })) {
       this.store.select(id);
       this.reset();

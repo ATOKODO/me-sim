@@ -123,8 +123,11 @@ export interface ModelDefinition {
   source: string;
   horizons: number[];
 }
-export interface Initial {
+export interface VersionedSnapshot {
   snapshot: Snapshot;
+  revision: number;
+}
+export interface Initial extends VersionedSnapshot {
   storagePath: string;
   model: ModelDefinition;
 }
@@ -198,6 +201,7 @@ export const METRICS: {
   event?: boolean;
   positive?: boolean;
   valueLabel?: string;
+  integer?: boolean;
 }[] = [
   {
     id: "weight",
@@ -217,6 +221,7 @@ export const METRICS: {
   },
   {
     id: "steps",
+    integer: true,
     label: "Pas quotidiens",
     unit: "pas",
     icon: "steps",
@@ -359,6 +364,7 @@ export const METRICS: {
   },
   {
     id: "tobacco",
+    integer: true,
     label: "Tabac",
     unit: "cigarette",
     icon: "cigarette",

@@ -5,7 +5,47 @@ pub struct Store {
     pub conn: Connection,
     revision: Cell<i64>,
 }
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VersionedSnapshot {
+    pub snapshot: Snapshot,
+    pub revision: i64,
+}
 impl Store {
+    pub fn current(&self) -> Result<VersionedSnapshot> {
+        let snapshot = self.load()?;
+        Ok(VersionedSnapshot {
+            snapshot,
+            revision: self.revision.get(),
+        })
+    }
+    // Compare the revision read by the caller, not merely this connection's last load.
+    pub fn require_revision(&self, expected: i64) -> Result<()> {
+        if expected != self.revision.get() {
+            return Err(AppError::new("CONCURRENT_CHANGE", "Les données ont changé dans une autre fenêtre. Rechargez les données avant de recommencer."));
+        }
+        Ok(())
+    }
+    pub fn mutate_at_revision(
+        &mut self,
+        operation: Mutation,
+        expected: i64,
+    ) -> Result<VersionedSnapshot> {
+        let mut snapshot = self.load()?;
+        self.require_revision(expected)?;
+        mutate(&mut snapshot, operation)?;
+        self.replace(&snapshot)?;
+        Ok(VersionedSnapshot {
+            snapshot,
+            revision: self.revision.get(),
+        })
+    }
+    pub fn versioned(&self, snapshot: Snapshot) -> VersionedSnapshot {
+        VersionedSnapshot {
+            snapshot,
+            revision: self.revision.get(),
+        }
+    }
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)?;
         Self::init(conn)
@@ -75,7 +115,7 @@ impl Store {
         let current: i64 =
             tx.query_row("SELECT revision FROM metadata WHERE id=1", [], |r| r.get(0))?;
         if current != self.revision.get() {
-            return Err(AppError::new("CONCURRENT_CHANGE","Les données ont changé dans une autre fenêtre. Réessayez pour utiliser leur dernière version."));
+            return Err(AppError::new("CONCURRENT_CHANGE","Les données ont changé dans une autre fenêtre. Rechargez les données avant de recommencer."));
         }
         tx.execute_batch("DELETE FROM observations; DELETE FROM habit_days; DELETE FROM batches; DELETE FROM scenarios; DELETE FROM runs; DELETE FROM profiles; DELETE FROM settings;")?;
         for p in &s.profiles {
@@ -261,14 +301,22 @@ mod presentation_tests {
     #[test]
     fn legacy_settings_and_backup_default_to_french_dark() {
         let db = Store::init(Connection::open_in_memory().unwrap()).unwrap();
-        db.conn.execute("INSERT INTO settings VALUES(1,?1)", [r#"{"animations":false,"jitter":true,"force2d":true}"#]).unwrap();
+        db.conn
+            .execute(
+                "INSERT INTO settings VALUES(1,?1)",
+                [r#"{"animations":false,"jitter":true,"force2d":true}"#],
+            )
+            .unwrap();
         let snapshot = db.load().unwrap();
         assert_eq!(snapshot.settings.language, Language::Fr);
         assert_eq!(snapshot.settings.theme, Theme::Dark);
         assert!(!snapshot.settings.animations);
         assert!(snapshot.settings.jitter && snapshot.settings.force_2d);
         let mut backup = serde_json::to_value(&snapshot).unwrap();
-        backup["settings"].as_object_mut().unwrap().remove("language");
+        backup["settings"]
+            .as_object_mut()
+            .unwrap()
+            .remove("language");
         backup["settings"].as_object_mut().unwrap().remove("theme");
         let restored: Snapshot = serde_json::from_value(backup).unwrap();
         validate(&restored).unwrap();
@@ -291,14 +339,63 @@ mod presentation_tests {
         let saved = db.load().unwrap();
         assert_eq!(saved.settings.language, Language::En);
         assert_eq!(saved.settings.theme, Theme::Light);
-        let restored: Snapshot = serde_json::from_str(&serde_json::to_string(&saved).unwrap()).unwrap();
+        let restored: Snapshot =
+            serde_json::from_str(&serde_json::to_string(&saved).unwrap()).unwrap();
         db.replace(&restored).unwrap();
         assert_eq!(db.load().unwrap().profiles[0].name, original_name);
-        assert_eq!(serde_json::to_value(&saved).unwrap(), serde_json::to_value(&restored).unwrap());
+        assert_eq!(
+            serde_json::to_value(&saved).unwrap(),
+            serde_json::to_value(&restored).unwrap()
+        );
         for (field, value) in [("language", "de"), ("theme", "automatic")] {
             let mut invalid = serde_json::to_value(&saved).unwrap();
             invalid["settings"][field] = value.into();
             assert!(serde_json::from_value::<Snapshot>(invalid).is_err());
         }
+    }
+}
+#[cfg(test)]
+mod revision_regressions {
+    use super::*;
+    #[test]
+    fn stale_ui_revision_cannot_remove_a_newer_target_and_retry_is_explicit() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("concurrent.db");
+        let mut a = Store::open(&path).unwrap();
+        let seed = a.mutate_at_revision(Mutation::Demo, 0).unwrap();
+        let mut b = Store::open(&path).unwrap();
+        let view_a = a.current().unwrap();
+        let mut stale_profile = view_a.snapshot.profiles[0].clone();
+        let mut changed = stale_profile.clone();
+        changed.target = Some(TargetDay {
+            steps: 12_000.,
+            ..Default::default()
+        });
+        let saved_b = b
+            .mutate_at_revision(Mutation::SaveProfile(changed), seed.revision)
+            .unwrap();
+        stale_profile.name = "New name".into();
+        let before = serde_json::to_string(&saved_b.snapshot).unwrap();
+        let error = a
+            .mutate_at_revision(Mutation::SaveProfile(stale_profile), view_a.revision)
+            .unwrap_err();
+        assert_eq!(error.code, "CONCURRENT_CHANGE");
+        assert_eq!(before, serde_json::to_string(&b.load().unwrap()).unwrap());
+        let fresh = a.current().unwrap();
+        let mut merged = fresh.snapshot.profiles[0].clone();
+        merged.name = "New name".into();
+        let retry = a
+            .mutate_at_revision(Mutation::SaveProfile(merged), fresh.revision)
+            .unwrap();
+        assert_eq!(retry.revision, saved_b.revision + 1);
+        assert_eq!(
+            retry.snapshot.profiles[0].target.as_ref().unwrap().steps,
+            12_000.
+        );
+        // Disk backup schema stays independent from ephemeral optimistic-lock state.
+        assert!(serde_json::to_value(&retry.snapshot)
+            .unwrap()
+            .get("revision")
+            .is_none());
     }
 }

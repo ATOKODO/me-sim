@@ -201,6 +201,31 @@ test("target day saves and shows the seven-day deviation trajectory", async ({
   await expect(
     page.locator(".deviation-chart .deviation-number").first(),
   ).toBeVisible();
+  const chartLayout = await page
+    .locator(".deviation-panel")
+    .evaluate((panel) => {
+      const chart = panel
+        .querySelector(".deviation-chart")!
+        .getBoundingClientRect();
+      const legend = panel
+        .querySelector(".deviation-legend")!
+        .getBoundingClientRect();
+      const dateBottom = Math.max(
+        ...Array.from(
+          panel.querySelectorAll(".deviation-date"),
+          (date) => date.getBoundingClientRect().bottom,
+        ),
+      );
+      return { chartBottom: chart.bottom, legendTop: legend.top, dateBottom };
+    });
+  expect(chartLayout.dateBottom).toBeLessThanOrEqual(
+    chartLayout.chartBottom + 1,
+  );
+  expect(chartLayout.dateBottom).toBeLessThanOrEqual(chartLayout.legendTop);
+  await page.screenshot({
+    path: "test-results/fixed-target.png",
+    fullPage: true,
+  });
 });
 test("journal documents a negative habit and replays the last 24 hours", async ({
   page,

@@ -2,12 +2,20 @@ use crate::domain::*;
 use calamine::{open_workbook_auto, DataType, Reader};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, io::Write, path::Path};
+#[derive(Debug, Clone)]
+pub struct TemporalCell {
+    pub date: Option<String>,
+    pub time: Option<String>,
+    pub minutes: Option<f64>,
+}
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Sheet {
     pub name: String,
     pub headers: Vec<String>,
     pub rows: Vec<Vec<String>>,
+    #[serde(skip)]
+    pub temporal: HashMap<(usize, usize), TemporalCell>,
 }
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -85,6 +93,7 @@ pub fn read(path: &Path) -> Result<Workbook> {
                 name: "CSV".into(),
                 headers,
                 rows,
+                temporal: HashMap::new(),
             });
         }
         "xls" | "xlsx" => {
@@ -102,24 +111,62 @@ pub fn read(path: &Path) -> Result<Workbook> {
                         "La feuille contient des formules. Exportez ses valeurs uniquement.",
                     ));
                 }
-                let mut rows = range.rows().map(|r| {
-                    r.iter()
-                        .map(|c| {
-                            if c.is_datetime() || c.is_datetime_iso() {
-                                c.as_datetime()
-                                    .map(|d| d.date().to_string())
-                                    .unwrap_or_else(|| c.to_string())
+                let mut temporal = HashMap::new();
+                let mut rows = Vec::new();
+                for (row_index, row) in range.rows().enumerate() {
+                    let mut display = Vec::new();
+                    for (column, cell) in row.iter().enumerate() {
+                        let mut text = cell.to_string();
+                        if cell.is_datetime() || cell.is_datetime_iso() || cell.is_duration_iso() {
+                            let datetime = cell.as_datetime();
+                            let time = cell.as_time().map(|t| t.format("%H:%M").to_string());
+                            let duration = cell.get_datetime().is_some_and(|v| v.is_duration())
+                                || cell.is_duration_iso();
+                            let date = datetime
+                                .filter(|d| {
+                                    !duration
+                                        && (d.date().to_string() >= "1901-01-01".to_string()
+                                            || time.as_deref() == Some("00:00"))
+                                })
+                                .map(|d| d.date().to_string());
+                            let minutes = cell
+                                .as_duration()
+                                .map(|d| d.num_milliseconds() as f64 / 60_000.0);
+                            text = if duration {
+                                minutes.map(|v| v.to_string()).unwrap_or(text)
+                            } else if let Some(day) = &date {
+                                match time.as_deref() {
+                                    Some(t) if t != "00:00" => format!("{day} {t}"),
+                                    _ => day.clone(),
+                                }
                             } else {
-                                c.to_string()
+                                time.clone().unwrap_or(text)
+                            };
+                            if row_index > 0 {
+                                temporal.insert(
+                                    (row_index - 1, column),
+                                    TemporalCell {
+                                        date,
+                                        time,
+                                        minutes,
+                                    },
+                                );
                             }
-                        })
-                        .collect::<Vec<_>>()
-                });
-                let headers = rows.next().unwrap_or_default();
+                        }
+                        display.push(text);
+                    }
+                    rows.push(display);
+                }
+                let headers = if rows.is_empty() {
+                    Vec::new()
+                } else {
+                    rows.remove(0)
+                };
                 sheets.push(Sheet {
                     name,
                     headers,
-                    rows: rows.collect(),
+                    rows,
+                    temporal,
                 });
             }
         }
@@ -157,6 +204,7 @@ pub fn read(path: &Path) -> Result<Workbook> {
                 name: "JSON".into(),
                 headers,
                 rows: out,
+                temporal: HashMap::new(),
             });
         }
         _ => return Err(invalid("Formats acceptés : CSV, XLS, XLSX, JSON.")),
@@ -208,7 +256,14 @@ fn metric_name(s: &str) -> String {
     }
     .to_string()
 }
-fn parse_row(row: &[String], m: &Mapping, pid: &str, filename: &str) -> Result<Observation> {
+fn parse_row(
+    row: &[String],
+    m: &Mapping,
+    pid: &str,
+    filename: &str,
+    temporal: &HashMap<(usize, usize), TemporalCell>,
+    row_index: usize,
+) -> Result<Observation> {
     let at = |i: usize| {
         row.get(i)
             .map(|v| v.trim())
@@ -221,9 +276,15 @@ fn parse_row(row: &[String], m: &Mapping, pid: &str, filename: &str) -> Result<O
         "mdy" => "%m/%d/%Y",
         _ => return Err(invalid("Choisissez le format des dates.")),
     };
-    let date = chrono::NaiveDate::parse_from_str(at(m.date_column)?, fmt)
-        .map_err(|_| invalid("Date invalide pour le format choisi."))?
-        .to_string();
+    let date = match temporal
+        .get(&(row_index, m.date_column))
+        .and_then(|cell| cell.date.clone())
+    {
+        Some(date) => date,
+        None => chrono::NaiveDate::parse_from_str(at(m.date_column)?, fmt)
+            .map_err(|_| invalid("Date invalide pour le format choisi."))?
+            .to_string(),
+    };
     let metric = if let Some(c) = m.metric_column {
         metric_name(at(c)?)
     } else {
@@ -253,20 +314,47 @@ fn parse_row(row: &[String], m: &Mapping, pid: &str, filename: &str) -> Result<O
             ))
         }
     }
-    let at_time = m.time_column.and_then(|column| {
-        row.get(column)
-            .map(|v| v.trim().to_string())
-            .filter(|v| !v.is_empty())
-    });
-    let duration = m
-        .duration_column
-        .and_then(|column| {
-            row.get(column)
-                .map(|v| v.trim().replace(',', "."))
+    let mut at_time = match m.time_column {
+        Some(column) => {
+            let text = temporal
+                .get(&(row_index, column))
+                .and_then(|cell| cell.time.clone())
+                .or_else(|| row.get(column).map(|v| v.trim().to_string()))
+                .filter(|v| !v.is_empty());
+            text.map(|text| {
+                chrono::NaiveTime::parse_from_str(&text, "%H:%M")
+                    .map(|time| time.format("%H:%M").to_string())
+                    .map_err(|_| invalid("Heure invalide : utilisez HH:mm."))
+            })
+            .transpose()?
+        }
+        None => None,
+    };
+    let mut duration = match m.duration_column {
+        Some(column) => match temporal
+            .get(&(row_index, column))
+            .and_then(|cell| cell.minutes)
+        {
+            Some(minutes) => Some(minutes),
+            None => row
+                .get(column)
+                .map(|v| v.trim())
                 .filter(|v| !v.is_empty())
-                .and_then(|v| v.parse::<f64>().ok())
-        })
-        .or_else(|| (at_time.is_some() && unit(&metric) == Some("min")).then_some(value));
+                .map(|v| {
+                    v.replace(',', ".")
+                        .parse::<f64>()
+                        .map_err(|_| invalid("Durée invalide : utilisez des minutes."))
+                })
+                .transpose()?,
+        },
+        None => None,
+    }
+    .or_else(|| (at_time.is_some() && unit(&metric) == Some("min")).then_some(value));
+    // A recorded zero is a daily observation, not an event with a zero-length animation.
+    if value == 0.0 && unit(&metric) == Some("min") && duration == Some(0.0) {
+        at_time = None;
+        duration = None;
+    }
     let o = Observation {
         id: id(),
         profile_id: pid.into(),
@@ -309,7 +397,7 @@ pub fn preview(book: &Workbook, m: &Mapping, pid: &str, s: &Snapshot) -> Result<
         .collect();
     let mut rows = vec![];
     for (i, row) in sheet.rows.iter().enumerate() {
-        let pr = match parse_row(row, m, pid, &book.filename) {
+        let pr = match parse_row(row, m, pid, &book.filename, &sheet.temporal, i) {
             Ok(o) => {
                 let key = (
                     o.date.clone(),
@@ -597,6 +685,7 @@ mod tests {
             token: id(),
             filename: "test.csv".into(),
             sheets: vec![Sheet {
+                temporal: HashMap::new(),
                 name: "CSV".into(),
                 headers: vec![],
                 rows: vec![
@@ -758,10 +847,130 @@ mod acceptance {
         ];
         let mut m = map();
         m.date_format = "".into();
-        assert!(parse_row(&row, &m, "p", "test").is_err());
+        assert!(parse_row(&row, &m, "p", "test", &HashMap::new(), 0).is_err());
         m.date_format = "dmy".into();
-        assert_eq!(parse_row(&row, &m, "p", "test").unwrap().date, "2026-04-03");
+        assert_eq!(
+            parse_row(&row, &m, "p", "test", &HashMap::new(), 0)
+                .unwrap()
+                .date,
+            "2026-04-03"
+        );
         m.date_format = "mdy".into();
-        assert_eq!(parse_row(&row, &m, "p", "test").unwrap().date, "2026-03-04");
+        assert_eq!(
+            parse_row(&row, &m, "p", "test", &HashMap::new(), 0)
+                .unwrap()
+                .date,
+            "2026-03-04"
+        );
+    }
+}
+#[cfg(test)]
+mod temporal_regressions {
+    use super::*;
+    fn snapshot() -> Snapshot {
+        let mut s = Snapshot::default();
+        mutate(&mut s, Mutation::Demo).unwrap();
+        s.observations.clear();
+        s.batches.clear();
+        s
+    }
+    fn mapping() -> Mapping {
+        Mapping {
+            sheet: 0,
+            date_column: 0,
+            metric_column: None,
+            value_column: 1,
+            unit_column: None,
+            time_column: Some(2),
+            duration_column: Some(3),
+            metric: "walk".into(),
+            unit: "min".into(),
+            date_format: "dmy".into(),
+        }
+    }
+    #[test]
+    fn excel_native_dates_times_and_durations_are_normalized_by_mapping() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("times.xlsx");
+        let mut book = rust_xlsxwriter::Workbook::new();
+        let sheet = book.add_worksheet();
+        for (column, name) in ["date", "value", "time", "duration"].iter().enumerate() {
+            sheet.write_string(0, column as u16, *name).unwrap();
+        }
+        sheet
+            .write_datetime_with_format(
+                1,
+                0,
+                &rust_xlsxwriter::ExcelDateTime::from_ymd(2026, 10, 1).unwrap(),
+                &rust_xlsxwriter::Format::new().set_num_format("dd/mm/yyyy"),
+            )
+            .unwrap();
+        sheet.write_number(1, 1, 30.).unwrap();
+        sheet
+            .write_datetime_with_format(
+                1,
+                2,
+                &rust_xlsxwriter::ExcelDateTime::from_hms(18, 30, 0.).unwrap(),
+                &rust_xlsxwriter::Format::new().set_num_format("hh:mm"),
+            )
+            .unwrap();
+        sheet
+            .write_datetime_with_format(
+                1,
+                3,
+                &rust_xlsxwriter::ExcelDateTime::from_hms(0, 30, 0.).unwrap(),
+                &rust_xlsxwriter::Format::new().set_num_format("[h]:mm"),
+            )
+            .unwrap();
+        book.save(&path).unwrap();
+        let workbook = read(&path).unwrap();
+        let s = snapshot();
+        let result = preview(&workbook, &mapping(), &s.profiles[0].id, &s).unwrap();
+        assert_eq!(result.rows[0].status, "new");
+        let o = result.rows[0].observation.as_ref().unwrap();
+        assert_eq!(o.date, "2026-10-01");
+        assert_eq!(o.at.as_deref(), Some("18:30"));
+        assert_eq!(o.duration_minutes, Some(30.));
+        // Public previews contain display cells; their typed metadata stays inside Rust.
+        assert!(serde_json::to_value(&workbook).unwrap()["sheets"][0]
+            .get("temporal")
+            .is_none());
+    }
+    #[test]
+    fn zero_duration_import_is_daily_and_invalid_duration_is_not_silently_ignored() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("zeros.csv");
+        std::fs::write(
+            &path,
+            "date;value;time;duration\n01/10/2026;0;18:30;0\n02/10/2026;30;18:30;bad\n",
+        )
+        .unwrap();
+        let workbook = read(&path).unwrap();
+        let s = snapshot();
+        let result = preview(&workbook, &mapping(), &s.profiles[0].id, &s).unwrap();
+        let o = result.rows[0].observation.as_ref().unwrap();
+        assert_eq!(o.value, 0.);
+        assert!(o.at.is_none());
+        assert!(o.duration_minutes.is_none());
+        assert_eq!(result.rows[1].status, "error");
+    }
+    #[test]
+    fn tobacco_two_column_csv_uses_fixed_cigarette_unit() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("tobacco.csv");
+        std::fs::write(&path, "date;value\n01/10/2026;2\n").unwrap();
+        let workbook = read(&path).unwrap();
+        let s = snapshot();
+        let mut m = mapping();
+        m.metric = "tobacco".into();
+        m.unit = "cigarette".into();
+        m.time_column = None;
+        m.duration_column = None;
+        let result = preview(&workbook, &m, &s.profiles[0].id, &s).unwrap();
+        assert_eq!(result.rows[0].status, "new");
+        assert_eq!(
+            result.rows[0].observation.as_ref().unwrap().unit,
+            "cigarette"
+        );
     }
 }

@@ -20,30 +20,37 @@ fn lock<T>(m: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>> {
 #[serde(rename_all = "camelCase")]
 struct Initial {
     snapshot: Snapshot,
+    revision: i64,
     storage_path: String,
     model: science::ModelDefinition,
 }
 #[tauri::command]
 fn initial_state(state: State<AppState>) -> Result<Initial> {
+    let db = lock(&state.store)?;
+    let current = db.current()?;
     Ok(Initial {
-        snapshot: lock(&state.store)?.load()?,
+        snapshot: current.snapshot,
+        revision: current.revision,
         storage_path: state.directory.join("me-sim.db").to_string_lossy().into(),
         model: science::definition(),
     })
 }
 #[tauri::command]
-fn mutate(operation: Mutation, state: State<AppState>) -> Result<Snapshot> {
-    let mut db = lock(&state.store)?;
-    let mut s = db.load()?;
-    domain::mutate(&mut s, operation)?;
-    db.replace(&s)?;
-    Ok(s)
+fn mutate(
+    operation: Mutation,
+    expected_revision: i64,
+    state: State<AppState>,
+) -> Result<store::VersionedSnapshot> {
+    lock(&state.store)?.mutate_at_revision(operation, expected_revision)
 }
 #[tauri::command]
 async fn choose_import(state: State<'_, AppState>) -> Result<Option<exchange::Workbook>> {
     let english = matches!(lock(&state.store)?.load()?.settings.language, Language::En);
     let path = rfd::AsyncFileDialog::new()
-        .add_filter(if english { "Measurements" } else { "Mesures" }, &["csv", "xls", "xlsx", "json"])
+        .add_filter(
+            if english { "Measurements" } else { "Mesures" },
+            &["csv", "xls", "xlsx", "json"],
+        )
         .pick_file()
         .await;
     let Some(file) = path else { return Ok(None) };
@@ -76,18 +83,20 @@ fn commit_import(
     token: String,
     policy: String,
     skip_errors: bool,
+    expected_revision: i64,
     state: State<AppState>,
-) -> Result<Snapshot> {
+) -> Result<store::VersionedSnapshot> {
     let mut previews = lock(&state.previews)?;
     let p = previews
         .get(&token)
         .ok_or_else(|| invalid("Aperçu expiré."))?;
     let mut db = lock(&state.store)?;
     let mut s = db.load()?;
+    db.require_revision(expected_revision)?;
     exchange::commit(&mut s, p, &policy, skip_errors)?;
     db.replace(&s)?;
     previews.remove(&token);
-    Ok(s)
+    Ok(db.versioned(s))
 }
 #[tauri::command]
 async fn export_data(
@@ -140,7 +149,14 @@ struct RestorePreview {
 async fn preview_restore(state: State<'_, AppState>) -> Result<Option<RestorePreview>> {
     let english = matches!(lock(&state.store)?.load()?.settings.language, Language::En);
     let file = rfd::AsyncFileDialog::new()
-        .add_filter(if english { "Me-Sim backup" } else { "Sauvegarde Me-Sim" }, &["json"])
+        .add_filter(
+            if english {
+                "Me-Sim backup"
+            } else {
+                "Sauvegarde Me-Sim"
+            },
+            &["json"],
+        )
         .pick_file()
         .await;
     let Some(file) = file else { return Ok(None) };
@@ -165,11 +181,15 @@ async fn preview_restore(state: State<'_, AppState>) -> Result<Option<RestorePre
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct Restored {
-    snapshot: Snapshot,
+    state: store::VersionedSnapshot,
     backup_path: String,
 }
 #[tauri::command]
-fn commit_restore(token: String, state: State<AppState>) -> Result<Restored> {
+fn commit_restore(
+    token: String,
+    expected_revision: i64,
+    state: State<AppState>,
+) -> Result<Restored> {
     let mut pending = lock(&state.restores)?;
     let s = pending
         .get(&token)
@@ -178,15 +198,17 @@ fn commit_restore(token: String, state: State<AppState>) -> Result<Restored> {
     let backup = state
         .directory
         .join(format!("avant-restauration-{}.json", id()));
-    exchange::atomic_write(&backup, &serde_json::to_vec_pretty(&db.load()?)?)?;
+    let previous = db.load()?;
+    db.require_revision(expected_revision)?;
+    exchange::atomic_write(&backup, &serde_json::to_vec_pretty(&previous)?)?;
     db.replace(s)?;
-    let snapshot = s.clone();
+    let versioned = db.versioned(s.clone());
     drop(db);
     pending.clear();
     lock(&state.previews)?.clear();
     lock(&state.books)?.clear();
     Ok(Restored {
-        snapshot,
+        state: versioned,
         backup_path: backup.to_string_lossy().into(),
     })
 }

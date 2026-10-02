@@ -12,7 +12,7 @@ Tabac se saisit en nombre entier de cigarettes par moment. Vapotage, écran le s
 
 ## Profil Target
 
-Le tableau de bord permet d’enregistrer, pour le profil actif, une journée de référence : heures de sommeil, pas, minutes d’activité, sport, marche et temps social, ainsi que les plafonds d’écran, de jeux vidéo, d’alcool, de tabac, de vapotage, d’écran le soir et de sédentarité. Les valeurs initiales sont modifiables ; elles servent de repères personnels, pas de recommandations médicales. La trajectoire affiche la déviation moyenne des observations disponibles pour chacun des sept derniers jours ; une barre plus haute signifie que les données s’éloignent davantage de la cible. Un jour sans observation reste marqué `?` et n’est pas compté comme zéro. La cible est incluse dans la sauvegarde JSON et restaurée avec son profil.
+Le tableau de bord permet d’enregistrer, pour le profil actif, une journée de référence : heures de sommeil, pas, minutes d’activité, sport, marche et temps social, ainsi que les plafonds d’écran, de jeux vidéo, d’alcool, de tabac, de vapotage, d’écran le soir et de sédentarité. Les valeurs initiales sont modifiables ; elles servent de repères personnels, pas de recommandations médicales. La trajectoire affiche la déviation moyenne des observations disponibles pour chacun des sept derniers jours ; une barre plus haute signifie que les données s’éloignent davantage de la cible. Chaque jour indique aussi le nombre d’indicateurs renseignés sur les 13 possibles. Un score de 0 % avec une couverture partielle ne prouve pas que toute la journée correspond à la cible. Un jour sans indicateur utilisable reste marqué `?` et n’est pas compté comme zéro. Pour une cible positive, l’écart relatif est plafonné à 100 % par indicateur ; pour une cible à zéro, toute quantité positive compte comme un écart complet pour cet indicateur. La moyenne reste un repère personnel, pas une mesure clinique. La cible est incluse dans la sauvegarde JSON et restaurée avec son profil.
 
 ## Calendrier des habitudes
 
@@ -44,4 +44,16 @@ Restaurer remplace tous les profils après aperçu. L’état précédent est sa
 
 Les exemples `fixtures/mesures.csv` et `fixtures/mesures.json` sont entièrement fictifs.
 
-En cas de modification simultanée par une autre fenêtre, une révision SQLite empêche tout écrasement silencieux. Réessayer l’action recharge la dernière version de la base.
+En cas de modification simultanée par une autre fenêtre, une révision SQLite empêche tout écrasement silencieux. La tentative périmée est refusée avant toute écriture. L’application recharge les données actuelles et conserve le brouillon lorsque le profil existe encore. Vérifier le brouillon puis enregistrer de nouveau ; il n’est jamais renvoyé automatiquement. Un aperçu d’import devenu périmé doit être vérifié de nouveau.
+
+## Précision du journal et des échanges — corrections du 2 octobre 2026
+
+Le récap résume les observations du jour local, indépendamment de la timeline glissante de 24 heures. Une donnée non renseignée reste indiquée par `—` ; un zéro explicitement saisi reste zéro. L’activité totale déclarée est utilisée lorsqu’elle existe ; sinon le récap additionne les séances de sport et de marche renseignées. Le total déclaré n’est pas additionné une seconde fois à ces séances. Les événements futurs ne sont pas inclus dans le récap.
+
+Une quantité nulle de vapotage, d’écran ou d’une autre activité peut être enregistrée sans heure ni durée d’animation : elle renseigne la journée et ne crée pas de moment dans la timeline. Les pas et les cigarettes utilisent des nombres entiers. Corriger une observation importée conserve son lien avec le lot d’origine.
+
+Le calendrier, le titre du jour, les trajectoires et la timeline suivent une horloge locale commune. Le passage à minuit avance la sélection lorsqu’elle suivait aujourd’hui ; une date historique choisie reste sélectionnée. Le journal conserve la quantité en cours de saisie et avance uniquement sa date par défaut. Le retour au premier plan actualise également ces repères.
+
+L’assistant propose l’unité fixe `cigarette`, y compris pour un fichier tabac sans colonne d’unité. Les dates, heures natives Excel et durées restent distinctes jusqu’au mapping ; une heure 18:30 ne devient plus une date. Une durée invalide est signalée au lieu d’être remplacée implicitement par la valeur. Les heures sont enregistrées à la minute et les durées dans `durationMinutes` sont en minutes.
+
+La limite de suivi porte sur 100 habitudes actives ; retirer une habitude conserve son historique sans occuper une place active. Une limite totale de 10 000 définitions par profil protège la taille des sauvegardes.

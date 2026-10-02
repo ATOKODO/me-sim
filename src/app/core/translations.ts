@@ -1,5 +1,23 @@
 /** Bundled UI translations. User-entered text and canonical data are never rewritten. */
 export const ENGLISH: Readonly<Record<string, string>> = {
+  "Les données ont changé dans une autre fenêtre. Rechargez les données avant de recommencer.":
+    "Data changed in another window. Reload the data before trying again.",
+  "Les données ont changé dans une autre fenêtre. Les dernières données ont été rechargées ; ton brouillon est conservé. Vérifie-le avant de réessayer.":
+    "Data changed in another window. The latest data has been reloaded and your draft has been kept. Review it before trying again.",
+  "Récap d’aujourd’hui": "Today’s recap",
+  "Sommeil aujourd’hui": "Sleep today",
+  "Observations renseignées aujourd’hui. — indique une donnée inconnue. Le total d’activité déclaré inclut déjà la marche et le sport.":
+    "Observations recorded today. — means unknown data. The declared activity total already includes walking and exercise.",
+  "La déviation compare uniquement les indicateurs renseignés à ta cible. Une journée partielle peut afficher 0 % : vérifie sa couverture. Pour une cible à zéro, toute quantité positive compte comme un écart complet pour cet indicateur.":
+    "Deviation compares only recorded indicators with your target. A partial day can show 0%: check its coverage. For a zero target, any positive amount counts as a full deviation for that indicator.",
+  "Indicateurs renseignés": "Recorded indicators",
+  "indicateurs renseignés": "recorded indicators",
+  "Une quantité nulle renseigne la journée sans créer de moment à rejouer.":
+    "A zero amount records the day without creating a moment to replay.",
+  "Heure invalide : utilisez HH:mm.": "Invalid time: use HH:mm.",
+  "Durée invalide : utilisez des minutes.": "Invalid duration: use minutes.",
+  "Limite : 100 habitudes actives et 10 000 habitudes au total par profil.":
+    "Limit: 100 active habits and 10,000 total habits per profile.",
   "Aller au contenu": "Skip to content",
   "TON PETIT MONDE": "YOUR LITTLE WORLD",
   "Navigation principale": "Main navigation",

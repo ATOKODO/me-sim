@@ -14,7 +14,7 @@ import {
   Workbook,
   Mapping,
   Preview,
-  Snapshot,
+  VersionedSnapshot,
   RestorePreview,
 } from "../core/models";
 import { Icon } from "../core/icon";
@@ -472,7 +472,9 @@ export class DataPage {
   store = inject(Store);
   fb = inject(FormBuilder);
   metrics = METRICS;
-  units = ["kg", "lb", "g", "h", "min", "pas", "kcal", "kJ", "/10", "verre"];
+  units = [
+    ...new Set([...METRICS.map((metric) => metric.unit), "lb", "g", "kJ"]),
+  ];
   book = signal<Workbook | null>(null);
   previewData = signal<Preview | null>(null);
   previewPage = signal(0);
@@ -495,6 +497,10 @@ export class DataPage {
     effect(() => {
       this.store.activeId();
       this.cancelImport();
+    });
+    effect(() => {
+      this.store.externalRefresh();
+      this.previewData.set(null);
     });
     this.form.valueChanges.subscribe(() => this.previewData.set(null));
   }
@@ -566,7 +572,8 @@ export class DataPage {
   }
   async commit() {
     await this.store.task(async () => {
-      const s = await invoke<Snapshot>("commit_import", {
+      const s = await invoke<VersionedSnapshot>("commit_import", {
+        expectedRevision: this.store.revision(),
         token: this.previewData()!.token,
         policy: this.policy(),
         skipErrors: this.skipErrors(),
@@ -594,11 +601,14 @@ export class DataPage {
   }
   async restoreCommit() {
     await this.store.task(async () => {
-      const r = await invoke<{ snapshot: Snapshot; backupPath: string }>(
+      const r = await invoke<{ state: VersionedSnapshot; backupPath: string }>(
         "commit_restore",
-        { token: this.restore()!.token },
+        {
+          token: this.restore()!.token,
+          expectedRevision: this.store.revision(),
+        },
       );
-      this.store.apply(r.snapshot);
+      this.store.apply(r.state);
       this.restore.set(null);
       this.cancelImport();
       this.store.notice.set(

@@ -220,6 +220,7 @@ test("native import, conflict and restore screens translate without rewriting fi
           if (command === "initial_state")
             return {
               snapshot: structuredClone(snapshot),
+              revision: 0,
               storagePath: "C:\\Local\\Mes habitudes\\me-sim.db",
               model: {
                 id: "hall-2011",
@@ -282,7 +283,10 @@ test("native import, conflict and restore screens translate without rewriting fi
             };
           if (command === "mutate") {
             snapshot.settings = args.operation.value;
-            return structuredClone(snapshot);
+            return {
+              snapshot: structuredClone(snapshot),
+              revision: args.expectedRevision + 1,
+            };
           }
           throw {
             code: "INVALID",

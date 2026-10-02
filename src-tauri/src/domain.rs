@@ -342,8 +342,19 @@ pub fn validate(s: &Snapshot) -> Result<()> {
         if let Some(target) = &p.target {
             validate_target(target)?;
         }
-        if p.habits.len() > 100 {
-            return Err(invalid("Limite : 100 habitudes par profil."));
+        let today = chrono::Local::now().date_naive().to_string();
+        let active = p
+            .habits
+            .iter()
+            .filter(|habit| {
+                habit.start_date <= today
+                    && habit.archived_at.as_ref().is_none_or(|date| date > &today)
+            })
+            .count();
+        if active > 100 || p.habits.len() > 10_000 {
+            return Err(invalid(
+                "Limite : 100 habitudes actives et 10 000 habitudes au total par profil.",
+            ));
         }
         for habit in &p.habits {
             if habit.id.is_empty()
@@ -643,4 +654,64 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
         }
     }
     validate(s)
+}
+#[cfg(test)]
+mod journal_regressions {
+    use super::*;
+    #[test]
+    fn declared_zero_is_valid_without_a_timeline_event_but_counts_are_integers() {
+        let mut o = Observation {
+            id: "zero".into(),
+            profile_id: "p".into(),
+            date: "2026-10-01".into(),
+            metric: "vaping".into(),
+            value: 0.,
+            unit: "min".into(),
+            source: "Saisie manuelle".into(),
+            batch_id: None,
+            at: None,
+            duration_minutes: None,
+        };
+        validate_observation(&o).unwrap();
+        o.at = Some("12:00".into());
+        o.duration_minutes = Some(0.);
+        assert!(validate_observation(&o).is_err());
+        o.at = None;
+        o.duration_minutes = None;
+        o.metric = "tobacco".into();
+        o.unit = "cigarette".into();
+        o.value = 0.5;
+        assert!(validate_observation(&o).is_err());
+        o.value = 1.;
+        validate_observation(&o).unwrap();
+    }
+    #[test]
+    fn retired_habits_do_not_consume_the_active_limit_and_history_remains_valid() {
+        let mut s = Snapshot::default();
+        mutate(&mut s, Mutation::Demo).unwrap();
+        let p = &mut s.profiles[0];
+        for n in 0..100 {
+            p.habits.push(HabitDefinition {
+                id: format!("old-{n}"),
+                label: "Old habit".into(),
+                kind: HabitKind::Good,
+                start_date: "2020-01-01".into(),
+                archived_at: Some("2020-01-02".into()),
+                metric: None,
+            });
+        }
+        validate(&s).unwrap();
+        let p = &mut s.profiles[0];
+        for n in 0..101 {
+            p.habits.push(HabitDefinition {
+                id: format!("new-{n}"),
+                label: "Active habit".into(),
+                kind: HabitKind::Good,
+                start_date: "2020-01-01".into(),
+                archived_at: None,
+                metric: None,
+            });
+        }
+        assert!(validate(&s).is_err());
+    }
 }

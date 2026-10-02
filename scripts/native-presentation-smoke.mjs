@@ -18,14 +18,15 @@ try {
     initial.snapshot.settings.theme !== "dark"
   ) {
     await page.evaluate(
-      (settings) =>
+      ({ settings, revision }) =>
         window.__TAURI_INTERNALS__.invoke("mutate", {
+          expectedRevision: revision,
           operation: {
             type: "settings",
             value: { ...settings, language: "fr", theme: "dark" },
           },
         }),
-      initial.snapshot.settings,
+      { settings: initial.snapshot.settings, revision: initial.revision },
     );
     await page.reload();
   }

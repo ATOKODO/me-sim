@@ -5,11 +5,11 @@ import {
   LocalNumberPipe,
 } from "../core/i18n";
 import { FocusDialog } from "../core/focus-dialog";
-import { Component, inject, signal, effect } from "@angular/core";
+import { Component, inject, signal, effect, untracked } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { Store } from "../core/store";
-import { METRICS, Metric, Observation, today, uid } from "../core/models";
+import { METRICS, Metric, Observation, uid } from "../core/models";
 import { Icon } from "../core/icon";
 @Component({
   imports: [
@@ -94,7 +94,7 @@ import { Icon } from "../core/icon";
                 formControlName="value"
                 [min]="currentMetric().id === 'weight' ? 0.1 : 0"
                 [max]="currentMetric().max"
-                [step]="currentMetric().id === 'steps' ? 1 : 0.1"
+                [step]="currentMetric().integer ? 1 : 0.1"
                 [placeholder]="'Ta mesure' | t"
                 required
             /></label>
@@ -103,6 +103,14 @@ import { Icon } from "../core/icon";
                 >{{ "Heure de début" | t
                 }}<input type="time" formControlName="time" required
               /></label>
+            }
+            @if (currentMetric().event && form.controls.value.value === 0) {
+              <p class="field-help">
+                {{
+                  "Une quantité nulle renseigne la journée sans créer de moment à rejouer."
+                    | t
+                }}
+              </p>
             }
             <p class="field-help">
               {{
@@ -315,7 +323,7 @@ export class Journal {
   deleting = signal<Observation | null>(null);
   selectedMetric = signal<Metric>("weight");
   form = this.fb.group({
-    date: [today(), Validators.required],
+    date: [this.store.clock.today(), Validators.required],
     metric: ["weight" as Metric, Validators.required],
     value: [null as number | null, Validators.required],
     time: [""],
@@ -323,9 +331,11 @@ export class Journal {
   constructor() {
     effect(() => {
       this.store.activeId();
-      this.reset();
-      this.page.set(0);
-      this.deleting.set(null);
+      untracked(() => {
+        this.reset();
+        this.page.set(0);
+        this.deleting.set(null);
+      });
     });
     this.form.controls.metric.valueChanges.subscribe((m) => {
       this.selectedMetric.set(m ?? "weight");
@@ -333,13 +343,36 @@ export class Journal {
         Validators.required,
         Validators.min(m === "weight" ? 0.1 : 0),
         Validators.max(this.currentMetric().max),
+        ...(this.currentMetric().integer ? [Validators.pattern(/^\d+$/)] : []),
       ]);
       this.form.controls.value.updateValueAndValidity();
-      this.form.controls.time.setValidators(
-        this.currentMetric().event ? [Validators.required] : [],
-      );
-      this.form.controls.time.updateValueAndValidity();
+      this.updateTimeValidators();
     });
+    this.form.controls.value.valueChanges.subscribe(() =>
+      this.updateTimeValidators(),
+    );
+    let previousDay = this.store.clock.today();
+    effect(() => {
+      const day = this.store.clock.today();
+      if (
+        day !== previousDay &&
+        !this.editing() &&
+        this.form.controls.date.value === previousDay
+      )
+        this.form.controls.date.setValue(day);
+      previousDay = day;
+    });
+  }
+  private updateTimeValidators() {
+    this.form.controls.time.setValidators(
+      this.currentMetric().event && (this.form.controls.value.value ?? 0) > 0
+        ? [
+            Validators.required,
+            Validators.pattern(/^(?:[01]\d|2[0-3]):[0-5]\d$/),
+          ]
+        : [],
+    );
+    this.form.controls.time.updateValueAndValidity({ emitEvent: false });
   }
   currentMetric = () => METRICS.find((m) => m.id === this.selectedMetric())!;
   filtered = () =>
@@ -351,7 +384,7 @@ export class Journal {
   reset() {
     this.editing.set(null);
     this.form.reset({
-      date: today(),
+      date: this.store.clock.today(),
       metric: "weight",
       value: null,
       time: this.nowTime(),
@@ -387,10 +420,15 @@ export class Journal {
       value: v.value,
       unit: this.currentMetric().unit,
       source: "Saisie manuelle",
-      batchId: null,
-      at: this.currentMetric().event ? v.time || this.nowTime() : null,
+      batchId: this.editing()?.batchId ?? null,
+      at:
+        this.currentMetric().event && v.value > 0
+          ? v.time || this.nowTime()
+          : null,
       durationMinutes:
-        this.currentMetric().event && this.currentMetric().unit === "min"
+        this.currentMetric().event &&
+        this.currentMetric().unit === "min" &&
+        v.value > 0
           ? v.value
           : null,
     };

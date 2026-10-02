@@ -22,7 +22,6 @@ import {
   METRICS,
   Observation,
   TargetDay,
-  today,
 } from "../core/models";
 import { evaluateHabitDay } from "../core/habit-tracking";
 import { Icon } from "../core/icon";
@@ -41,7 +40,7 @@ import { AvatarScene } from "../scene/avatar";
   ],
   template: `<div class="page-heading">
       <div>
-        <div class="eyebrow">{{ date | localDate: "EEEE d MMMM yyyy" }}</div>
+        <div class="eyebrow">{{ date() | localDate: "EEEE d MMMM yyyy" }}</div>
         <h1>
           {{ "Un peu plus toi, chaque jour" | t }}<span class="accent">.</span>
         </h1>
@@ -300,19 +299,25 @@ import { AvatarScene } from "../scene/avatar";
         </div>
         <div class="day-recap">
           <div class="recap-title">
-            <ui-icon name="journal" /> {{ "Récap de la journée" | t }}
+            <ui-icon name="journal" /> {{ "Récap d’aujourd’hui" | t }}
             <span>{{ store.dayRecap().events }} {{ "moments" | t }}</span>
           </div>
+          <p class="field-help">
+            {{
+              "Observations renseignées aujourd’hui. — indique une donnée inconnue. Le total d’activité déclaré inclut déjà la marche et le sport."
+                | t
+            }}
+          </p>
           <div class="recap-grid">
             <div>
               <span>{{ "Actif" | t }}</span
               ><strong
-                >{{ store.dayRecap().activeMinutes
+                >{{ store.dayRecap().activeMinutes ?? "—"
                 }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div>
-              <span>{{ "Sommeil récent" | t }}</span
+              <span>{{ "Sommeil aujourd’hui" | t }}</span
               ><strong
                 >{{ store.dayRecap().sleepHours ?? "—"
                 }}<small> {{ "h" | t }}</small></strong
@@ -321,51 +326,49 @@ import { AvatarScene } from "../scene/avatar";
             <div>
               <span>{{ "Social" | t }}</span
               ><strong
-                >{{ store.dayRecap().socialMinutes
+                >{{ store.dayRecap().socialMinutes ?? "—"
                 }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
               <span>{{ "Écran + jeux" | t }}</span
               ><strong
-                >{{
-                  store.dayRecap().screenMinutes +
-                    store.dayRecap().gamingMinutes
+                >{{ store.dayRecap().screenAndGamingMinutes ?? "—"
                 }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
               <span>{{ "Alcool" | t }}</span
               ><strong
-                >{{ store.dayRecap().alcohol
+                >{{ store.dayRecap().alcohol ?? "—"
                 }}<small> {{ "verres" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
               <span>{{ "Tabac" | t }}</span
               ><strong
-                >{{ store.dayRecap().tobaccoCigarettes
+                >{{ store.dayRecap().tobaccoCigarettes ?? "—"
                 }}<small> {{ "cigarettes" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
               <span>{{ "Vapotage" | t }}</span
               ><strong
-                >{{ store.dayRecap().vapingMinutes
+                >{{ store.dayRecap().vapingMinutes ?? "—"
                 }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
               <span>{{ "Écran le soir" | t }}</span
               ><strong
-                >{{ store.dayRecap().eveningScreenMinutes
+                >{{ store.dayRecap().eveningScreenMinutes ?? "—"
                 }}<small> {{ "min" | t }}</small></strong
               >
             </div>
             <div class="recap-negative">
               <span>{{ "Sédentarité" | t }}</span
               ><strong
-                >{{ store.dayRecap().sedentaryMinutes
+                >{{ store.dayRecap().sedentaryMinutes ?? "—"
                 }}<small> {{ "min" | t }}</small></strong
               >
             </div>
@@ -529,7 +532,7 @@ import { AvatarScene } from "../scene/avatar";
           </div>
           <p class="deviation-copy">
             {{
-              "0 % correspond à ta journée cible. Plus la barre monte, plus les observations s’en éloignent."
+              "La déviation compare uniquement les indicateurs renseignés à ta cible. Une journée partielle peut afficher 0 % : vérifie sa couverture. Pour une cible à zéro, toute quantité positive compte comme un écart complet pour cet indicateur."
                 | t
             }}
           </p>
@@ -545,6 +548,14 @@ import { AvatarScene } from "../scene/avatar";
                 <span class="deviation-number">{{
                   point.deviation === null ? "?" : point.deviation + "%"
                 }}</span>
+                <span
+                  class="deviation-coverage"
+                  [attr.title]="tr('Indicateurs renseignés')"
+                  >{{ point.coverage }} / {{ point.total
+                  }}<span class="sr-only">
+                    {{ "indicateurs renseignés" | t }}</span
+                  ></span
+                >
                 <div class="deviation-track">
                   <span
                     [class.unknown]="point.deviation === null"
@@ -594,12 +605,14 @@ export class Dashboard implements OnDestroy {
   @ViewChild(AvatarScene) avatar?: AvatarScene;
   store = inject(Store);
   fb = inject(FormBuilder);
-  date = new Date();
+  date = computed(() => new Date(this.store.clock.now()));
   habitToday = computed(() =>
     evaluateHabitDay(
       this.store.habits(),
-      this.store.habitDays().find((day) => day.date === today()),
-      today(),
+      this.store
+        .habitDays()
+        .find((day) => day.date === this.store.clock.today()),
+      this.store.clock.today(),
     ),
   );
   essentials = METRICS.slice(0, 3);
@@ -661,13 +674,19 @@ export class Dashboard implements OnDestroy {
     ],
   });
   private targetFormSource = "";
+  private targetProfile = "";
+  private targetBaseline: TargetDay = { ...DEFAULT_TARGET };
   constructor() {
     effect(() => {
       const target = this.store.target();
       const source = JSON.stringify([this.store.activeId(), target]);
       if (source === this.targetFormSource) return;
+      const profile = this.store.activeId();
+      if (profile === this.targetProfile && this.targetForm.dirty) return;
+      this.targetProfile = profile;
       this.targetFormSource = source;
-      this.targetForm.patchValue(target, { emitEvent: false });
+      this.targetBaseline = { ...target };
+      this.targetForm.reset(target, { emitEvent: false });
     });
     effect(() => {
       this.store.activeId();
@@ -714,7 +733,14 @@ export class Dashboard implements OnDestroy {
       eveningScreenMinutes: Number(value.eveningScreenMinutes ?? 0),
       sedentaryMinutes: Number(value.sedentaryMinutes ?? 0),
     };
-    await this.store.saveTarget(target);
+    const merged = { ...this.store.target() };
+    for (const key of Object.keys(target) as (keyof TargetDay)[]) {
+      if (target[key] !== this.targetBaseline[key]) merged[key] = target[key];
+    }
+    if (await this.store.saveTarget(merged)) {
+      this.targetBaseline = { ...merged };
+      this.targetForm.reset(merged, { emitEvent: false });
+    }
   }
   selectEvent(o: Observation) {
     this.stopReplay();

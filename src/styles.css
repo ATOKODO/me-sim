@@ -952,13 +952,14 @@ nav .nav-small {
   grid-template-columns: repeat(7, 1fr);
   align-items: end;
   gap: 10px;
-  height: 190px;
+  height: 220px;
   margin: 0 24px;
   padding: 18px 8px 0;
   border-bottom: 1px solid var(--line);
 }
 .deviation-day {
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -974,6 +975,8 @@ nav .nav-small {
 }
 .deviation-track {
   height: 130px;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   max-width: 38px;
   display: flex;
@@ -2530,4 +2533,10 @@ summary {
   .appearance-fields {
     grid-template-columns: 1fr;
   }
+}
+
+.deviation-coverage {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
 }
