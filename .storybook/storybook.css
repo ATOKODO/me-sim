@@ -1,0 +1,79 @@
+.ds-story {
+  padding: 32px;
+  min-height: 100vh;
+  background: var(--ds-background);
+  color: var(--ds-text);
+}
+.ds-stack {
+  display: grid;
+  gap: 24px;
+  max-width: 960px;
+}
+.ds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+.ds-swatch {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.ds-swatch-color {
+  height: 70px;
+}
+.ds-swatch-label {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+}
+.ds-swatch code,
+.ds-description {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ds-icon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.ds-form {
+  display: grid;
+  gap: 20px;
+  max-width: 460px;
+}
+.ds-form input[aria-invalid="true"] {
+  border-color: var(--ds-negative);
+}
+.ds-error {
+  color: var(--ds-negative);
+  font-size: 12px;
+}
+.ds-chart {
+  max-width: 680px;
+  padding: 24px;
+}
+.ds-chart mini-chart {
+  margin-top: 24px;
+}
+.ds-metric {
+  width: 380px;
+  max-width: 100%;
+}
+.ds-space {
+  background: var(--accent);
+  height: 12px;
+  margin-top: 8px;
+}
+.ds-story .notice {
+  margin-bottom: 0;
+}
+
+.sbdocs .ds-story {
+  min-height: 0;
+}

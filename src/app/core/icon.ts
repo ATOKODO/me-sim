@@ -39,6 +39,7 @@ const PATHS: Record<string, string> = {
   vape: "M8 3h8v14H8z M10 17h4v4h-4z M10 7h4 M18 5c2 2 2 4 0 6 M20 3c3 3 3 7 0 10",
   chair: "M6 4h12v7H6z M4 11h16v4H4z M6 15v6 M18 15v6",
 };
+export const ICON_NAMES = Object.keys(PATHS);
 @Component({
   selector: "ui-icon",
   template:

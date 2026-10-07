@@ -26,6 +26,12 @@ npm run desktop
 - `npm run build` : compiler Angular.
 - `npm run preview` : aperçu navigateur sur http://127.0.0.1:1420, données fictives temporaires, échanges de fichiers désactivés.
 - `npm test` : tests Playwright avec Edge installé, sur le port 1421. Exécuter le build avant.
+- `npm run docs:dev` : documentation VitePress sur http://127.0.0.1:5174.
+- `npm run docs:build` : documentation statique, avec vérification des liens internes.
+- `npm run docs:preview` : aperçu du site construit sur http://127.0.0.1:4174.
+- `npm run storybook` : catalogue local du design système sur 127.0.0.1:6006.
+- `npm run test:visual` : builds et régression visuelle Playwright ; installer Chromium avec `npx playwright install chromium`.
+- `npm run test:visual:update` : mise à jour volontaire des références visuelles après inspection.
 - `npm run test:rust` : tests Rust des données, fichiers et verrou scientifique.
 - `npm run package` : installateur NSIS par utilisateur ; installe WebView2 si nécessaire via Internet.
 - `npm run package:offline` : installateur NSIS incluant l’installateur WebView2 hors ligne.
@@ -71,6 +77,14 @@ La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent
 - `src-tauri/src` : domaines, SQLite, échanges, moteur de recherche et commandes natives.
 - `fixtures` : exemples sans données personnelles.
 - `docs` : guide, fiche scientifique et validation.
+
+## Documentation
+
+La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Recherche locale, thèmes clair/sombre et ressources embarquées. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle. La CI est configurée pour vérifier le build ; aucune publication automatique n’est configurée.
+
+## Design système
+
+[Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles, captures de référence et CI Windows.
 
 ## Vérification native isolée
 

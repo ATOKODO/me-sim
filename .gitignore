@@ -14,3 +14,10 @@ release/
 
 .tmp/
 *.blend1
+
+storybook-static/
+storybook.log
+
+# VitePress documentation output
+docs/.vitepress/cache/
+docs/.vitepress/dist/

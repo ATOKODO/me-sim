@@ -59,6 +59,36 @@
             }
           },
           "defaultConfiguration": "development"
+        },
+        "storybook": {
+          "builder": "@storybook/angular:start-storybook",
+          "options": {
+            "configDir": ".storybook",
+            "browserTarget": "me-sim:build:development",
+            "tsConfig": ".storybook/tsconfig.json",
+            "compodoc": false,
+            "experimentalZoneless": true,
+            "styles": ["src/styles.css", ".storybook/storybook.css"],
+            "host": "127.0.0.1",
+            "port": 6006,
+            "ci": true,
+            "sourceMap": false,
+            "quiet": true
+          }
+        },
+        "build-storybook": {
+          "builder": "@storybook/angular:build-storybook",
+          "options": {
+            "configDir": ".storybook",
+            "browserTarget": "me-sim:build:development",
+            "tsConfig": ".storybook/tsconfig.json",
+            "compodoc": false,
+            "experimentalZoneless": true,
+            "styles": ["src/styles.css", ".storybook/storybook.css"],
+            "outputDir": "storybook-static",
+            "sourceMap": false,
+            "quiet": true
+          }
         }
       }
     }

@@ -26,9 +26,13 @@ import {
 import { evaluateHabitDay } from "../core/habit-tracking";
 import { Icon } from "../core/icon";
 import { Chart } from "../core/chart";
+import { UiButton } from "../ui/button";
+import { MetricCard } from "../ui/metric-card";
 import { AvatarScene } from "../scene/avatar";
 @Component({
   imports: [
+    UiButton,
+    MetricCard,
     TranslatePipe,
     LocalDatePipe,
     LocalNumberPipe,
@@ -51,7 +55,7 @@ import { AvatarScene } from "../scene/avatar";
           }}
         </p>
       </div>
-      <a class="button primary" routerLink="/journal"
+      <a uiButton="primary" routerLink="/journal"
         ><ui-icon name="plus" /> {{ "Ajouter une mesure" | t }}</a
       >
     </div>
@@ -119,33 +123,16 @@ import { AvatarScene } from "../scene/avatar";
             <span>{{ "Dernières mesures" | t }}</span>
           </div>
           @for (m of essentials; track m.id) {
-            <article class="metric-card">
-              <div class="metric-icon" [style.color]="i18n.color(m.color)">
-                <ui-icon [name]="m.icon" />
-              </div>
-              <div class="metric-body">
-                <span>{{ tr(m.label) }}</span>
-                <div class="metric-value">
-                  @if (store.latest(m.id); as o) {
-                    {{ o.value | localNumber: "1.0-1"
-                    }}<small>{{ tr(m.unit) }}</small>
-                  } @else {
-                    <span class="unknown">{{ "Non renseigné" | t }}</span>
-                  }
-                </div>
-                <span class="metric-date"
-                  >{{ store.latest(m.id)?.date | localDate: "d MMM" }}
-                  @if (profile.demo) {
-                    {{ "· données fictives" | t }}
-                  }
-                </span>
-              </div>
-              <mini-chart
-                [values]="values(m.id)"
-                [color]="m.color"
-                [label]="tr('Historique : ') + tr(m.label)"
-              />
-            </article>
+            <ui-metric-card
+              [label]="m.label"
+              [unit]="m.unit"
+              [icon]="m.icon"
+              [color]="m.color"
+              [value]="store.latest(m.id)?.value ?? null"
+              [date]="store.latest(m.id)?.date ?? null"
+              [demo]="profile.demo"
+              [values]="values(m.id)"
+            />
           }
           <a class="subtle-link" routerLink="/journal"
             >{{ "Voir toutes mes mesures" | t }} <ui-icon name="arrow"
@@ -169,7 +156,7 @@ import { AvatarScene } from "../scene/avatar";
 
             {{ "nécessaires pour comparer tes futurs." | t }}
           </p>
-          <a class="button primary" routerLink="/futurs"
+          <a uiButton="primary" routerLink="/futurs"
             >{{ "Explorer mes futurs" | t }} <ui-icon name="arrow"
           /></a>
           <div class="future-art" aria-hidden="true">
@@ -231,7 +218,7 @@ import { AvatarScene } from "../scene/avatar";
             </p>
           }
         </div>
-        <a class="button primary" routerLink="/habitudes">
+        <a uiButton="primary" routerLink="/habitudes">
           <ui-icon name="check" />
           {{
             habitToday().total
@@ -253,7 +240,7 @@ import { AvatarScene } from "../scene/avatar";
             </p>
           </div>
           <button
-            class="button secondary"
+            uiButton="secondary"
             (click)="replay()"
             [disabled]="!store.dayEvents().length"
           >
@@ -515,7 +502,7 @@ import { AvatarScene } from "../scene/avatar";
               /></label>
             </div>
             <button
-              class="button primary"
+              uiButton="primary"
               [disabled]="targetForm.invalid || store.busy()"
             >
               <ui-icon name="check" /> {{ "Enregistrer ma cible" | t }}
@@ -586,10 +573,10 @@ import { AvatarScene } from "../scene/avatar";
           }}
         </p>
         <div class="button-row">
-          <a class="button primary" routerLink="/profils"
+          <a uiButton="primary" routerLink="/profils"
             >{{ "Créer mon profil" | t }} <ui-icon name="arrow" /></a
           ><button
-            class="button secondary"
+            uiButton="secondary"
             (click)="store.mutate({ type: 'demo' })"
             [disabled]="store.busy()"
           >
