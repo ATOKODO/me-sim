@@ -10,12 +10,7 @@ import {
 import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { Store } from "../core/store";
-import {
-  HABIT_METRICS,
-  HabitDefinition,
-  HabitDay,
-  uid,
-} from "../core/models";
+import { HABIT_METRICS, HabitDefinition, HabitDay, uid } from "../core/models";
 import {
   activeHabits,
   evaluateHabitDay,
@@ -66,7 +61,7 @@ import { Icon } from "../core/icon";
                 [attr.aria-label]="'Mois précédent' | t"
                 (click)="moveMonth(-1)"
               >
-                ‹
+                <ui-icon name="arrow" />
               </button>
               <strong>{{ month() | localDate: "MMMM yyyy" }}</strong>
               <button
@@ -74,7 +69,7 @@ import { Icon } from "../core/icon";
                 (click)="moveMonth(1)"
                 [disabled]="month() >= currentMonth()"
               >
-                ›
+                <ui-icon name="arrow" />
               </button>
             </div>
           </div>

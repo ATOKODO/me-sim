@@ -614,6 +614,7 @@ nav .nav-small {
   grid-template-columns: 1fr 1fr;
   gap: 25px;
   margin-top: 25px;
+  margin-bottom: 25px;
 }
 .future-card {
   position: relative;
@@ -1156,6 +1157,9 @@ form {
   gap: 25px;
   align-items: start;
 }
+.journal-layout > .panel {
+  min-width: 0;
+}
 .table-scroll {
   overflow: auto;
 }
@@ -1686,6 +1690,11 @@ summary {
   font-size: 12px;
 }
 .habit-month-nav button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
   width: 28px;
   height: 28px;
   border: 1px solid var(--line);
@@ -1693,6 +1702,13 @@ summary {
   background: var(--surface-222b2a, #222b2a);
   color: var(--text-d4e1d0, #d4e1d0);
   font-size: 19px;
+}
+.habit-month-nav ui-icon {
+  width: 14px;
+  height: 14px;
+}
+.habit-month-nav button:first-child ui-icon {
+  transform: rotate(180deg);
 }
 .habit-calendar {
   display: grid;
@@ -1919,6 +1935,18 @@ summary {
   gap: 14px;
   padding: 22px;
   border-top: 1px solid var(--line);
+}
+.habit-add-form select {
+  appearance: none;
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 19px center,
+    right 14px center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
 }
 .habit-add-form h3 {
   margin-bottom: 2px;
@@ -2289,6 +2317,23 @@ summary {
   gap: 14px;
 }
 @media (max-width: 1100px) {
+  .journal-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .journal-layout th:last-child,
+  .journal-layout td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--panel);
+    box-shadow: -1px 0 0 var(--line);
+  }
+  .journal-layout th:last-child {
+    background: var(--surface-151c20, #151c20);
+  }
+  .journal-layout .row-actions {
+    justify-content: flex-end;
+  }
   .breadcrumb {
     display: none;
   }
