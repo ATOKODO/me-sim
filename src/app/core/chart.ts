@@ -1,5 +1,6 @@
 import { I18n, TranslatePipe } from "./i18n";
 import { Component, inject, computed, input } from "@angular/core";
+import { chartPath } from "./chart-path";
 @Component({
   selector: "mini-chart",
   imports: [TranslatePipe],
@@ -22,6 +23,8 @@ import { Component, inject, computed, input } from "@angular/core";
         [attr.stroke]="i18n.color(color())"
         fill="none"
         stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
         vector-effect="non-scaling-stroke"
       />
     } @else {
@@ -46,17 +49,7 @@ export class Chart {
   values = input<number[]>([]);
   color = input("#bde883");
   label = input("Évolution des mesures observées");
-  line = computed(() => {
-    const v = this.values();
-    const min = Math.min(...v),
-      max = Math.max(...v),
-      span = max - min || 1;
-    return v
-      .map(
-        (y, i) =>
-          `${i ? "L" : "M"}${(i / Math.max(v.length - 1, 1)) * 400},${85 - ((y - min) / span) * 65}`,
-      )
-      .join(" ");
-  });
+  smooth = input(false);
+  line = computed(() => chartPath(this.values(), this.smooth()));
   area = computed(() => this.line() + " L400,100 L0,100Z");
 }

@@ -561,9 +561,9 @@ nav .nav-small {
 }
 .metric-reading {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 .metric-value {
   display: flex;
@@ -587,8 +587,8 @@ nav .nav-small {
   color: var(--text-97a28e, #97a28e);
 }
 .metric-card mini-chart {
-  width: 80px;
-  height: 40px;
+  width: 100%;
+  height: 64px;
   opacity: 0.85;
 }
 .metric-card mini-chart svg text {
@@ -1964,9 +1964,6 @@ summary {
   .future-card {
     min-height: 300px;
   }
-  .metric-card mini-chart {
-    width: 120px;
-  }
 }
 @media (max-width: 1200px) {
   .sidebar {
@@ -1998,9 +1995,6 @@ summary {
   .metric-card {
     padding: 18px 13px;
     gap: 10px;
-  }
-  .metric-card mini-chart {
-    width: 64px;
   }
   .metric-value {
     font-size: 26px;
@@ -2107,8 +2101,9 @@ summary {
   .metric-card {
     min-height: 120px;
   }
-  .metric-card mini-chart {
-    display: none;
+  .metric-reading {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
   }
   .lower-grid {
     grid-template-columns: 1fr 1fr;
@@ -2173,10 +2168,6 @@ summary {
   }
   .today-column {
     grid-template-columns: 1fr;
-  }
-  .metric-card mini-chart {
-    display: block;
-    width: 80px;
   }
   .lower-grid,
   .data-grid,

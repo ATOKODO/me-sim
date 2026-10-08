@@ -29,6 +29,7 @@ import { Icon } from "../core/icon";
       </div>
       <mini-chart
         [values]="values()"
+        [smooth]="true"
         [color]="color()"
         [label]="i18n.t('Historique : ') + i18n.t(label())"
       />
