@@ -61,70 +61,93 @@ if (
   throw new Error("animations.json doit contenir version: 1 et overrides: {}.");
 
 const errors = [];
-for (const [mode, config] of Object.entries(manifest.overrides)) {
-  if (!modes.has(mode)) {
-    errors.push(`${mode} : habitude inconnue.`);
-    continue;
-  }
+const variants = [["default", manifest.overrides]];
+if (manifest.variants !== undefined) {
   if (
-    !config ||
-    typeof config !== "object" ||
-    !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.glb$/.test(config.file) ||
-    typeof config.clip !== "string" ||
-    !config.clip.trim()
-  ) {
-    errors.push(`${mode} : file ou clip invalide.`);
-    continue;
-  }
-  const file = join(avatarDir, config.file);
-  if (!existsSync(file)) {
-    errors.push(`${mode} : fichier absent (${config.file}).`);
-    continue;
-  }
-  try {
-    const bytes = readFileSync(file);
+    !manifest.variants ||
+    typeof manifest.variants !== "object" ||
+    Array.isArray(manifest.variants)
+  )
+    throw new Error("variants doit être un objet.");
+  for (const [variant, value] of Object.entries(manifest.variants)) {
     if (
-      bytes.length < 20 ||
-      bytes.readUInt32LE(0) !== 0x46546c67 ||
-      bytes.readUInt32LE(4) !== 2 ||
-      bytes.readUInt32LE(8) !== bytes.length
+      variant !== "female" ||
+      !value?.overrides ||
+      typeof value.overrides !== "object" ||
+      Array.isArray(value.overrides)
     )
-      throw new Error("en-tête GLB 2 invalide");
-    const jsonLength = bytes.readUInt32LE(12);
-    if (bytes.readUInt32LE(16) !== 0x4e4f534a || 20 + jsonLength > bytes.length)
-      throw new Error("bloc JSON GLB invalide");
-    const gltf = JSON.parse(
-      bytes.subarray(20, 20 + jsonLength).toString("utf8"),
-    );
-    if (gltf.asset?.version !== "2.0" || !gltf.meshes?.length)
-      throw new Error("modèle glTF 2 sans géométrie");
-    if (
-      !gltf.animations?.some(
-        (animation) =>
-          animation.name === config.clip && animation.channels?.length,
-      )
-    )
-      throw new Error(`clip « ${config.clip} » absent ou vide`);
-    for (const resource of [...(gltf.buffers ?? []), ...(gltf.images ?? [])])
-      if (resource.uri && !resource.uri.startsWith("data:"))
-        throw new Error(
-          "ressource externe détectée : exporter en GLB autonome",
-        );
-    if (statSync(file).size > 20 * 1024 * 1024)
-      console.warn(
-        `${mode} : fichier supérieur à 20 Mo ; vérifier la fluidité.`,
-      );
-    console.log(`${mode} : ${config.file} · ${config.clip} ✓`);
-  } catch (error) {
-    errors.push(`${mode} : ${error.message}.`);
+      throw new Error("Variante d’avatar invalide : " + variant);
+    variants.push([variant, value.overrides]);
   }
 }
-
+for (const [variant, overrides] of variants) {
+  for (const [mode, config] of Object.entries(overrides)) {
+    if (!modes.has(mode)) {
+      errors.push(`${variant}/${mode} : habitude inconnue.`);
+      continue;
+    }
+    if (
+      !config ||
+      typeof config !== "object" ||
+      !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.glb$/.test(config.file) ||
+      typeof config.clip !== "string" ||
+      !config.clip.trim()
+    ) {
+      errors.push(`${mode} : file ou clip invalide.`);
+      continue;
+    }
+    const file = join(avatarDir, config.file);
+    if (!existsSync(file)) {
+      errors.push(`${mode} : fichier absent (${config.file}).`);
+      continue;
+    }
+    try {
+      const bytes = readFileSync(file);
+      if (
+        bytes.length < 20 ||
+        bytes.readUInt32LE(0) !== 0x46546c67 ||
+        bytes.readUInt32LE(4) !== 2 ||
+        bytes.readUInt32LE(8) !== bytes.length
+      )
+        throw new Error("en-tête GLB 2 invalide");
+      const jsonLength = bytes.readUInt32LE(12);
+      if (
+        bytes.readUInt32LE(16) !== 0x4e4f534a ||
+        20 + jsonLength > bytes.length
+      )
+        throw new Error("bloc JSON GLB invalide");
+      const gltf = JSON.parse(
+        bytes.subarray(20, 20 + jsonLength).toString("utf8"),
+      );
+      if (gltf.asset?.version !== "2.0" || !gltf.meshes?.length)
+        throw new Error("modèle glTF 2 sans géométrie");
+      if (
+        !gltf.animations?.some(
+          (animation) =>
+            animation.name === config.clip && animation.channels?.length,
+        )
+      )
+        throw new Error(`clip « ${config.clip} » absent ou vide`);
+      for (const resource of [...(gltf.buffers ?? []), ...(gltf.images ?? [])])
+        if (resource.uri && !resource.uri.startsWith("data:"))
+          throw new Error(
+            "ressource externe détectée : exporter en GLB autonome",
+          );
+      if (statSync(file).size > 20 * 1024 * 1024)
+        console.warn(
+          `${variant}/${mode} : fichier supérieur à 20 Mo ; vérifier la fluidité.`,
+        );
+      console.log(`${variant}/${mode} : ${config.file} · ${config.clip} ✓`);
+    } catch (error) {
+      errors.push(`${mode} : ${error.message}.`);
+    }
+  }
+}
 if (errors.length) {
   for (const error of errors) console.error(error);
   process.exitCode = 1;
 } else {
   console.log(
-    `Manifeste valide : ${Object.keys(manifest.overrides).length} animation(s) GLB, ${[...modes].filter((mode) => mode !== "idle" && !manifest.overrides[mode]).length} habitude(s) utilisant le repli procédural.`,
+    `Manifeste valide : ${variants.reduce((count, [, overrides]) => count + Object.keys(overrides).length, 0)} animation(s) GLB, ${variants.length} variante(s).`,
   );
 }

@@ -11,6 +11,7 @@ import {
   signal,
 } from "@angular/core";
 import type { CameraState, Room } from "./room";
+import type { AvatarVariant } from "./artist-animations";
 @Component({
   selector: "avatar-scene",
   imports: [TranslatePipe],
@@ -18,6 +19,7 @@ import type { CameraState, Room } from "./room";
     class="scene"
     [class.compact]="compact()"
     [attr.data-mode]="mode()"
+    [attr.data-variant]="variant()"
   >
     <div
       #host
@@ -267,6 +269,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
   tr = this.i18n.t;
   @ViewChild("host") host!: ElementRef<HTMLDivElement>;
   color = input("#bde883");
+  variant = input<AvatarVariant>("default");
   animations = input(true);
   jitter = input(false);
   mode = input("idle");
@@ -291,6 +294,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
     effect(() => {
       const options = {
         color: this.color(),
+        variant: this.variant(),
         animations: this.animations(),
         jitter: this.jitter(),
         mode: this.mode(),
@@ -322,6 +326,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
       );
       this.room.update({
         color: this.color(),
+        variant: this.variant(),
         animations: this.animations(),
         jitter: this.jitter(),
         mode: this.mode(),

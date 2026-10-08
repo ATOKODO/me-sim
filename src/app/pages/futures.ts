@@ -80,6 +80,7 @@ import { Icon } from "../core/icon";
             [compact]="true"
             [label]="'POINT DE DÉPART' | t"
             [color]="p.color"
+            [variant]="p.sex === 'female' ? 'female' : 'default'"
             [animations]="store.data().settings.animations"
           />
           <div class="comparison-info">
@@ -115,6 +116,7 @@ import { Icon } from "../core/icon";
             [compact]="true"
             [label]="'ILLUSTRATION · PAS UNE PRÉDICTION' | t"
             [color]="'#b5bbe8'"
+            [variant]="p.sex === 'female' ? 'female' : 'default'"
             mode="walk"
             [animations]="store.data().settings.animations"
           />

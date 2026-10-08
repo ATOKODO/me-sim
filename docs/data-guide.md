@@ -1,5 +1,9 @@
 # Guide des données
 
+## Personnage du profil
+
+Dans **Mes profils**, choisir **Féminin** dans le champ de sexe pour afficher le personnage féminin. Le modèle masculin est utilisé lorsque ce champ est masculin ou non renseigné. Les deux modèles jouent toutes les animations de la timeline et de la comparaison ; leur apparence est illustrative, sans lien chiffré avec les mesures ou les projections. Changer de profil sur le tableau de bord conserve le cadrage de la caméra.
+
 ## Journal
 
 Choisir un profil dans la barre supérieure. Ajouter une mesure avec sa date locale (AAAA-MM-JJ). Les repères quotidiens restent uniques par métrique et jour ; les activités peuvent être répétées dans une journée si leur heure de début diffère. Pour corriger une valeur, utiliser le bouton Modifier de sa ligne. Le changement de profil réinitialise les formulaires en cours. Les activités positives et les habitudes à observer sont documentées avec la même saisie, sans jugement clinique.

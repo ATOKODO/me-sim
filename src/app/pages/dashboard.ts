@@ -74,6 +74,7 @@ import { AvatarScene } from "../scene/avatar";
           <div class="main-scene">
             <avatar-scene
               [color]="profile.color"
+              [variant]="profile.sex === 'female' ? 'female' : 'default'"
               [animations]="store.data().settings.animations"
               [jitter]="store.data().settings.jitter"
               [mode]="mode()"

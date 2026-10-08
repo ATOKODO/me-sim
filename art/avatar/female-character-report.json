@@ -1,0 +1,28 @@
+{
+  "source": "male-casual-animated.blend",
+  "variant": "female",
+  "bodyVertices": 498,
+  "hairVertices": 56,
+  "bodyTriangles": 952,
+  "hairTriangles": 76,
+  "faceTriangles": 10,
+  "bones": 40,
+  "clips": [
+    "Alcohol",
+    "Exercise",
+    "Gaming",
+    "Idle",
+    "Meal",
+    "Read",
+    "Rest",
+    "Screen",
+    "ScreenEvening",
+    "Sedentary",
+    "Social",
+    "Tobacco",
+    "Vaping",
+    "Walk",
+    "Work"
+  ],
+  "sourceTextureSha256": "698f10310f95cb779456a91d7f3b164139a3e03e78759247ae956b00dafd3532"
+}

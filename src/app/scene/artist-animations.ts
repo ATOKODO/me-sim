@@ -1,6 +1,8 @@
 import * as T from "three";
 import { HABIT_METRICS } from "../core/models";
 
+export type AvatarVariant = "default" | "female";
+
 interface Override {
   file: string;
   clip: string;
@@ -66,7 +68,11 @@ export class ArtistAnimations {
     document.baseURI,
   );
   private readonly anchor = new T.Group();
-  private readonly specs: Record<string, Override> = {};
+  private readonly specs: Record<AvatarVariant, Record<string, Override>> = {
+    default: {},
+    female: {},
+  };
+  private variant: AvatarVariant = "default";
   // One model and mixer per file, even when many habits use its clips.
   private readonly models = new Map<string, LoadedModel>();
   private readonly modelPending = new Map<
@@ -97,7 +103,14 @@ export class ArtistAnimations {
   async preload(modes: string[]) {
     await this.ready;
     if (this.disposed) return;
-    await Promise.all(modes.map((mode) => this.load(mode)));
+    const variant = this.variant;
+    await Promise.all(modes.map((mode) => this.load(mode, variant)));
+  }
+
+  setVariant(variant: AvatarVariant) {
+    if (this.variant === variant) return;
+    this.variant = variant;
+    this.play(this.mode, this.replayKey, this.animate);
   }
 
   setColor(color: string) {
@@ -110,20 +123,23 @@ export class ArtistAnimations {
     this.mode = mode;
     this.replayKey = replayKey;
     this.animate = animate;
-    const asset = this.loaded.get(mode);
+    const variant = this.variant;
+    const key = this.key(mode, variant);
+    const asset = this.loaded.get(key);
     if (asset) {
       this.activate(asset, changed || this.active !== asset);
       return;
     }
     this.useProcedural();
-    if (this.specs[mode])
-      void this.load(mode).then(() => {
+    if (this.specs[variant][mode])
+      void this.load(mode, variant).then(() => {
         if (
           !this.disposed &&
+          this.variant === variant &&
           this.mode === mode &&
           this.replayKey === replayKey
         ) {
-          const loaded = this.loaded.get(mode);
+          const loaded = this.loaded.get(key);
           if (loaded) this.activate(loaded, true);
         }
       });
@@ -164,22 +180,30 @@ export class ArtistAnimations {
         "idle",
         ...HABIT_METRICS.map((metric) => metric.id),
       ]);
-      for (const [mode, value] of Object.entries(manifest.overrides)) {
-        if (
-          !modes.has(mode) ||
-          !isRecord(value) ||
-          typeof value.file !== "string" ||
-          !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.glb$/.test(value.file) ||
-          typeof value.clip !== "string" ||
-          !value.clip.trim() ||
-          value.clip.length > 100
-        ) {
-          console.warn(
-            `Animation 3D ignorée pour « ${mode} » : entrée invalide.`,
-          );
-          continue;
+      const variants = isRecord(manifest.variants) ? manifest.variants : {};
+      const female = isRecord(variants.female) ? variants.female : {};
+      const entries: [AvatarVariant, Record<string, unknown>][] = [
+        ["default", manifest.overrides],
+        ["female", isRecord(female.overrides) ? female.overrides : {}],
+      ];
+      for (const [variant, overrides] of entries) {
+        for (const [mode, value] of Object.entries(overrides)) {
+          if (
+            !modes.has(mode) ||
+            !isRecord(value) ||
+            typeof value.file !== "string" ||
+            !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.glb$/.test(value.file) ||
+            typeof value.clip !== "string" ||
+            !value.clip.trim() ||
+            value.clip.length > 100
+          ) {
+            console.warn(
+              `Animation 3D ignorée pour « ${mode} » : entrée invalide.`,
+            );
+            continue;
+          }
+          this.specs[variant][mode] = { file: value.file, clip: value.clip };
         }
-        this.specs[mode] = { file: value.file, clip: value.clip };
       }
       if (!this.disposed) this.play(this.mode, this.replayKey, this.animate);
     } catch (error) {
@@ -188,16 +212,16 @@ export class ArtistAnimations {
     }
   }
 
-  private load(mode: string): Promise<void> {
-    const spec = this.specs[mode];
-    if (
-      this.disposed ||
-      !spec ||
-      this.loaded.has(mode) ||
-      this.failed.has(mode)
-    )
+  private key(mode: string, variant: AvatarVariant) {
+    return `${variant}:${mode}`;
+  }
+
+  private load(mode: string, variant: AvatarVariant): Promise<void> {
+    const key = this.key(mode, variant);
+    const spec = this.specs[variant][mode];
+    if (this.disposed || !spec || this.loaded.has(key) || this.failed.has(key))
       return Promise.resolve();
-    const existing = this.pending.get(mode);
+    const existing = this.pending.get(key);
     if (existing) return existing;
     const task = (async () => {
       try {
@@ -211,18 +235,18 @@ export class ArtistAnimations {
         );
         if (!clip)
           throw new Error(`Clip « ${spec.clip} » introuvable ou vide.`);
-        this.loaded.set(mode, {
+        this.loaded.set(key, {
           scene: model.scene,
           mixer: model.mixer,
           action: model.mixer.clipAction(clip),
         });
       } catch (error) {
-        this.failed.add(mode);
+        this.failed.add(key);
         console.warn(`Animation 3D « ${mode} » indisponible.`, error);
       }
     })();
-    this.pending.set(mode, task);
-    void task.finally(() => this.pending.delete(mode));
+    this.pending.set(key, task);
+    void task.finally(() => this.pending.delete(key));
     return task;
   }
 

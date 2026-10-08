@@ -1,12 +1,18 @@
 """Export the saved artist-editable Blender avatar, keeping all named actions.
-Run: blender --background --factory-startup --python scripts/export-avatar.py
+Run: blender --background --factory-startup --python scripts/export-avatar.py [-- --model female]
 """
 from pathlib import Path
+import argparse
+import sys
 import bpy
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / 'art' / 'avatar' / 'male-casual-animated.blend'
-OUTPUT = ROOT / 'public' / 'avatar' / 'character' / 'male-casual.glb'
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', choices=('male', 'female'), default='male')
+arguments = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+model = parser.parse_args(arguments).model
+SOURCE = ROOT / 'art' / 'avatar' / (model + '-casual-animated.blend')
+OUTPUT = ROOT / 'public' / 'avatar' / 'character' / (model + '-casual.glb')
 if not SOURCE.is_file():
     raise FileNotFoundError(SOURCE)
 bpy.ops.wm.open_mainfile(filepath=str(SOURCE))

@@ -61,5 +61,71 @@
       "file": "character/male-casual.glb",
       "clip": "Rest"
     }
+  },
+  "variants": {
+    "female": {
+      "overrides": {
+        "idle": {
+          "file": "character/female-casual.glb",
+          "clip": "Idle"
+        },
+        "walk": {
+          "file": "character/female-casual.glb",
+          "clip": "Walk"
+        },
+        "exercise": {
+          "file": "character/female-casual.glb",
+          "clip": "Exercise"
+        },
+        "work": {
+          "file": "character/female-casual.glb",
+          "clip": "Work"
+        },
+        "social": {
+          "file": "character/female-casual.glb",
+          "clip": "Social"
+        },
+        "screen": {
+          "file": "character/female-casual.glb",
+          "clip": "Screen"
+        },
+        "screen_evening": {
+          "file": "character/female-casual.glb",
+          "clip": "ScreenEvening"
+        },
+        "gaming": {
+          "file": "character/female-casual.glb",
+          "clip": "Gaming"
+        },
+        "reading": {
+          "file": "character/female-casual.glb",
+          "clip": "Read"
+        },
+        "meal": {
+          "file": "character/female-casual.glb",
+          "clip": "Meal"
+        },
+        "alcohol": {
+          "file": "character/female-casual.glb",
+          "clip": "Alcohol"
+        },
+        "tobacco": {
+          "file": "character/female-casual.glb",
+          "clip": "Tobacco"
+        },
+        "vaping": {
+          "file": "character/female-casual.glb",
+          "clip": "Vaping"
+        },
+        "sedentary": {
+          "file": "character/female-casual.glb",
+          "clip": "Sedentary"
+        },
+        "rest": {
+          "file": "character/female-casual.glb",
+          "clip": "Rest"
+        }
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 import * as T from "three";
-import { ArtistAnimations } from "./artist-animations";
+import { ArtistAnimations, type AvatarVariant } from "./artist-animations";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 export interface CameraState {
@@ -23,6 +23,8 @@ export class Room {
   private observer: ResizeObserver;
   private root = new T.Group();
   private person = new T.Group();
+  private femaleHair = new T.Group();
+  private torso?: T.Mesh;
   private arms: T.Group[] = [];
   private legs: T.Group[] = [];
   private activityProps: Record<string, T.Group> = {};
@@ -34,6 +36,7 @@ export class Room {
   });
   private options = {
     color: "#bde883",
+    variant: "default" as AvatarVariant,
     animations: true,
     jitter: false,
     mode: "idle",
@@ -208,9 +211,15 @@ export class Room {
     const torso = new T.Mesh(new T.BoxGeometry(0.55, 0.7, 0.32), this.shirt);
     torso.position.y = 1.25;
     this.person.add(torso);
+    this.torso = torso;
     this.box(0.39, 0.44, 0.38, 0xd8a988, 0, 1.88, 0, this.person);
     this.box(0.42, 0.17, 0.4, 0x493e32, 0, 2.12, -0.015, this.person);
     this.box(0.08, 0.27, 0.39, 0x493e32, -0.18, 1.99, -0.01, this.person);
+    this.person.add(this.femaleHair);
+    this.femaleHair.visible = false;
+    this.box(0.11, 0.44, 0.42, 0x493025, -0.23, 1.92, -0.02, this.femaleHair);
+    this.box(0.11, 0.44, 0.42, 0x493025, 0.23, 1.92, -0.02, this.femaleHair);
+    this.box(0.48, 0.45, 0.11, 0x493025, 0, 1.93, -0.23, this.femaleHair);
     for (const x of [-0.09, 0.09])
       this.box(0.045, 0.045, 0.02, 0x34332c, x, 1.92, 0.2, this.person);
     this.box(0.1, 0.035, 0.03, 0xaa7a64, 0, 1.79, 0.2, this.person);
@@ -402,7 +411,10 @@ export class Room {
     this.options = o;
     this.shirt.color.set(o.color);
     this.setActivityProps(o.mode);
+    this.femaleHair.visible = o.variant === "female";
+    if (this.torso) this.torso.scale.x = o.variant === "female" ? 0.9 : 1;
     this.artist.setColor(o.color);
+    this.artist.setVariant(o.variant);
     this.artist.play(o.mode, o.replayKey, o.animations);
   }
   async preloadModes(modes: string[]) {
