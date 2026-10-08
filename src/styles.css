@@ -66,6 +66,11 @@ input {
   width: 100%;
   color-scheme: inherit;
 }
+select option,
+select optgroup {
+  color: var(--text-e1e6dd, #e1e6dd);
+  background: var(--surface-11171c, #11171c);
+}
 input[type="color"] {
   height: 40px;
   width: 64px;
@@ -2048,6 +2053,7 @@ summary {
   .sidebar {
     width: 72px;
     padding: 25px 8px;
+    overflow-y: auto;
   }
   .brand {
     font-size: 0;
@@ -2063,9 +2069,22 @@ summary {
   .privacy-note,
   .build-label,
   nav a span,
-  .settings-link {
+  .settings-link span {
     font-size: 0;
     display: none;
+  }
+  .settings-link {
+    justify-content: center;
+    min-height: 48px;
+    padding: 14px;
+  }
+  .settings-link ui-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .sidebar nav,
+  .sidebar-bottom {
+    flex-shrink: 0;
   }
   nav {
     margin-top: 40px;

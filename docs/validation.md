@@ -3,8 +3,8 @@
 ## Vérifié sur ce poste Windows
 
 - Build Angular de production : réussi ; environ 411 Ko initiaux, Three.js chargé séparément à la demande.
-- 21 tests Rust : isolation et suppression des profils, références croisées, sauvegarde/restauration sans perte, refus des versions inconnues et des données invalides, annulation transactionnelle après échec SQL, concurrence entre deux connexions SQLite, formats CSV/XLS/XLSX/JSON, nombres et dates Excel, feuilles multiples, conversions d’unités, doublons/conflits, formules et fichiers malformés, verrou scientifique.
-- 36 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, habitudes et Target, modification/suppression, scénarios sans projection inventée, mode 2D et perte du contexte WebGL, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les sept routes. Le personnage fourni joue les quinze clips avec un seul chargement du GLB, y compris pendant la timeline ; l’arrêt des animations et la recréation de la scène sont vérifiés. L’aperçu utilise une CSP avec nonce, comme la version native.
+- 22 tests Rust : isolation et suppression des profils, références croisées, sauvegarde/restauration sans perte, refus des versions inconnues et des données invalides, annulation transactionnelle après échec SQL, concurrence entre deux connexions SQLite, formats CSV/XLS/XLSX/JSON, nombres et dates Excel, feuilles multiples, conversions d’unités, doublons/conflits, formules et fichiers malformés, verrou scientifique.
+- 42 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, habitudes et Target, modification/suppression, scénarios sans projection inventée, WebGL indisponible, perte du contexte et réessai, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les sept routes. Le personnage fourni joue les quinze clips avec un seul chargement du GLB, y compris pendant la timeline ; l’arrêt des animations et la recréation de la scène sont vérifiés. L’aperçu utilise une CSP avec nonce, comme la version native.
 - Exécutable Tauri debug : lancement réel dans WebView2, création de profil, ajout d’une observation, rechargement et lecture de la donnée persistée dans SQLite ; aucune erreur JavaScript capturée. Quinze modes du personnage fourni vérifiés dans WebView2. Test de données dans `.tmp/native-smoke/avatar` et test de caméra dans `.tmp/native-smoke/camera`, avec caches WebView2 isolés, sans donnée personnelle.
 - Capture native : `docs/native-dashboard.png`.
 
@@ -23,7 +23,7 @@
 
 - Molette et boutons de zoom vérifiés, avec limites de 70 à 400 %. Les boutons se désactivent à leur limite.
 - Orbite par glisser-déposer et flèches du clavier ; bouton de réinitialisation, touche R et touche Début. L’image du rendu, animations arrêtées, est comparée avant manipulation et après réinitialisation : le cadrage d’origine est retrouvé exactement.
-- Zoom conservé lors du redimensionnement, caméras de comparaison indépendantes, commandes masquées et focus retiré en mode 2D. Les écouteurs OrbitControls sont libérés avec la scène.
+- Zoom conservé lors du redimensionnement, caméras de comparaison indépendantes, commandes masquées et focus retiré lorsque la 3D est indisponible (test de perte de contexte actualisé le 8 octobre). Les écouteurs OrbitControls sont libérés avec la scène.
 - Test natif WebView2 avec une base isolée : orbite, zoom à la molette et restauration exacte de l’image vérifiés, sans erreur JavaScript. Reproductible avec `node scripts/native-camera-smoke.mjs` après lancement du binaire debug dans `.tmp/native-smoke/` et ouverture de son port de débogage local (défaut 9224, configurable par `ME_SIM_NATIVE_DEBUG_URL`).
 
 ## Langues et thème clair — vérification du 1er octobre 2026
@@ -85,7 +85,7 @@ Pour reproduire le test natif : construire `npm run tauri -- build --debug --no-
 - La chaîne complète `npm run test:visual` a réussi : builds Angular et Storybook, puis 74 tests sans mise à jour des références. Un précédent passage de comparaison a aussi réussi ; la sonde temporaire a détecté une couleur de bouton volontairement altérée et a été retirée ensuite.
 - Les 36 tests fonctionnels existants ont réussi après l’extraction des composants. Vérification TypeScript des stories et contrôle du diff réussis. Aucun Rust ni format de stockage modifié pour cette intégration.
 - Les tests visuels refusent les requêtes externes et les erreurs JavaScript. Télémétrie et rapports de crash Storybook désactivés. La CI Windows Server 2022 est configurée avec le Chromium verrouillé par Playwright ; elle refuse les mises à jour de références et conserve les rapports d’échec. Ce job GitHub n’a pas été exécuté dans cette session ; une éventuelle différence de rendu entre ce poste et le runner doit être examinée.
-- Le repli 2D stabilise les captures de pages ; le rendu 3D reste couvert par les tests fonctionnels précédents, sans nouvelle référence pixel du GPU. Ces captures ne constituent pas une certification d’accessibilité. Voir `docs/design-system.md` pour les commandes et le protocole de mise à jour.
+- Depuis le 8 octobre, seul le canvas GPU est masqué dans les captures de pages ; les contrôles de caméra et les légendes restent visibles. Le rendu 3D, ses animations et le réessai sont couverts par les tests fonctionnels, sans référence pixel du GPU. Ces captures ne constituent pas une certification d’accessibilité. Voir `docs/design-system.md` pour les commandes et le protocole de mise à jour.
 
 - Résolutions de documentation ajoutées au sélecteur Storybook : iPhone 16 Pro 402 × 874, iPad Pro 11″ 834 × 1194, MacBook Pro 14″ 1512 × 982 et Desktop 1920 × 1080 pixels CSS. Dimensions effectives des quatre aperçus et retour au viewport libre contrôlés dans Chromium, sans erreur JavaScript. Build statique, vérification TypeScript et test Playwright de l’atelier réussis après cet ajout. Les références PNG existantes restent inchangées.
 
@@ -96,3 +96,12 @@ Pour reproduire le test natif : construire `npm run tauri -- build --debug --no-
 - Navigation des onze pages et recherche locale contrôlées dans le build avec Chromium. Aucune requête externe, ressource locale manquante ou erreur JavaScript capturée. Polices et assets locaux vérifiés ; la mémorisation des requêtes de recherche est désactivée.
 - Navigation et absence de débordement horizontal global vérifiées à 402 × 874, 834 × 1194, 1512 × 982 et 1920 × 1080. Captures du guide de démarrage inspectées sur mobile et ordinateur. Thèmes clair/sombre, serveur de développement et menu mobile vérifiés séparément.
 - Serveur de développement limité à `127.0.0.1:5174`, aperçu statique à `127.0.0.1:4174`, avec ports stricts. Les sorties/cache sous `docs/.vitepress/` sont ignorés par Git. La documentation reste distincte du paquet Tauri et ne lit aucune base personnelle.
+
+
+## Rendu exclusivement 3D — 8 octobre 2026
+
+- Option 2D, avatar CSS, animations de remplacement et branche de masquage du moteur supprimés. Les préférences ne conservent que les animations, le tremblement rétro, la langue et le thème.
+- Anciennes bases SQLite et sauvegardes JSON compatibles : le lecteur Rust accepte uniquement l’ancien champ booléen `force2d`, l’ignore et ne le réexporte pas. Les tests vérifient la conservation de toutes les données métier pour les anciennes valeurs vrai et faux ; les autres champs inconnus restent refusés.
+- WebGL absent ou contexte perdu : message traduit, aucune silhouette de remplacement, retrait des commandes de caméra et du focus. Le bouton de réessai recrée une scène 3D ; l’autre caméra de comparaison reste indépendante. Le journal reste utilisable. Ces parcours sont testés dans Edge, et les messages, le réessai et la 3D réelle ont été inspectés sur mobile dans Chromium.
+- Builds Angular et Storybook, types du catalogue, 22 tests Rust, 42 tests fonctionnels et 74 tests visuels réussis. Quatorze références de pages actualisées, puis comparées sans mise à jour ; tableau de bord, paramètres et comparaison inspectés par échantillonnage. Le masquage du canvas est réservé aux tests visuels, sans option correspondante dans l’application.
+- Aucun accès à une base personnelle pendant cette vérification. Les installateurs et exécutables de `release/` n’ont pas été reconstruits pour ce changement.

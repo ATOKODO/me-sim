@@ -298,16 +298,10 @@ test("scenarios save without inventing scientific predictions", async ({
   await expect(page.getByText("Non calculé", { exact: true })).toBeVisible();
   await page.screenshot({ path: "test-results/futures.png", fullPage: true });
 });
-test("2D preference and loss of WebGL retain a usable avatar", async ({
+test("loss of WebGL shows an unavailable state and retry restores 3D", async ({
   page,
 }) => {
-  await page.goto("/#/parametres");
-  await page.getByRole("switch", { name: /Préférer le mode 2D/ }).check();
-  await page.getByRole("link", { name: "Mon aperçu", exact: true }).click();
-  await expect(page.getByText("Vue 2D · ton avatar")).toBeVisible();
-  await page.getByRole("link", { name: "Préférences", exact: true }).click();
-  await page.getByRole("switch", { name: /Préférer le mode 2D/ }).uncheck();
-  await page.getByRole("link", { name: "Mon aperçu", exact: true }).click();
+  await page.goto("/#/");
   await expect(page.locator("canvas")).toBeVisible();
   await page
     .locator("canvas")
@@ -317,8 +311,57 @@ test("2D preference and loss of WebGL retain a usable avatar", async ({
         ?.getExtension("WEBGL_lose_context")
         ?.loseContext(),
     );
-  await expect(page.getByText("Vue 2D · ton avatar")).toBeVisible();
+  await expect(
+    page.getByText("3D indisponible", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.locator("canvas")).toHaveCount(0);
+  await expect(page.locator(".pixel-person")).toHaveCount(0);
+  await expect(page.locator(".render-host[tabindex='0']")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Caméra 3D" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Réessayer la 3D" }).click();
+  await expect(page.locator("canvas")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Caméra 3D" })).toBeVisible();
+  await page.getByRole("link", { name: "Préférences", exact: true }).click();
+  await expect(page.getByRole("switch")).toHaveCount(2);
+  await expect(page.getByRole("switch", { name: /2D/ })).toHaveCount(0);
 });
+
+test("unavailable WebGL never creates a 2D avatar and leaves the journal usable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    let blocked = true;
+    (window as any).__allowWebGL = () => {
+      blocked = false;
+    };
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      id: string,
+      ...args: any[]
+    ) {
+      if (id === "webgl2" && blocked) return null;
+      return Reflect.apply(original, this, [id, ...args]);
+    } as typeof original;
+  });
+  await page.goto("/#/");
+  await expect(
+    page.getByText("3D indisponible", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.locator("canvas, .pixel-person")).toHaveCount(0);
+  await page.getByRole("link", { name: "Mon journal", exact: true }).click();
+  await expect(page.locator("h1")).toContainText("Mon journal");
+  await expect(page.locator("tbody tr").first()).toBeVisible();
+  await page.getByRole("link", { name: "Mon aperçu", exact: true }).click();
+  await expect(
+    page.getByText("3D indisponible", { exact: true }).first(),
+  ).toBeVisible();
+  await page.evaluate(() => (window as any).__allowWebGL());
+  await page.getByRole("button", { name: "Réessayer la 3D" }).click();
+  await expect(page.locator("canvas")).toBeVisible();
+  await expect(page.getByText("ANIMATION GLB", { exact: false })).toBeVisible();
+});
+
 test("all routes work at minimum desktop width", async ({ page }) => {
   await page.setViewportSize({ width: 960, height: 740 });
   for (const route of [

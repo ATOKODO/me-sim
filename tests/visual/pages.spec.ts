@@ -83,7 +83,17 @@ async function navigate(
     .getByRole("link", { name: translated(route.link), exact: true })
     .click();
   await expect(page.locator("h1")).toContainText(translated(route.heading));
-  await expect(page.locator("canvas")).toHaveCount(0);
+  const scenes = page.locator("avatar-scene");
+  for (const scene of await scenes.all()) {
+    await expect(scene).toContainText(translated("ANIMATION GLB"));
+    await expect(scene.locator(".camera-controls")).toBeVisible();
+  }
+  // Hide the GPU pixels only: camera controls, captions and the scene layout remain in the reference.
+  // Functional tests exercise the actual rendered model, animation and camera independently.
+  await page.locator("avatar-scene canvas").evaluateAll((canvases) => {
+    for (const canvas of canvases)
+      (canvas as HTMLCanvasElement).style.visibility = "hidden";
+  });
   await page.evaluate(() => document.fonts.ready);
 }
 async function prepare(
@@ -109,8 +119,7 @@ async function prepare(
   const checkboxes = page.locator("input[type=checkbox]");
   await checkboxes.nth(0).uncheck();
   await checkboxes.nth(1).uncheck();
-  await checkboxes.nth(2).check();
+  await expect(checkboxes).toHaveCount(2);
   await expect(checkboxes.nth(0)).not.toBeChecked();
   await expect(checkboxes.nth(1)).not.toBeChecked();
-  await expect(checkboxes.nth(2)).toBeChecked();
 }

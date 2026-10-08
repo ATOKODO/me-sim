@@ -40,7 +40,7 @@ La sauvegarde JSON possède une version indépendante du numéro de migration SQ
 
 L’horloge locale met à jour calendrier, récap et fenêtre de timeline. Les calculs de récap, de couverture et de déviation sont séparés du rendu. Une observation absente reste inconnue ; une valeur explicitement nulle reste une valeur déclarée.
 
-La scène Three.js est chargée à la demande. La caméra appartient à chaque scène et les ressources sont libérées à la destruction. Un mode 2D prend le relais si WebGL est indisponible ou si l’utilisateur le choisit. Les clips d’un même GLB partagent un modèle et un mixer ; le [guide d’artiste](./artist-animation-guide.md) définit le contrat de remplacement.
+La scène Three.js est chargée à la demande. La caméra appartient à chaque scène et les ressources sont libérées à la destruction. Si WebGL est indisponible ou que son contexte est perdu, la scène affiche un message avec une action pour réessayer. Aucun avatar 2D n’est généré ; les autres fonctionnalités restent accessibles. Les clips d’un même GLB partagent un modèle et un mixer ; le [guide d’artiste](./artist-animation-guide.md) définit le contrat de remplacement.
 
 Le moteur de recherche du poids reste inaccessible aux projections utilisateur. Voir la [fiche modèle](./model-card.md) pour ses équations implémentées et les critères d’activation manquants.
 

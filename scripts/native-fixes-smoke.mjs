@@ -90,7 +90,10 @@ try {
     ({ settings, revision }) =>
       window.__TAURI_INTERNALS__.invoke("mutate", {
         expectedRevision: revision,
-        operation: { type: "settings", value: { ...settings, force2d: true } },
+        operation: {
+          type: "settings",
+          value: { ...settings, animations: false },
+        },
       }),
     { settings: after.snapshot.settings, revision: after.revision },
   );

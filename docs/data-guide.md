@@ -4,7 +4,7 @@
 
 Choisir un profil dans la barre supérieure. Ajouter une mesure avec sa date locale (AAAA-MM-JJ). Les repères quotidiens restent uniques par métrique et jour ; les activités peuvent être répétées dans une journée si leur heure de début diffère. Pour corriger une valeur, utiliser le bouton Modifier de sa ligne. Le changement de profil réinitialise les formulaires en cours. Les activités positives et les habitudes à observer sont documentées avec la même saisie, sans jugement clinique.
 
-Lorsqu’une activité horodatée est sélectionnée dans la timeline ou rejouée, l’avatar adopte son animation dédiée : mouvement pour la marche et le sport, posture concentrée et accessoire pour le travail, l’écran, les jeux ou la lecture, animation de fumée pour le tabac et le vapotage, et position assise pour la sédentarité. Le mode 2D reprend ces mouvements simplifiés.
+Lorsqu’une activité horodatée est sélectionnée dans la timeline ou rejouée, l’avatar adopte son animation dédiée : mouvement pour la marche et le sport, posture concentrée et accessoire pour le travail, l’écran, les jeux ou la lecture, animation de fumée pour le tabac et le vapotage, et position assise pour la sédentarité.
 
 La liste **Prévisualiser** du tableau de bord permet de voir chaque animation même sans observation. Pendant la relecture, chaque ligne dispose de deux secondes et relance son animation propre ; le bouton permet d’arrêter la séquence. Les fichiers GLB facultatifs pour remplacer le rendu 3D sont décrits dans le [guide de l’artiste](artist-animation-guide.md).
 

@@ -199,7 +199,6 @@ test("native import, conflict and restore screens translate without rewriting fi
         settings: {
           animations: false,
           jitter: false,
-          force2d: true,
           language: "en",
           theme: "light",
         },

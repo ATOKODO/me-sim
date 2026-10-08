@@ -92,7 +92,6 @@ export interface ImportBatch {
 export interface Settings {
   animations: boolean;
   jitter: boolean;
-  force2d: boolean;
   language: Language;
   theme: Theme;
 }
@@ -443,7 +442,6 @@ export function emptySnapshot(): Snapshot {
     settings: {
       animations: !matchMedia("(prefers-reduced-motion: reduce)").matches,
       jitter: false,
-      force2d: false,
       ...readPresentation(),
     },
   };

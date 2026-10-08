@@ -23,7 +23,8 @@ import type { CameraState, Room } from "./room";
       #host
       class="render-host"
       role="img"
-      [attr.tabindex]="cameraReady() &amp;&amp; !force2d() &amp;&amp; !fallback() ? 0 : null"
+      [attr.aria-hidden]="unavailable() ? true : null"
+      [attr.tabindex]="cameraReady() &amp;&amp; !unavailable() ? 0 : null"
       [attr.aria-label]="
         'Scène 3D : glisser pour tourner, molette pour zoomer. Au clavier : flèches pour tourner, plus ou moins pour zoomer, R pour réinitialiser.'
           | t
@@ -31,23 +32,21 @@ import type { CameraState, Room } from "./room";
       (keydown)="cameraKey($event)"
       (pointerdown)="focusCamera()"
     ></div>
-    @if (fallback() || force2d()) {
-      <div class="fallback">
-        @for (key of [mode() + ":" + replayKey()]; track key) {
-          <div
-            class="pixel-person"
-            [class.still]="!animations()"
-            [style.--shirt]="color()"
-            [attr.data-mode]="mode()"
-          >
-            <i class="head"></i><i class="body"></i><i class="arm a1"></i
-            ><i class="arm a2"></i><i class="leg l1"></i><i class="leg l2"></i>
-          </div>
-        }
-        <span>{{ "Vue 2D · ton avatar" | t }}</span>
+    @if (unavailable()) {
+      <div class="unavailable" role="status">
+        <strong>{{ "3D indisponible" | t }}</strong>
+        <p>
+          {{
+            "Le rendu 3D n’est pas disponible sur cet appareil. Tes données restent accessibles."
+              | t
+          }}
+        </p>
+        <button type="button" class="button secondary" (click)="retry()">
+          {{ "Réessayer la 3D" | t }}
+        </button>
       </div>
     }
-    @if (cameraReady() && !fallback() && !force2d()) {
+    @if (cameraReady() && !unavailable()) {
       <div
         class="camera-controls"
         role="group"
@@ -92,8 +91,8 @@ import type { CameraState, Room } from "./room";
     <div class="scene-caption">
       <span class="tiny-dot"></span>
       {{
-        force2d() || fallback()
-          ? tr("MODE 2D")
+        unavailable()
+          ? tr("3D indisponible")
           : source() === "artist"
             ? tr("ANIMATION GLB")
             : tr("SCÈNE 3D")
@@ -241,336 +240,24 @@ import type { CameraState, Room } from "./room";
       .separator {
         opacity: 0.3;
       }
-      .fallback {
-        height: 100%;
-        min-height: 300px;
+      .unavailable {
+        position: absolute;
+        inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        gap: 35px;
-        background: linear-gradient(145deg, #24342d, #171e20);
+        gap: 16px;
+        padding: 64px 28px;
+        text-align: center;
       }
-      .fallback span {
-        font:
-          11px Consolas,
-          monospace;
-        color: #a6b7a7;
+      .unavailable strong {
+        color: #e7ece4;
       }
-      .pixel-person {
-        width: 90px;
-        height: 160px;
-        position: relative;
-        filter: drop-shadow(8px 8px 0 #101713);
-      }
-      .pixel-person i {
-        position: absolute;
-        display: block;
-      }
-      @keyframes pixel-idle {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-3px);
-        }
-      }
-      @keyframes pixel-walk {
-        0%,
-        100% {
-          transform: translateY(0) rotate(-1deg);
-        }
-        50% {
-          transform: translateY(-7px) rotate(1deg);
-        }
-      }
-      @keyframes pixel-exercise {
-        0%,
-        100% {
-          transform: translateY(0) scaleY(1);
-        }
-        50% {
-          transform: translateY(11px) scaleY(0.94);
-        }
-      }
-      @keyframes pixel-work {
-        0%,
-        100% {
-          transform: rotate(-2deg);
-        }
-        50% {
-          transform: rotate(2deg);
-        }
-      }
-      @keyframes pixel-social {
-        0%,
-        100% {
-          transform: translateX(0);
-        }
-        50% {
-          transform: translateX(5px);
-        }
-      }
-      @keyframes pixel-screen {
-        0%,
-        100% {
-          transform: rotate(-4deg) translateY(2px);
-        }
-        50% {
-          transform: rotate(4deg) translateY(-2px);
-        }
-      }
-      @keyframes pixel-screen-evening {
-        0%,
-        100% {
-          transform: translateY(5px) rotate(-7deg);
-        }
-        50% {
-          transform: translateY(7px) rotate(-9deg);
-        }
-      }
-      @keyframes pixel-tobacco {
-        0%,
-        100% {
-          transform: rotate(-2deg);
-        }
-        55% {
-          transform: translateY(-3px) rotate(2deg);
-        }
-      }
-      @keyframes pixel-vaping {
-        0%,
-        100% {
-          transform: rotate(3deg) scaleX(1);
-        }
-        50% {
-          transform: translateY(-4px) rotate(4deg) scaleX(0.98);
-        }
-      }
-      @keyframes pixel-sedentary {
-        0%,
-        100% {
-          transform: translateY(12px) rotate(0);
-        }
-        50% {
-          transform: translateY(13px) rotate(1deg);
-        }
-      }
-      @keyframes pixel-gaming {
-        0%,
-        100% {
-          transform: translateY(0) rotate(-3deg);
-        }
-        50% {
-          transform: translateY(-4px) rotate(3deg);
-        }
-      }
-      @keyframes pixel-reading {
-        0%,
-        100% {
-          transform: rotate(-5deg);
-        }
-        50% {
-          transform: rotate(3deg);
-        }
-      }
-      @keyframes pixel-meal {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-4px) rotate(2deg);
-        }
-      }
-      @keyframes pixel-drink {
-        0%,
-        100% {
-          transform: rotate(0);
-        }
-        50% {
-          transform: rotate(7deg) translateY(-3px);
-        }
-      }
-      @keyframes pixel-rest {
-        0%,
-        100% {
-          transform: rotate(5deg) translateY(3px);
-        }
-        50% {
-          transform: rotate(7deg) translateY(1px);
-        }
-      }
-      @keyframes pixel-vapor {
-        0% {
-          opacity: 0;
-          transform: translate(0, 6px) scale(0.7);
-        }
-        35% {
-          opacity: 0.9;
-        }
-        100% {
-          opacity: 0;
-          transform: translate(5px, -18px) scale(1.2);
-        }
-      }
-      .pixel-person[data-mode="idle"] {
-        animation: pixel-idle 2.4s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="walk"] {
-        animation: pixel-walk 0.55s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="exercise"] {
-        animation: pixel-exercise 0.65s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="work"] {
-        animation: pixel-work 1.4s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="social"] {
-        animation: pixel-social 1.1s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="screen"] {
-        animation: pixel-screen 1.8s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="screen_evening"] {
-        animation: pixel-screen-evening 2.7s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="gaming"] {
-        animation: pixel-gaming 0.8s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="reading"] {
-        animation: pixel-reading 2s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="meal"] {
-        animation: pixel-meal 1.5s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="alcohol"] {
-        animation: pixel-drink 1.2s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="rest"] {
-        animation: pixel-rest 2.8s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="tobacco"] {
-        animation: pixel-tobacco 1.35s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="vaping"] {
-        animation: pixel-vaping 2.2s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="sedentary"] {
-        transform: translateY(12px);
-        animation: pixel-sedentary 2.6s ease-in-out infinite;
-      }
-      .pixel-person[data-mode="tobacco"] .a1 {
-        transform: rotate(-135deg);
-        transform-origin: top center;
-      }
-      .pixel-person[data-mode="vaping"] .a1 {
-        transform: rotate(-145deg);
-        transform-origin: top center;
-      }
-      .pixel-person[data-mode="vaping"] .a2 {
-        transform: rotate(35deg);
-        transform-origin: top center;
-      }
-      .pixel-person[data-mode="tobacco"]::after,
-      .pixel-person[data-mode="vaping"]::after {
-        content: "";
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        left: 52px;
-        top: 6px;
-        background: #d5d3c5;
-        box-shadow:
-          -7px -8px 0 -1px #d5d3c5,
-          3px -15px 0 -2px #d5d3c5;
-        image-rendering: pixelated;
-        animation: pixel-vapor 1.6s ease-out infinite;
-      }
-      .pixel-person[data-mode="vaping"]::after {
-        background: #b8d9df;
-        box-shadow:
-          -8px -8px 0 -1px #b8d9df,
-          3px -15px 0 -2px #b8d9df;
-        animation-duration: 1.2s;
-      }
-      .pixel-person[data-mode="screen_evening"]::after {
-        content: "";
-        position: absolute;
-        width: 22px;
-        height: 16px;
-        left: 50px;
-        top: 74px;
-        background: #a9c9e8;
-        opacity: 0.42;
-        filter: blur(5px);
-      }
-      .pixel-person[data-mode="sedentary"] .l1,
-      .pixel-person[data-mode="sedentary"] .l2 {
-        transform: rotate(62deg);
-        transform-origin: top center;
-      }
-      .pixel-person[data-mode="gaming"] .a1,
-      .pixel-person[data-mode="gaming"] .a2 {
-        animation: pixel-game-arm 0.4s ease-in-out infinite alternate;
-      }
-      .pixel-person.still,
-      .pixel-person.still .a1,
-      .pixel-person.still .a2 {
-        animation: none !important;
-      }
-      .pixel-person.still::after {
-        animation: none !important;
-      }
-      @keyframes pixel-game-arm {
-        from {
-          transform: rotate(-8deg);
-        }
-        to {
-          transform: rotate(8deg);
-        }
-      }
-      .head {
-        width: 42px;
-        height: 42px;
-        background: #d7a786;
-        left: 24px;
-        top: 0;
-        border-top: 12px solid #473e35;
-      }
-      .body {
-        width: 48px;
-        height: 58px;
-        left: 21px;
-        top: 42px;
-        background: var(--shirt);
-      }
-      .arm {
-        width: 15px;
-        height: 60px;
-        top: 45px;
-        background: #d7a786;
-        border-top: 20px solid var(--shirt);
-      }
-      .a1 {
-        left: 4px;
-      }
-      .a2 {
-        right: 4px;
-      }
-      .leg {
-        width: 20px;
-        height: 58px;
-        top: 100px;
-        background: #455467;
-        border-bottom: 10px solid #dad9c7;
-      }
-      .l1 {
-        left: 22px;
-      }
-      .l2 {
-        right: 22px;
+      .unavailable p {
+        max-width: 360px;
+        color: #b4c1b4;
+        font-size: 13px;
       }
     `,
   ],
@@ -582,12 +269,11 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
   color = input("#bde883");
   animations = input(true);
   jitter = input(false);
-  force2d = input(false);
   mode = input("idle");
   replayKey = input(0);
   compact = input(false);
   label = input("TON ESPACE");
-  fallback = signal(false);
+  unavailable = signal(false);
   source = signal<"artist" | "procedural">("procedural");
   cameraReady = signal(false);
   cameraState = signal<CameraState>({
@@ -609,10 +295,9 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         jitter: this.jitter(),
         mode: this.mode(),
         replayKey: this.replayKey(),
-        hidden: this.force2d(),
       };
       if (!this.ready()) return;
-      if (options.hidden || this.fallback()) {
+      if (this.unavailable()) {
         this.room?.dispose();
         this.room = undefined;
         this.cameraReady.set(false);
@@ -628,10 +313,10 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
     this.creating = true;
     try {
       const { Room } = await import("./room");
-      if (this.destroyed || this.force2d() || this.fallback()) return;
+      if (this.destroyed || this.unavailable()) return;
       this.room = new Room(
         this.host.nativeElement,
-        () => this.fallback.set(true),
+        () => this.unavailable.set(true),
         (source) => this.source.set(source),
         (state) => this.cameraState.set(state),
       );
@@ -641,17 +326,20 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         jitter: this.jitter(),
         mode: this.mode(),
         replayKey: this.replayKey(),
-        hidden: this.force2d(),
       });
       this.cameraReady.set(true);
     } catch {
-      this.fallback.set(true);
+      this.unavailable.set(true);
     } finally {
       this.creating = false;
     }
   }
+  retry() {
+    if (this.destroyed || this.creating) return;
+    this.unavailable.set(false);
+  }
   focusCamera() {
-    if (this.cameraReady() && !this.force2d() && !this.fallback())
+    if (this.cameraReady() && !this.unavailable())
       this.host.nativeElement.focus({ preventScroll: true });
   }
   zoomCamera(direction: number) {
@@ -693,7 +381,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
     event.preventDefault();
   }
   async prepareModes(modes: string[]) {
-    if (this.destroyed || this.force2d() || this.fallback()) return;
+    if (this.destroyed || this.unavailable()) return;
     if (this.roomTask) await this.roomTask;
     await this.room?.preloadModes(modes);
   }

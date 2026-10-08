@@ -110,7 +110,7 @@ export class SettingsPage {
   tr = this.i18n.t;
   store = inject(Store);
   options: {
-    key: keyof Pick<Settings, "animations" | "jitter" | "force2d">;
+    key: keyof Pick<Settings, "animations" | "jitter">;
     title: string;
     description: string;
   }[] = [
@@ -124,18 +124,10 @@ export class SettingsPage {
       title: "Tremblement rétro",
       description: "Un léger mouvement de la scène, inspiré de la PS1.",
     },
-    {
-      key: "force2d",
-      title: "Préférer le mode 2D",
-      description: "Une vue légère, sans rendu 3D actif.",
-    },
   ];
-  value = (key: keyof Pick<Settings, "animations" | "jitter" | "force2d">) =>
+  value = (key: keyof Pick<Settings, "animations" | "jitter">) =>
     this.store.data().settings[key];
-  toggle(
-    key: keyof Pick<Settings, "animations" | "jitter" | "force2d">,
-    v: boolean,
-  ) {
+  toggle(key: keyof Pick<Settings, "animations" | "jitter">, v: boolean) {
     void this.store.mutate({
       type: "settings",
       value: { ...this.store.data().settings, [key]: v },

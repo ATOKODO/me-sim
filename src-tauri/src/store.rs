@@ -311,17 +311,40 @@ mod presentation_tests {
         assert_eq!(snapshot.settings.language, Language::Fr);
         assert_eq!(snapshot.settings.theme, Theme::Dark);
         assert!(!snapshot.settings.animations);
-        assert!(snapshot.settings.jitter && snapshot.settings.force_2d);
+        assert!(snapshot.settings.jitter);
+        assert!(serde_json::to_value(&snapshot.settings)
+            .unwrap()
+            .get("force2d")
+            .is_none());
         let mut backup = serde_json::to_value(&snapshot).unwrap();
         backup["settings"]
             .as_object_mut()
             .unwrap()
             .remove("language");
         backup["settings"].as_object_mut().unwrap().remove("theme");
+        backup["settings"]["force2d"] = serde_json::json!(true);
         let restored: Snapshot = serde_json::from_value(backup).unwrap();
         validate(&restored).unwrap();
         assert_eq!(restored.settings.language, Language::Fr);
         assert_eq!(restored.settings.theme, Theme::Dark);
+    }
+    #[test]
+    fn retired_2d_preference_is_ignored_without_losing_backup_data() {
+        let mut snapshot = Snapshot::default();
+        mutate(&mut snapshot, Mutation::Demo).unwrap();
+        snapshot.settings.language = Language::En;
+        snapshot.settings.theme = Theme::Light;
+        let current = serde_json::to_value(&snapshot).unwrap();
+        for enabled in [true, false] {
+            let mut old = current.clone();
+            old["settings"]["force2d"] = serde_json::json!(enabled);
+            let restored: Snapshot = serde_json::from_value(old).unwrap();
+            validate(&restored).unwrap();
+            assert_eq!(serde_json::to_value(restored).unwrap(), current);
+        }
+        let mut invalid = current;
+        invalid["settings"]["unsupportedPreference"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<Snapshot>(invalid).is_err());
     }
     #[test]
     fn presentation_preferences_survive_disk_and_json_round_trip() {

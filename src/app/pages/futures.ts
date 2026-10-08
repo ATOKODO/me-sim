@@ -81,7 +81,6 @@ import { Icon } from "../core/icon";
             [label]="'POINT DE DÉPART' | t"
             [color]="p.color"
             [animations]="store.data().settings.animations"
-            [force2d]="store.data().settings.force2d"
           />
           <div class="comparison-info">
             <div>
@@ -118,7 +117,6 @@ import { Icon } from "../core/icon";
             [color]="'#b5bbe8'"
             mode="walk"
             [animations]="store.data().settings.animations"
-            [force2d]="store.data().settings.force2d"
           />
           <div class="comparison-info">
             <div>

@@ -48,7 +48,9 @@ import { Icon } from "./core/icon";
           routerLink="/parametres"
           routerLinkActive="active"
           class="settings-link"
-          ><ui-icon name="settings" /> {{ "Préférences" | t }}</a
+          [attr.aria-label]="'Préférences' | t"
+          [title]="'Préférences' | t"
+          ><ui-icon name="settings" /><span>{{ "Préférences" | t }}</span></a
         >
         <div class="build-label">
           <span class="status-dot"></span> {{ "LOCAL FIRST" | t }}

@@ -66,9 +66,6 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Tremblement rétro": "Retro jitter",
   "Un léger mouvement de la scène, inspiré de la PS1.":
     "A slight movement of the scene, inspired by the PS1.",
-  "Préférer le mode 2D": "Prefer 2D mode",
-  "Une vue légère, sans rendu 3D actif.":
-    "A lightweight view with no active 3D rendering.",
   Langue: "Language",
   Thème: "Theme",
   Clair: "Light",
@@ -471,10 +468,12 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Sauvegarder puis remplacer": "Back up then replace",
   "Commence par créer un profil.": "Start by creating a profile.",
   "Commence par ton profil": "Start with your profile",
+  "3D indisponible": "3D unavailable",
+  "Le rendu 3D n’est pas disponible sur cet appareil. Tes données restent accessibles.":
+    "3D rendering is unavailable on this device. Your data remains accessible.",
+  "Réessayer la 3D": "Retry 3D",
   "SCÈNE 3D": "3D SCENE",
-  "MODE 2D": "2D MODE",
   "ANIMATION GLB": "GLB ANIMATION",
-  "Vue 2D · ton avatar": "2D view · your avatar",
   "TON ESPACE": "YOUR SPACE",
   "Caméra 3D": "3D camera",
   "Scène 3D : glisser pour tourner, molette pour zoomer. Au clavier : flèches pour tourner, plus ou moins pour zoomer, R pour réinitialiser.":

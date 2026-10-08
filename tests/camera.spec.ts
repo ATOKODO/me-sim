@@ -106,7 +106,7 @@ test("camera buttons, keyboard and resize retain bounded zoom and a working rese
   await expect(zoomOut).toBeEnabled();
 });
 
-test("comparison cameras remain independent and disappear in the 2D fallback", async ({
+test("comparison cameras remain independent when one WebGL context is lost", async ({
   page,
 }) => {
   await freezeAvatar(page);
@@ -131,10 +131,21 @@ test("comparison cameras remain independent and disappear in the 2D fallback", a
     path: "test-results/camera-comparison.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Préférences", exact: true }).click();
-  await page.getByRole("switch", { name: /Préférer le mode 2D/ }).check();
-  await page.getByRole("link", { name: "Mes futurs", exact: true }).click();
-  await expect(page.getByText("Vue 2D · ton avatar")).toHaveCount(2);
-  await expect(page.getByRole("group", { name: "Caméra 3D" })).toHaveCount(0);
-  await expect(page.locator(".render-host[tabindex='0']")).toHaveCount(0);
+  await scenes
+    .nth(0)
+    .locator("canvas")
+    .evaluate((canvas: HTMLCanvasElement) =>
+      canvas
+        .getContext("webgl2")
+        ?.getExtension("WEBGL_lose_context")
+        ?.loseContext(),
+    );
+  await expect(
+    scenes.nth(0).getByText("3D indisponible", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(scenes.nth(0).locator("canvas")).toHaveCount(0);
+  await expect(scenes.nth(1).locator("canvas")).toBeVisible();
+  await expect(page.locator(".pixel-person")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Caméra 3D" })).toHaveCount(1);
+  await expect(page.locator(".render-host[tabindex='0']")).toHaveCount(1);
 });

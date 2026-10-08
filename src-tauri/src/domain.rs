@@ -154,22 +154,43 @@ pub enum Theme {
     Light,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(rename_all = "camelCase", from = "SettingsInput")]
 pub struct Settings {
     pub animations: bool,
     pub jitter: bool,
-    pub force_2d: bool,
     #[serde(default)]
     pub language: Language,
     #[serde(default)]
     pub theme: Theme,
+}
+// Only the retired field is accepted for old databases/backups; it never reaches the domain or exports.
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct SettingsInput {
+    animations: bool,
+    jitter: bool,
+    #[serde(default, rename = "force2d")]
+    _retired_2d: Option<bool>,
+    #[serde(default)]
+    language: Language,
+    #[serde(default)]
+    theme: Theme,
+}
+impl From<SettingsInput> for Settings {
+    fn from(value: SettingsInput) -> Self {
+        Self {
+            animations: value.animations,
+            jitter: value.jitter,
+            language: value.language,
+            theme: value.theme,
+        }
+    }
 }
 impl Default for Settings {
     fn default() -> Self {
         Self {
             animations: true,
             jitter: false,
-            force_2d: false,
             language: Language::Fr,
             theme: Theme::Dark,
         }

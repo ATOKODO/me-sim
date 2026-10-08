@@ -24,7 +24,6 @@ function snapshot(): Snapshot {
     settings: {
       animations: false,
       jitter: false,
-      force2d: true,
       language: "fr",
       theme: "dark",
     },

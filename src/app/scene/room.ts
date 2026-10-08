@@ -38,7 +38,6 @@ export class Room {
     jitter: false,
     mode: "idle",
     replayKey: 0,
-    hidden: false,
   };
   private last = 0;
   private modeStartedAt = 0;
@@ -46,11 +45,11 @@ export class Room {
   private onLost = (e: Event) => {
     e.preventDefault();
     cancelAnimationFrame(this.frame);
-    this.onFallback();
+    this.onUnavailable();
   };
   constructor(
     private host: HTMLElement,
-    private onFallback: () => void,
+    private onUnavailable: () => void,
     private onAnimationSource?: (source: "artist" | "procedural") => void,
     private onCameraState?: (state: CameraState) => void,
   ) {
@@ -405,7 +404,6 @@ export class Room {
     this.setActivityProps(o.mode);
     this.artist.setColor(o.color);
     this.artist.play(o.mode, o.replayKey, o.animations);
-    this.host.style.visibility = o.hidden ? "hidden" : "visible";
   }
   async preloadModes(modes: string[]) {
     await this.artist.preload(modes);
@@ -456,7 +454,7 @@ export class Room {
   private tick = (ms: number) => {
     if (this.dead) return;
     this.frame = requestAnimationFrame(this.tick);
-    if (ms - this.last < 32 || document.hidden || this.options.hidden) return;
+    if (ms - this.last < 32 || document.hidden) return;
     const delta = Math.min((ms - this.last) / 1000, 0.1);
     this.last = ms;
     const t = this.options.animations

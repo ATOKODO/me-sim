@@ -78,4 +78,4 @@ Un fichier absent, invalide ou sans le clip nommé garde l’animation procédur
 4. Pour les tests automatisés : `npm run build`, puis `npm test`. Le test du personnage fourni vérifie toutes les habitudes, la timeline et le chargement unique du GLB ; il enregistre des captures dans `test-results/`.
 5. Reconstruire l’application avec `npm run package` ou `npm run package:offline` pour inclure les nouveaux fichiers dans l’installateur.
 
-Les animations restent des illustrations d’activités déclarées. La vue 2D reste disponible si WebGL est indisponible ou si son option est activée. Le chargeur libère géométrie, textures et squelettes lorsque la scène est fermée.
+Les animations restent des illustrations d’activités déclarées. Si WebGL est indisponible, un message propose de réessayer la 3D ; aucun avatar de remplacement n’est généré. Le chargeur libère géométrie, textures et squelettes lorsque la scène est fermée.

@@ -76,7 +76,6 @@ import { AvatarScene } from "../scene/avatar";
               [color]="profile.color"
               [animations]="store.data().settings.animations"
               [jitter]="store.data().settings.jitter"
-              [force2d]="store.data().settings.force2d"
               [mode]="mode()"
               [replayKey]="replayKey()"
             />
