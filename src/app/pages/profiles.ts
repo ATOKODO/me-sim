@@ -135,7 +135,6 @@ import { Icon } from "../core/icon";
           </article>
         } @empty {
           <div class="panel empty-state">
-            <span class="empty-gem">◆</span>
             <h2>{{ "Une place pour toi." | t }}</h2>
             <p>{{ "Ton premier profil apparaîtra ici." | t }}</p>
           </div>

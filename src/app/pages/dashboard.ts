@@ -161,8 +161,7 @@ import { AvatarScene } from "../scene/avatar";
           /></a>
           <div class="future-art" aria-hidden="true">
             <span class="orbit o1"></span><span class="orbit o2"></span
-            ><span class="orbit o3"></span><span class="gem g1">◆</span
-            ><span class="gem g2">◆</span><span class="gem g3">◆</span>
+            ><span class="orbit o3"></span>
           </div>
           <span class="lab-note">{{
             "LAB · Modèle scientifique en validation" | t
@@ -565,7 +564,6 @@ import { AvatarScene } from "../scene/avatar";
       </div>
     } @else {
       <section class="empty-state panel">
-        <span class="empty-gem">◆</span>
         <h2>{{ "Ton histoire commence ici." | t }}</h2>
         <p>
           {{

@@ -16,10 +16,11 @@ import { Icon } from "./core/icon";
   ],
   template: `<a class="skip-link" href="#main">{{ "Aller au contenu" | t }}</a>
     <aside class="sidebar">
-      <a routerLink="/" class="brand"
-        ><span class="brand-gem">◆</span> me<span class="brand-dash">—</span
-        >sim<span class="version">{{ "ALPHA" | t }}</span></a
-      >
+      <a routerLink="/" class="brand" aria-label="Me-Sim">
+        <span class="brand-name">me</span
+        ><span class="brand-tail"><span class="brand-dash">—</span>sim</span>
+        <span class="version">{{ "ALPHA" | t }}</span>
+      </a>
       <div class="sidebar-section">{{ "TON PETIT MONDE" | t }}</div>
       <nav [attr.aria-label]="'Navigation principale' | t">
         @for (item of links; track item.path) {

@@ -13,11 +13,13 @@ import { Icon } from "../core/icon";
   imports: [TranslatePipe, LocalDatePipe, LocalNumberPipe, Chart, Icon],
   host: { class: "metric-card" },
   template: `
-    <div class="metric-icon" [style.color]="i18n.color(color())">
-      <ui-icon [name]="icon()" />
-    </div>
-    <div class="metric-body">
+    <div class="metric-heading">
+      <div class="metric-icon" [style.color]="i18n.color(color())">
+        <ui-icon [name]="icon()" />
+      </div>
       <span>{{ label() | t }}</span>
+    </div>
+    <div class="metric-reading">
       <div class="metric-value">
         @if (value() !== null) {
           {{ value() | localNumber: "1.0-1" }}<small>{{ unit() | t }}</small>
@@ -25,18 +27,18 @@ import { Icon } from "../core/icon";
           <span class="unknown">{{ "Non renseigné" | t }}</span>
         }
       </div>
-      <span class="metric-date"
-        >{{ date() | localDate: "d MMM" }}
-        @if (demo()) {
-          {{ "· données fictives" | t }}
-        }
-      </span>
+      <mini-chart
+        [values]="values()"
+        [color]="color()"
+        [label]="i18n.t('Historique : ') + i18n.t(label())"
+      />
     </div>
-    <mini-chart
-      [values]="values()"
-      [color]="color()"
-      [label]="i18n.t('Historique : ') + i18n.t(label())"
-    />
+    <span class="metric-date">
+      {{ date() | localDate: "d MMM" }}
+      @if (demo()) {
+        {{ "· données fictives" | t }}
+      }
+    </span>
   `,
 })
 export class MetricCard {

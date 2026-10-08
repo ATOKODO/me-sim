@@ -21,6 +21,6 @@ export const Messages: StoryObj = {
 export const Vide: StoryObj = {
   render: () => ({
     template:
-      '<section class="panel empty-state"><span class="empty-gem" aria-hidden="true">◆</span><h2>Aucune observation pour le moment</h2><p>Commence par une mesure. Une donnée absente reste inconnue.</p><button uiButton="primary"><ui-icon name="plus" />Ajouter une mesure</button></section>',
+      '<section class="panel empty-state"><h2>Aucune observation pour le moment</h2><p>Commence par une mesure. Une donnée absente reste inconnue.</p><button uiButton="primary"><ui-icon name="plus" />Ajouter une mesure</button></section>',
   }),
 };

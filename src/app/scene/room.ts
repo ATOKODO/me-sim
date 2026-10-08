@@ -28,7 +28,6 @@ export class Room {
   private activityProps: Record<string, T.Group> = {};
   private artist: ArtistAnimations;
   private vaporPuffs: T.Mesh[] = [];
-  private diamond: T.Mesh;
   private shirt = new T.MeshLambertMaterial({
     color: "#bde883",
     flatShading: true,
@@ -92,16 +91,6 @@ export class Room {
       this.setActivityProps(active ? "idle" : this.options.mode);
       this.onAnimationSource?.(active ? "artist" : "procedural");
     });
-    this.diamond = new T.Mesh(
-      new T.OctahedronGeometry(0.18, 0),
-      new T.MeshLambertMaterial({
-        color: 0xc7f480,
-        flatShading: true,
-        emissive: 0x33551c,
-      }),
-    );
-    this.diamond.position.set(0.4, 3.35, 0.3);
-    this.root.add(this.diamond);
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(host);
     this.resize();
@@ -576,8 +565,6 @@ export class Room {
       a.rotation.z = armZPose(i);
     });
     this.legs.forEach((a, i) => (a.rotation.x = legPose(i)));
-    this.diamond.rotation.y = t * 0.65;
-    this.diamond.position.y = 3.35 + Math.sin(t * 2) * 0.06;
     if (this.options.animations) {
       this.vaporPuffs.forEach((puff, i) => {
         const phase = (t * (i < 3 ? 1.35 : 0.55) + (i % 3) / 3) % 1;

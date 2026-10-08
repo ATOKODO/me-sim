@@ -25,7 +25,7 @@ test("Storybook controls, themes, language and Docs work together", async ({
     .click();
   await page.getByText("English", { exact: true }).click();
   await expect(preview.locator("html")).toHaveAttribute("lang", "en");
-  await expect(preview.locator(".metric-body > span").first()).toHaveText(
+  await expect(preview.locator(".metric-heading > span").first()).toHaveText(
     "Weight",
   );
   await expect(preview.locator(".metric-value")).toContainText("0");
