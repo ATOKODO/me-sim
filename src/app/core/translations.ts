@@ -211,6 +211,7 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Marche / sortie": "Walk / outing",
   "Travail / étude": "Work / study",
   "Temps social": "Social time",
+  "Temps sédentaire": "Sedentary time",
   "Jeux vidéo": "Video games",
   "Réseaux sociaux / écran": "Social media / screen time",
   "Lecture / apprentissage": "Reading / learning",
@@ -474,6 +475,7 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Réessayer la 3D": "Retry 3D",
   "SCÈNE 3D": "3D SCENE",
   "ANIMATION GLB": "GLB ANIMATION",
+  "Chargement du personnage…": "Loading character…",
   "TON ESPACE": "YOUR SPACE",
   "Caméra 3D": "3D camera",
   "Scène 3D : glisser pour tourner, molette pour zoomer. Au clavier : flèches pour tourner, plus ou moins pour zoomer, R pour réinitialiser.":

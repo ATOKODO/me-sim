@@ -1,5 +1,9 @@
 import * as T from "three";
-import { ArtistAnimations, type AvatarVariant } from "./artist-animations";
+import {
+  ArtistAnimations,
+  type AvatarVariant,
+  type AvatarSource,
+} from "./artist-animations";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 export interface CameraState {
@@ -53,7 +57,7 @@ export class Room {
   constructor(
     private host: HTMLElement,
     private onUnavailable: () => void,
-    private onAnimationSource?: (source: "artist" | "procedural") => void,
+    private onAnimationSource?: (source: AvatarSource) => void,
     private onCameraState?: (state: CameraState) => void,
   ) {
     this.renderer = new T.WebGLRenderer({
@@ -88,10 +92,13 @@ export class Room {
     this.buildRoom();
     this.buildPerson();
     this.buildActivityProps();
-    this.artist = new ArtistAnimations(this.root, (active) => {
-      this.person.visible = !active;
-      this.setActivityProps(active ? "idle" : this.options.mode);
-      this.onAnimationSource?.(active ? "artist" : "procedural");
+    this.person.visible = false;
+    this.artist = new ArtistAnimations(this.root, (source) => {
+      this.person.visible = source === "procedural";
+      this.setActivityProps(
+        source === "procedural" ? this.options.mode : "idle",
+      );
+      this.onAnimationSource?.(source);
     });
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(host);

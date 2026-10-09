@@ -14,6 +14,9 @@ async function run(file, params) {
   if (code !== 0) process.exit(code);
 }
 if (!args.includes("--skip-build")) {
+  await run("scripts/check-docs.mjs", []);
+  await run("node_modules/typescript/bin/tsc", ["-p", "tsconfig.docs.json"]);
+  await run("node_modules/vitepress/bin/vitepress.js", ["build", "docs"]);
   await run("node_modules/@angular/cli/bin/ng.js", ["build"]);
   await run("scripts/storybook.mjs", ["build"]);
 }

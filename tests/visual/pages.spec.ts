@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { test } from "./fixtures";
+import { VISUAL_ORIGINS } from "../../config/test-origins";
+import { REFERENCE_VIEWPORTS } from "../../config/viewports";
 import { ENGLISH } from "../../src/app/core/translations";
 const routes = [
   {
@@ -72,6 +74,60 @@ for (const theme of ["dark", "light"])
       );
     });
   }
+for (const theme of ["dark", "light"])
+  for (const language of ["fr", "en"])
+    for (const [device, viewport] of Object.entries(REFERENCE_VIEWPORTS))
+      for (const route of routes) {
+        test(
+          "devices / " +
+            theme +
+            " / " +
+            language +
+            " / " +
+            device +
+            " / " +
+            route.name,
+          async ({ page }) => {
+            await prepare(
+              page,
+              theme,
+              language,
+              viewport.width,
+              viewport.height,
+            );
+            await navigate(page, route, language);
+            await expect(page.locator("html")).toHaveAttribute(
+              "lang",
+              language,
+            );
+            await expect(page.locator("html")).toHaveAttribute(
+              "data-theme",
+              theme,
+            );
+            expect(
+              await page.evaluate(() => ({
+                width: innerWidth,
+                height: innerHeight,
+              })),
+            ).toEqual({ width: viewport.width, height: viewport.height });
+            expect(
+              await page.evaluate(() => document.documentElement.scrollWidth),
+            ).toBeLessThanOrEqual(viewport.width);
+            await expect(page).toHaveScreenshot(
+              "app-" +
+                route.name +
+                "-" +
+                theme +
+                "-" +
+                language +
+                "-" +
+                device +
+                ".png",
+              { fullPage: true },
+            );
+          },
+        );
+      }
 async function navigate(
   page: Page,
   route: (typeof routes)[number],
@@ -101,8 +157,9 @@ async function prepare(
   theme: string,
   language: string,
   width: number,
+  height = 1000,
 ) {
-  await page.setViewportSize({ width, height: 1000 });
+  await page.setViewportSize({ width, height });
   await page.clock.setFixedTime(new Date("2026-10-01T10:00:00Z"));
   await page.addInitScript(
     ({ theme, language }) => {
@@ -114,10 +171,16 @@ async function prepare(
     { theme, language },
   );
   // Browser demo only; changing routes must retain in-memory presentation settings.
-  await page.goto("http://127.0.0.1:1422/#/parametres");
+  await page.goto(VISUAL_ORIGINS.application + "/#/parametres");
   await expect(page.locator("h1")).toBeVisible();
   const checkboxes = page.locator("input[type=checkbox]");
+  // Make the confirmation deterministic even when reduced motion starts animations off.
+  await checkboxes.nth(0).check();
+  const confirmation = "Aperçu mis à jour · données temporaires.";
+  const notice = language === "en" ? ENGLISH[confirmation] : confirmation;
+  await expect(page.getByRole("status")).toContainText(notice);
   await checkboxes.nth(0).uncheck();
+  await expect(page.getByRole("status")).toContainText(notice);
   await checkboxes.nth(1).uncheck();
   await expect(checkboxes).toHaveCount(2);
   await expect(checkboxes.nth(0)).not.toBeChecked();

@@ -50,7 +50,7 @@ Ouvrir [Storybook local](http://127.0.0.1:6006/). Les composants, thèmes, contr
 npm run docs:dev
 ```
 
-Ouvrir [la documentation locale](http://127.0.0.1:5174/). Le serveur écoute uniquement sur l’interface locale et échoue si le port est déjà occupé.
+Ouvrir [la documentation locale](http://127.0.0.1:5174/). Les guides français sont à `/`, les guides anglais à `/en/` ; le menu de langue ouvre la page correspondante. Le serveur écoute uniquement sur l’interface locale et échoue si le port est déjà occupé.
 
 Pour vérifier et consulter le site statique :
 
@@ -59,9 +59,9 @@ npm run docs:build
 npm run docs:preview
 ```
 
-L’aperçu est sur [127.0.0.1:4174](http://127.0.0.1:4174/). Le résultat se trouve dans `docs/.vitepress/dist/` ; il doit être servi par un serveur HTTP. Les fichiers Markdown restent la source unique des guides. Modifier un guide existant, ou ajouter une page puis son entrée de navigation dans `docs/.vitepress/config.mts`.
+L’aperçu est sur [127.0.0.1:4174](http://127.0.0.1:4174/). Le résultat se trouve dans `docs/.vitepress/dist/` ; il doit être servi par un serveur HTTP. Les fichiers Markdown sont les sources des guides. Mettre à jour les deux versions ensemble : français dans `docs/`, anglais dans `docs/en/`. Garder les identifiants explicites des titres anglais alignés sur les titres français pour conserver les liens de section lors du changement de langue. Ajouter toute nouvelle page dans les deux langues et dans la navigation de `docs/.vitepress/config.mts`.
 
-Le build refuse les liens internes cassés. La recherche utilise un index local construit avec les pages. Polices, styles et scripts sont embarqués ; aucun service de recherche ou d’analytique distant n’est configuré. La CI est configurée pour vérifier la construction, sans publier le site.
+Le build vérifie la parité des pages et sections entre langues et refuse les liens internes cassés. La recherche utilise un index local construit avec les pages de chaque langue. Polices, styles et scripts sont embarqués ; aucun service de recherche ou d’analytique distant n’est configuré. La CI est configurée pour vérifier la construction, sans publier le site.
 
 Configuration de référence : [installation VitePress](https://vuejs.github.io/vitepress/v1/guide/getting-started) et [recherche locale](https://vuejs.github.io/vitepress/v1/reference/default-theme-search).
 
@@ -74,4 +74,4 @@ npm run test:rust
 npm run check:avatar
 ```
 
-Les tests fonctionnels utilisent Edge et le port 1421. Pour les références visuelles, installer Chromium une fois avec `npx playwright install chromium`, puis lancer `npm run test:visual`. Les procédures natives isolées, limites de couverture et contrôles de livraison sont dans la [validation](./validation.md).
+Les tests fonctionnels utilisent Edge et le port 1421. Pour les références visuelles, installer Chromium une fois avec `npx playwright install chromium`, puis lancer `npm run test:visual`. Les captures de l’application et de la documentation couvrent les quatre formats de référence, en français/anglais et clair/sombre. Les procédures natives isolées, limites de couverture et contrôles de livraison sont dans la [validation](./validation.md).

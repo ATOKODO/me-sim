@@ -16,7 +16,7 @@ Les stories ne chargent pas le Store réel : seul un fournisseur de préférence
 
 ## Résolutions de référence
 
-Le sélecteur de viewport de Storybook propose les formats suivants pour les aperçus des composants. Les dimensions sont exprimées en pixels CSS, largeur × hauteur.
+Le sélecteur de viewport de Storybook propose les formats suivants pour les aperçus des composants. Les dimensions sont exprimées en pixels CSS, largeur × hauteur, et partagées avec Playwright dans `config/viewports.ts`.
 
 | Format          | Largeur | Hauteur |
 | --------------- | ------: | ------: |
@@ -25,15 +25,15 @@ Le sélecteur de viewport de Storybook propose les formats suivants pour les ape
 | MacBook Pro 14″ | 1512 px |  982 px |
 | Desktop         | 1920 px | 1080 px |
 
-Choisir un format dans la barre d’outils de l’onglet Canvas ; « Reset viewport » revient à la taille disponible. Agrandir la fenêtre ou masquer le panneau des contrôles si le Canvas disponible limite la hauteur. Les références visuelles automatisées conservent leurs dimensions fixes décrites ci-dessous.
+Choisir un format dans la barre d’outils de l’onglet Canvas ; « Reset viewport » revient à la taille disponible. Agrandir la fenêtre ou masquer le panneau des contrôles si le Canvas disponible limite la hauteur. Playwright applique ces dimensions de viewport indépendamment de la fenêtre Storybook. Les PNG de page entière peuvent être plus hauts que le viewport car ils comprennent le contenu sous la ligne de flottaison.
 
 ## Vérifier les images
 
-Installer le navigateur une fois : `npx playwright install chromium`. Puis lancer `npm run test:visual` : compilation de l’application et de Storybook, serveurs statiques locaux sur les ports 1422 et 6107, comparaison des PNG. Les serveurs sont arrêtés par Playwright après le test. `--skip-build` permet de réutiliser les deux builds après une modification de test uniquement.
+Installer le navigateur une fois : `npx playwright install chromium`. Puis lancer `npm run test:visual` : compilation de la documentation, de l’application et de Storybook, serveurs statiques locaux sur les ports 4175, 1423 et 6107, comparaison des PNG. Les serveurs sont arrêtés par Playwright après le test. `--skip-build` permet de réutiliser les trois builds après une modification de test uniquement.
 
-Les stories portant le tag `visual` sont découvertes depuis l’index construit : chaque nouvelle story est couverte automatiquement, dans les deux thèmes. La suite couvre aussi les sept routes réelles à 960 et 1440 px, des écrans anglais et le focus clavier d’un bouton. L’application est lancée en démonstration navigateur, avec une date fixe, animations arrêtées et canvas GPU masqué uniquement dans les captures ; aucune base native n’est ouverte. Les commandes de caméra et les légendes restent visibles dans les références. Le rendu 3D, ses clips, la perte de contexte et le réessai sont vérifiés par les tests fonctionnels sans masquage.
+Les stories portant le tag `visual` sont découvertes depuis l’index construit : chaque nouvelle story est couverte automatiquement, dans les deux thèmes. La matrice couvre les sept routes en français/anglais, clair/sombre et aux quatre résolutions de référence : 112 combinaisons. Les références à 960 et 1440 px, les exemples anglais et le focus clavier restent conservés. L’accueil et le démarrage de la documentation ajoutent 32 combinaisons ; navigation, changement de langue et recherche locale sont vérifiés dans les deux langues. L’application est lancée en démonstration navigateur, avec une date fixe, animations arrêtées et canvas GPU masqué uniquement dans les captures ; aucune base native n’est ouverte. Les commandes de caméra et les légendes restent visibles dans les références. Le rendu 3D, ses clips, la perte de contexte et le réessai sont vérifiés par les tests fonctionnels sans masquage. Les tests des quatre formats refusent tout débordement horizontal global ; les tableaux peuvent défiler dans leur propre conteneur.
 
-Les captures sont dans `tests/visual/__screenshots__/win32/chromium/` et doivent être commitées. Chromium provient de la version Playwright verrouillée, avec une échelle de 1, le fuseau Europe/Paris et des dimensions fixes. Les références sont propres à l’OS ; Linux ou macOS demandent leurs propres captures. La CI visuelle cible Windows Server 2022 ; une différence de police ou de rendu système doit être examinée, pas masquée en augmentant la tolérance.
+Les captures sont dans `tests/visual/__screenshots__/win32/chromium/` et doivent être commitées. Les noms comprennent la page, le thème, la langue et le format. Chromium provient de la version Playwright verrouillée, avec une échelle de 1, le fuseau Europe/Paris et des dimensions fixes. Les références sont propres à l’OS ; Linux ou macOS demandent leurs propres captures. La CI visuelle cible Windows Server 2022 ; une différence de police ou de rendu système doit être examinée, pas masquée en augmentant la tolérance.
 
 Une capture autorise au plus 100 pixels différents avec un seuil de couleur de 0,15. Les données et animations sont stabilisées ; les cartes, formulaires et graphiques ne sont pas masqués. Les requêtes vers un serveur externe sont bloquées et font échouer le test. Les erreurs JavaScript font également échouer le test.
 
@@ -41,8 +41,10 @@ Une capture autorise au plus 100 pixels différents avec un seuil de couleur de 
 
 1. Exécuter les tests et ouvrir `npm run test:visual:report` pour comparer attendu, obtenu et différence.
 2. Corriger les défauts involontaires.
-3. Sur Windows, lancer `npm run test:visual:update` uniquement pour le changement voulu ; ajouter un filtre `-- --grep ...` pour limiter les captures concernées.
+3. Sur Windows, lancer `npm run test:visual:update` uniquement pour le changement voulu ; ajouter un filtre `-- --grep ...` pour limiter les captures concernées. Pour les nouvelles références des quatre formats : `-- --grep "devices /" --update-snapshots=missing` ; pour la documentation : `-- --grep "docs /" --update-snapshots=missing`.
 4. Inspecter les PNG modifiés, relancer `npm run test:visual`, puis commiter code et références ensemble.
+
+Avec Playwright 1.58, la création d’une référence absente via `--update-snapshots=missing` écrit le PNG mais signale un échec lors de ce premier passage. Inspecter le fichier créé puis relancer la comparaison sans mise à jour ; la création seule ne valide pas la régression.
 
 La CI refuse la création ou la mise à jour de références. Sur échec, elle conserve le rapport HTML, les images obtenues/différences et les traces pendant 14 jours. Ce job ne publie aucun Storybook. Ne pas augmenter la tolérance pour faire passer un changement non inspecté.
 

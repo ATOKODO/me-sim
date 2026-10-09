@@ -22,11 +22,12 @@ const englishHeadings = [
 
 test("language and theme switch live, preserve inputs and persist presentation only", async ({
   page,
+  baseURL,
 }) => {
   const external: string[] = [],
     errors: string[] = [];
   page.on("request", (request) => {
-    if (new URL(request.url()).origin !== "http://127.0.0.1:1421")
+    if (new URL(request.url()).origin !== new URL(baseURL!).origin)
       external.push(request.url());
   });
   page.on("pageerror", (error) => errors.push(error.message));
@@ -40,6 +41,9 @@ test("language and theme switch live, preserve inputs and persist presentation o
   await page.getByLabel("Langue", { exact: true }).selectOption("en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByLabel("Value · kg")).toHaveValue("71.8");
+  await expect(
+    page.getByRole("button", { name: "Sedentary time", exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Add to journal", exact: true })
     .click();

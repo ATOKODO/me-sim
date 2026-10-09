@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { VISUAL_ORIGINS } from "./config/test-origins";
 export default defineConfig({
   testDir: "tests/visual",
   outputDir: "test-results/visual",
@@ -28,22 +29,29 @@ export default defineConfig({
     deviceScaleFactor: 1,
     locale: "fr-FR",
     timezoneId: "Europe/Paris",
-    reducedMotion: "reduce",
+    contextOptions: { reducedMotion: "reduce" },
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
   projects: [{ name: "chromium" }],
   webServer: [
     {
+      command:
+        "node node_modules/vitepress/bin/vitepress.js preview docs --host 127.0.0.1 --port 4175",
+      url: VISUAL_ORIGINS.documentation,
+      reuseExistingServer: false,
+      timeout: 20000,
+    },
+    {
       command: "node scripts/serve-storybook.mjs",
-      url: "http://127.0.0.1:6107",
+      url: VISUAL_ORIGINS.storybook,
       reuseExistingServer: false,
       timeout: 20000,
     },
     {
       command: "node scripts/serve.mjs",
-      url: "http://127.0.0.1:1422",
-      env: { ME_SIM_PREVIEW_PORT: "1422" },
+      url: VISUAL_ORIGINS.application,
+      env: { ME_SIM_PREVIEW_PORT: new URL(VISUAL_ORIGINS.application).port },
       reuseExistingServer: false,
       timeout: 20000,
     },

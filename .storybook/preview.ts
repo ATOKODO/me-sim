@@ -7,6 +7,7 @@ import {
   type Preview,
 } from "@storybook/angular";
 import type { ViewportMap } from "storybook/viewport";
+import { REFERENCE_VIEWPORTS } from "../config/viewports";
 import { Store } from "../src/app/core/store";
 import { emptySnapshot } from "../src/app/core/models";
 registerLocaleData(fr);
@@ -66,28 +67,19 @@ const preview: Preview = {
     controls: { expanded: true },
     backgrounds: { disable: true },
     viewport: {
-      options: {
-        iphone16pro: {
-          name: "iPhone 16 Pro",
-          styles: { width: "402px", height: "874px" },
-          type: "mobile",
-        },
-        ipadpro11: {
-          name: "iPad Pro 11″",
-          styles: { width: "834px", height: "1194px" },
-          type: "tablet",
-        },
-        macbookpro14: {
-          name: "MacBook Pro 14″",
-          styles: { width: "1512px", height: "982px" },
-          type: "desktop",
-        },
-        desktop: {
-          name: "Desktop",
-          styles: { width: "1920px", height: "1080px" },
-          type: "desktop",
-        },
-      } satisfies ViewportMap,
+      options: Object.fromEntries(
+        Object.entries(REFERENCE_VIEWPORTS).map(([key, viewport]) => [
+          key,
+          {
+            name: viewport.name,
+            styles: {
+              width: viewport.width + "px",
+              height: viewport.height + "px",
+            },
+            type: viewport.type,
+          },
+        ]),
+      ) satisfies ViewportMap,
     },
     options: { storySort: { order: ["Fondations", "Composants", "États"] } },
     a11y: { test: "error" },

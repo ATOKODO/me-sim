@@ -50,7 +50,7 @@ Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `s
 - Historique et courbes d’observations ; données absentes indiquées comme inconnues.
 - Scène PS1, animations contextuelles propres à chaque activité (pause, marche, repos, sport, travail, social, écran, écran du soir, jeu, tabac, vapotage, sédentarité, lecture, repas et boisson), accessoires 3D associés, couleur d’avatar, préférences d’animation. Si WebGL est indisponible, un message permet de réessayer la 3D ; les données restent accessibles.
 - Caméra 3D interactive : glisser pour orbiter, molette ou boutons +/− pour zoomer (70 à 400 %), bouton ↺ pour retrouver la vue initiale. Au clavier après focus de la scène : flèches, +/− et R ou Début. Chaque aperçu de comparaison possède sa propre caméra ; les commandes sont masquées si le rendu 3D est indisponible.
-- Personnages masculin et féminin distincts, textures embarquées et quinze clips chacun, avec deux fichiers Blender éditables. Un profil renseigné **Féminin** choisit automatiquement sa variante dans le tableau de bord et la comparaison. Remplacement des animations par des GLB locaux partagés ou séparés ; [guide pour l’artiste](docs/artist-animation-guide.md) et commande `npm run check:avatar` pour vérifier les exports.
+- Personnages masculin et féminin fournis en FBX (`male_casual` et `female_secretary`), textures originales embarquées et quinze clips chacun, avec deux fichiers Blender éditables. Un profil renseigné **Féminin** choisit automatiquement sa variante dans le tableau de bord et la comparaison. Remplacement des animations par des GLB locaux partagés ou séparés ; [guide pour l’artiste](docs/artist-animation-guide.md) et commande `npm run check:avatar` pour vérifier les exports.
 - Scénarios personnels enregistrés et deux avatars illustratifs côte à côte.
 - Imports CSV UTF-8, XLS binaire, XLSX multifeuille et tableaux JSON, avec mapping, unités, dates et aperçu paginé.
 - Exports CSV, XLS binaire BIFF8, XLSX et sauvegarde JSON complète ; restauration transactionnelle précédée d’une copie JSON.
@@ -80,11 +80,11 @@ La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent
 
 ## Documentation
 
-La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Recherche locale, thèmes clair/sombre et ressources embarquées. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle. La CI est configurée pour vérifier le build ; aucune publication automatique n’est configurée.
+La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Guides français et anglais (`/en/`), navigation et recherche locale traduites, thèmes clair/sombre et ressources embarquées. Le build vérifie la parité des pages et sections entre langues. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle. La CI est configurée pour vérifier le build ; aucune publication automatique n’est configurée.
 
 ## Design système
 
-[Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles, captures de référence et CI Windows.
+[Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles, captures de référence et CI Windows. Les sept écrans et la documentation sont capturés aux formats iPhone 16 Pro, iPad Pro 11″, MacBook Pro 14″ et Desktop en français/anglais, clair/sombre.
 
 ## Vérification native isolée
 

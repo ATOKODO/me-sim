@@ -2,6 +2,8 @@
 Run with Blender 4.2+: blender --background --factory-startup --python scripts/prepare-avatar.py
 """
 import bpy
+import argparse
+import sys
 import hashlib
 import json
 import math
@@ -12,8 +14,26 @@ ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / 'art' / 'avatar'
 OUTPUT = ROOT / 'public' / 'avatar' / 'character'
 OUTPUT.mkdir(parents=True, exist_ok=True)
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', choices=('male', 'female'), default='male')
+arguments = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+variant = parser.parse_args(arguments).model
+female = variant == 'female'
+source_file = 'female_secretary.fbx' if female else 'male_casual.fbx'
+texture_file = 'secretary_tex.png' if female else 'character-texture.png'
+character_name = 'FemaleSecretary' if female else 'MaleCasual'
+source_stem = variant + '-casual'
+bone_map = {
+    'hips': 'pelvis',
+    'shoulder.L': 'shoulder_left', 'shoulder.R': 'shoulder_right',
+    'upper_arm.L': 'upper_arm_left', 'upper_arm.R': 'upper_arm_right',
+    'forearm.L': 'forearm_left', 'forearm.R': 'forearm_right',
+    'hand.L': 'hand_left', 'hand.R': 'hand_right',
+    'thigh.L': 'thigh_left', 'thigh.R': 'thigh_right',
+    'foot.L': 'foot_left', 'foot.R': 'foot_right',
+} if female else {}
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.fbx(filepath=str(ART / 'male_casual.fbx'))
+bpy.ops.import_scene.fbx(filepath=str(ART / source_file))
 bpy.context.view_layer.update()
 rig = next(o for o in bpy.context.scene.objects if o.type == 'ARMATURE')
 character = next(o for o in bpy.context.scene.objects if o.type == 'MESH')
@@ -22,9 +42,18 @@ source_bones = len(rig.data.bones)
 if source_actions:
     raise RuntimeError('The source now contains animation clips; review them before replacing them.')
 
-image = bpy.data.images.load(str(ART / 'character-texture.png'), check_existing=True)
+# Bone aliases let both source rigs use the same activity authoring code.
+# The female skeleton retains its original joint positions and skin weights.
+for original, canonical in bone_map.items():
+    if original not in rig.data.bones:
+        raise RuntimeError('Missing source bone: ' + original)
+    if original in character.vertex_groups:
+        character.vertex_groups[original].name = canonical
+    rig.data.bones[original].name = canonical
+
+image = bpy.data.images.load(str(ART / texture_file), check_existing=True)
 image.pack()
-material = bpy.data.materials.new('CharacterAtlas')
+material = bpy.data.materials.new('SecretaryAtlas' if female else 'CharacterAtlas')
 material.use_nodes = True
 material.node_tree.nodes.clear()
 tex = material.node_tree.nodes.new('ShaderNodeTexImage')
@@ -38,7 +67,7 @@ material.node_tree.links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
 material.node_tree.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
 character.data.materials.clear()
 character.data.materials.append(material)
-character.name = 'MaleCasual'
+character.name = character_name
 
 bounds = [character.matrix_world @ Vector(c) for c in character.bound_box]
 minimum = min(v.z for v in bounds)
@@ -60,18 +89,23 @@ def add_prop(name, position, parent=None):
         bone.parent = rig.data.edit_bones[parent]
     props[name] = {'bone': bone.name, 'position': Vector(position)}
 
-left_grip = Vector((0.312, 0.014, 0.855))
-right_grip = Vector((-0.312, 0.014, 0.855))
+left_grip = rig.data.bones['hand_left'].head_local.lerp(rig.data.bones['hand_left'].tail_local, 0.55) if female else Vector((0.312, 0.014, 0.855))
+right_grip = rig.data.bones['hand_right'].head_local.lerp(rig.data.bones['hand_right'].tail_local, 0.55) if female else Vector((-0.312, 0.014, 0.855))
+sit_drop = 0.30 if female else 0.32
+seat_height = rig.data.bones['pelvis'].head_local.z - sit_drop if female else 0.55
+head_height = rig.data.bones['head'].head_local.z
+face_height = head_height + 0.068
+
 for name in ('phone', 'controller', 'cup', 'cigarette', 'spoon'):
     add_prop(name, right_grip, 'hand_right')
 for name in ('book', 'plate', 'vape'):
     add_prop(name, left_grip, 'hand_left')
 add_prop('laptop', (0, -0.46, 0.78))
-add_prop('chair', (0, 0.03, 0.55))
+add_prop('chair', (0, 0.03, seat_height))
 add_prop('pillow', (0, 0.13, 0.7))
-add_prop('speech', (0.26, -0.05, 1.66), 'head')
+add_prop('speech', (0.26, -0.05, head_height + 0.12 if female else 1.66), 'head')
 for index in range(3):
-    add_prop('puff' + str(index), (0, -0.15, 1.61 + index * 0.025), 'head')
+    add_prop('puff' + str(index), (0, -0.15, (face_height if female else 1.61) + index * 0.025), 'head')
 bpy.ops.object.mode_set(mode='OBJECT')
 
 materials = {}
@@ -142,7 +176,7 @@ box('chair', 'ChairSeat', (0.56,0.45,0.055), color=(0.35,0.25,0.15))
 box('chair', 'ChairBack', (0.56,0.055,0.42), (0,0.22,0.20), (0.39,0.29,0.19))
 for x in (-0.22,0.22):
     for y in (-0.18,0.18):
-        box('chair', 'ChairLeg', (0.045,0.045,0.55), (x,y,-0.275), (0.24,0.18,0.12))
+        box('chair', 'ChairLeg', (0.045,0.045,seat_height), (x,y,-seat_height/2), (0.24,0.18,0.12))
 box('pillow', 'RestPillow', (0.40,0.17,0.13), color=(0.37,0.43,0.66))
 for index in range(3):
     sphere('speech', 'SpeechDot' + str(index), 0.035, (index*0.065,0,0), (0.89,0.69,0.26))
@@ -178,7 +212,7 @@ def visible(*names):
         rig.pose.bones[props[name]['bone']].scale = (1,1,1)
 
 def sit():
-    translate('pelvis', (0,0,-0.32))
+    translate('pelvis', (0,0,-sit_drop))
     for side, shin in [('left','shin.L'), ('right','shin.R')]:
         rotate('thigh_' + side, x=-1.45)
         rotate(shin, x=1.45)
@@ -231,6 +265,11 @@ def pose(mode, u):
         bone.location = (0,0,0)
         bone.rotation_quaternion = (1,0,0,0)
         bone.scale = (0,0,0) if bone.name.startswith('prop_') else (1,1,1)
+    # Relax the supplied female A-pose into a natural standing pose.
+    # Kept on the original rig, so artists can edit every baked action.
+    if female:
+        rotate('upper_arm_left', y=0.45)
+        rotate('upper_arm_right', y=-0.45)
     rotate('chest', x=wave*0.012)
     if mode == 'idle':
         translate('pelvis', (0,0,wave*0.004))
@@ -325,13 +364,13 @@ def pose(mode, u):
         reach('right', (-0.095+cycle*0.05,-0.34,0.91))
     elif mode == 'meal':
         reach('left', (0.035,-0.37,0.91))
-        reach('right', (-0.10+cycle*0.085,-0.37+cycle*0.26,0.96+cycle*0.33))
+        reach('right', (-0.10+cycle*0.085,-0.37+cycle*0.26,0.96+cycle*(0.22 if female else 0.33)))
     elif mode == 'alcohol':
-        reach('right', (-0.18+cycle*0.155,-0.20+cycle*0.06,1.07+cycle*0.43))
+        reach('right', (-0.18+cycle*0.155,-0.20+cycle*0.06,1.07+cycle*((face_height-0.11-1.07) if female else 0.43)))
     elif mode == 'tobacco':
-        reach('right', (-0.12+cycle*0.095,-0.28+cycle*0.20,1.26+cycle*0.35))
+        reach('right', (-0.12+cycle*0.095,-0.28+cycle*0.20,1.26+cycle*((face_height-1.26) if female else 0.35)))
     elif mode == 'vaping':
-        reach('left', (0.16-cycle*0.145,-0.22+cycle*0.08,1.15+cycle*0.35))
+        reach('left', (0.16-cycle*0.145,-0.22+cycle*0.08,1.15+cycle*((face_height-0.11-1.15) if female else 0.35)))
     if mode in ('tobacco','vaping'):
         for index in range(3):
             name = 'puff'+str(index)
@@ -361,9 +400,9 @@ rig.animation_data.action = bpy.data.actions['Idle']
 bpy.context.scene.frame_set(1)
 bpy.context.view_layer.update()
 bpy.context.preferences.filepaths.save_version = 0
-bpy.ops.wm.save_as_mainfile(filepath=str(ART / 'male-casual-animated.blend'), compress=True)
+bpy.ops.wm.save_as_mainfile(filepath=str(ART / (source_stem + '-animated.blend')), compress=True)
 bpy.ops.export_scene.gltf(
-    filepath=str(OUTPUT / 'male-casual.glb'), export_format='GLB',
+    filepath=str(OUTPUT / (source_stem + '.glb')), export_format='GLB',
     export_animations=True, export_animation_mode='ACTIONS',
     export_force_sampling=True, export_anim_single_armature=True,
     export_frame_range=False, export_optimize_animation_size=True,
@@ -371,20 +410,24 @@ bpy.ops.export_scene.gltf(
 )
 manifest_path = ROOT / 'public' / 'avatar' / 'animations.json'
 manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+overrides = manifest.setdefault('variants', {}).setdefault('female', {}).setdefault('overrides', {}) if female else manifest['overrides']
+model_file = 'character/' + source_stem + '.glb'
 for mode, (clip, _) in MODES.items():
-    existing = manifest['overrides'].get(mode)
-    if not existing or existing.get('file') == 'character/male-casual.glb':
-        manifest['overrides'][mode] = {'file':'character/male-casual.glb','clip':clip}
+    existing = overrides.get(mode)
+    if not existing or existing.get('file') == model_file:
+        overrides[mode] = {'file':model_file,'clip':clip}
 manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
 report = {
-    'source':'male_casual.fbx', 'texture':'character-texture.png',
+    'source':source_file, 'texture':texture_file, 'variant':variant,
+    'sourceSha256':hashlib.sha256((ART/source_file).read_bytes()).hexdigest(),
+    'boneAliases':bone_map,
     'sourceAnimationClips':source_actions,
     'sourceBones':source_bones, 'generatedPropBones':len(props),
     'characterVertices':len(character.data.vertices),
     'characterTriangles':sum(len(p.vertices)-2 for p in character.data.polygons),
-    'textureSha256':hashlib.sha256((ART/'character-texture.png').read_bytes()).hexdigest(),
+    'textureSha256':hashlib.sha256((ART/texture_file).read_bytes()).hexdigest(),
     'generatedAnimationClips':[name for name,_ in MODES.values()],
     'heightUnits':2.2,
 }
-(ART/'character-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+(ART/('female-character-report.json' if female else 'character-report.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print('AVATAR_PREPARED='+json.dumps(report))

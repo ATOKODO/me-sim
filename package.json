@@ -20,7 +20,7 @@
     "test:visual:update": "node scripts/test-visual.mjs --update-snapshots",
     "test:visual:report": "playwright show-report playwright-report/visual",
     "docs:dev": "vitepress dev docs --host 127.0.0.1 --port 5174",
-    "docs:build": "vitepress build docs",
+    "docs:build": "node scripts/check-docs.mjs && tsc -p tsconfig.docs.json && vitepress build docs",
     "docs:preview": "vitepress preview docs --host 127.0.0.1 --port 4174"
   },
   "dependencies": {

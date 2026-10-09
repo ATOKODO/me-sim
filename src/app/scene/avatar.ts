@@ -11,7 +11,7 @@ import {
   signal,
 } from "@angular/core";
 import type { CameraState, Room } from "./room";
-import type { AvatarVariant } from "./artist-animations";
+import type { AvatarVariant, AvatarSource } from "./artist-animations";
 @Component({
   selector: "avatar-scene",
   imports: [TranslatePipe],
@@ -20,6 +20,7 @@ import type { AvatarVariant } from "./artist-animations";
     [class.compact]="compact()"
     [attr.data-mode]="mode()"
     [attr.data-variant]="variant()"
+    [attr.data-source]="source()"
   >
     <div
       #host
@@ -95,9 +96,11 @@ import type { AvatarVariant } from "./artist-animations";
       {{
         unavailable()
           ? tr("3D indisponible")
-          : source() === "artist"
-            ? tr("ANIMATION GLB")
-            : tr("SCÈNE 3D")
+          : source() === "loading"
+            ? tr("Chargement du personnage…")
+            : source() === "artist"
+              ? tr("ANIMATION GLB")
+              : tr("SCÈNE 3D")
       }}
       <span class="separator">/</span> {{ "PS1 EDITION" | t }}
     </div>
@@ -277,7 +280,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
   compact = input(false);
   label = input("TON ESPACE");
   unavailable = signal(false);
-  source = signal<"artist" | "procedural">("procedural");
+  source = signal<AvatarSource>("loading");
   cameraReady = signal(false);
   cameraState = signal<CameraState>({
     zoom: 1,

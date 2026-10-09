@@ -24,7 +24,8 @@ Le frontal transmet des opérations typées aux commandes Tauri. Rust valide les
 | `art/avatar/`               | Sources FBX, texture et fichier Blender éditable.                                        |
 | `stories/` et `.storybook/` | Catalogue local, configuration et exemples fictifs.                                      |
 | `tests/` et `scripts/`      | Tests fonctionnels, références visuelles, contrôles d’assets et sondes natives.          |
-| `docs/`                     | Guides Markdown et configuration VitePress.                                              |
+| `config/`                   | Résolutions de référence partagées par Storybook et les tests de captures.              |
+| `docs/`                     | Guides français, versions anglaises dans `en/` et configuration VitePress.              |
 
 ## Contrats et persistance
 
@@ -40,14 +41,14 @@ La sauvegarde JSON possède une version indépendante du numéro de migration SQ
 
 L’horloge locale met à jour calendrier, récap et fenêtre de timeline. Les calculs de récap, de couverture et de déviation sont séparés du rendu. Une observation absente reste inconnue ; une valeur explicitement nulle reste une valeur déclarée.
 
-La scène Three.js est chargée à la demande. La caméra appartient à chaque scène et les ressources sont libérées à la destruction. Si WebGL est indisponible ou que son contexte est perdu, la scène affiche un message avec une action pour réessayer. Aucun avatar 2D n’est généré ; les autres fonctionnalités restent accessibles. La scène reçoit la variante d’apparence (`default` ou `female`) dérivée du profil, sans nouvelle donnée persistée. Les clips sont indexés par variante et activité ; un modèle et un mixer sont partagés par fichier GLB. Un chargement terminé après un changement de profil ne peut pas remplacer la variante courante, et les modèles mis en cache sont libérés à la destruction. Le [guide d’artiste](./artist-animation-guide.md) définit le contrat de remplacement.
+La scène Three.js est chargée à la demande. La caméra appartient à chaque scène et les ressources sont libérées à la destruction. Si WebGL est indisponible ou que son contexte est perdu, la scène affiche un message avec une action pour réessayer. Aucun avatar 2D n’est généré ; les autres fonctionnalités restent accessibles. La scène reçoit la variante d’apparence (`default` ou `female`) dérivée du profil, sans nouvelle donnée persistée. Les clips sont indexés par variante et activité ; un modèle et un mixer sont partagés par fichier GLB. Le chargeur distingue les états de chargement, de modèle d’artiste et de repli procédural : pendant la lecture du manifeste ou du GLB, le personnage reste masqué dans la pièce. Le repli procédural apparaît uniquement lorsqu’aucun remplacement n’est fourni ou qu’un chargement échoue. Un chargement terminé après un changement de profil ne peut pas remplacer la variante courante, et les modèles mis en cache sont libérés à la destruction. Le [guide d’artiste](./artist-animation-guide.md) définit le contrat de remplacement.
 
 Le moteur de recherche du poids reste inaccessible aux projections utilisateur. Voir la [fiche modèle](./model-card.md) pour ses équations implémentées et les critères d’activation manquants.
 
 ## Documentation et catalogue
 
-VitePress 1.6.4 transforme directement les guides de `docs/` en site statique, avec navigation française et index de recherche local. Storybook expose les styles et composants de l’application. Ces outils sont des dépendances de développement et ne font pas partie du paquet Tauri.
+VitePress 1.6.4 transforme les guides de `docs/` et `docs/en/` en site statique, avec navigation traduite et index de recherche locaux. Storybook expose les styles et composants de l’application. Ces outils sont des dépendances de développement et ne font pas partie du paquet Tauri.
 
-La configuration du site est dans `docs/.vitepress/config.mts`, son thème dans `docs/.vitepress/theme/` et ses assets dédiés dans `docs/public/`. Cache et sortie de build sont ignorés par Git. La CI est configurée pour construire la documentation et vérifier les liens internes. Aucune publication automatique n’est configurée.
+La configuration du site est dans `docs/.vitepress/config.mts`, son thème dans `docs/.vitepress/theme/` et ses assets dédiés dans `docs/public/`. Cache et sortie de build sont ignorés par Git. La CI construit la documentation, vérifie la parité des pages et sections entre langues, les liens internes et les captures aux quatre résolutions partagées. Aucune publication automatique n’est configurée.
 
 Les [commandes de démarrage](./getting-started.md#lancer-cette-documentation), le [protocole visuel](./design-system.md) et les [preuves de validation](./validation.md) permettent de vérifier les changements avant livraison.

@@ -1,4 +1,5 @@
 import { test as base, expect } from "@playwright/test";
+import { VISUAL_ORIGINS } from "../../config/test-origins";
 export const test = base.extend<{ localOnly: void }>({
   localOnly: [
     async ({ page }, use) => {
@@ -9,9 +10,7 @@ export const test = base.extend<{ localOnly: void }>({
         const url = new URL(route.request().url());
         if (
           ["http:", "https:"].includes(url.protocol) &&
-          !["http://127.0.0.1:6107", "http://127.0.0.1:1422"].includes(
-            url.origin,
-          )
+          !(Object.values(VISUAL_ORIGINS) as string[]).includes(url.origin)
         ) {
           external.push(url.href);
           return route.abort();

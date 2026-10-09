@@ -2,6 +2,7 @@ import * as T from "three";
 import { HABIT_METRICS } from "../core/models";
 
 export type AvatarVariant = "default" | "female";
+export type AvatarSource = "loading" | "artist" | "procedural";
 
 interface Override {
   file: string;
@@ -83,6 +84,7 @@ export class ArtistAnimations {
   private readonly pending = new Map<string, Promise<void>>();
   private readonly failed = new Set<string>();
   private readonly ready: Promise<void>;
+  private manifestLoaded = false;
   private active: LoadedAnimation | null = null;
   private mode = "idle";
   private replayKey = 0;
@@ -92,11 +94,12 @@ export class ArtistAnimations {
 
   constructor(
     root: T.Group,
-    private readonly onActiveChange: (active: boolean) => void,
+    private readonly onSourceChange: (source: AvatarSource) => void,
   ) {
     // The model origin is at the avatar's feet; the room remains procedural.
     this.anchor.position.set(-0.45, 0.1, 0.75);
     root.add(this.anchor);
+    this.onSourceChange("loading");
     this.ready = this.readManifest();
   }
 
@@ -119,10 +122,15 @@ export class ArtistAnimations {
   }
 
   play(mode: string, replayKey: number, animate: boolean) {
+    if (this.disposed) return;
     const changed = mode !== this.mode || replayKey !== this.replayKey;
     this.mode = mode;
     this.replayKey = replayKey;
     this.animate = animate;
+    if (!this.manifestLoaded) {
+      this.clearActive("loading");
+      return;
+    }
     const variant = this.variant;
     const key = this.key(mode, variant);
     const asset = this.loaded.get(key);
@@ -130,19 +138,23 @@ export class ArtistAnimations {
       this.activate(asset, changed || this.active !== asset);
       return;
     }
-    this.useProcedural();
-    if (this.specs[variant][mode])
-      void this.load(mode, variant).then(() => {
-        if (
-          !this.disposed &&
-          this.variant === variant &&
-          this.mode === mode &&
-          this.replayKey === replayKey
-        ) {
-          const loaded = this.loaded.get(key);
-          if (loaded) this.activate(loaded, true);
-        }
-      });
+    if (!this.specs[variant][mode] || this.failed.has(key)) {
+      this.clearActive("procedural");
+      return;
+    }
+    this.clearActive("loading");
+    void this.load(mode, variant).then(() => {
+      if (
+        !this.disposed &&
+        this.variant === variant &&
+        this.mode === mode &&
+        this.replayKey === replayKey
+      ) {
+        const loaded = this.loaded.get(key);
+        if (loaded) this.activate(loaded, true);
+        else this.clearActive("procedural");
+      }
+    });
   }
 
   tick(seconds: number) {
@@ -205,10 +217,12 @@ export class ArtistAnimations {
           this.specs[variant][mode] = { file: value.file, clip: value.clip };
         }
       }
-      if (!this.disposed) this.play(this.mode, this.replayKey, this.animate);
     } catch (error) {
       if (!this.disposed)
         console.warn("Animations 3D d’artiste indisponibles.", error);
+    } finally {
+      this.manifestLoaded = true;
+      if (!this.disposed) this.play(this.mode, this.replayKey, this.animate);
     }
   }
 
@@ -314,16 +328,16 @@ export class ArtistAnimations {
       asset.mixer.update(0);
     }
     asset.action.paused = !this.animate;
-    this.onActiveChange(true);
+    this.onSourceChange("artist");
   }
 
-  private useProcedural() {
+  private clearActive(source: "loading" | "procedural") {
     if (this.active) {
       this.active.scene.visible = false;
       this.active.action.stop();
       this.active = null;
     }
-    this.onActiveChange(false);
+    this.onSourceChange(source);
   }
 
   private colorShirt(scene: T.Object3D) {
