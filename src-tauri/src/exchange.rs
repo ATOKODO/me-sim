@@ -1,5 +1,5 @@
-use crate::domain::*;
-use calamine::{open_workbook_auto, DataType, Reader};
+use crate::{domain::*, import_limits};
+use calamine::{open_workbook_auto_from_rs, DataType, Reader};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, io::Write, path::Path};
 #[derive(Debug, Clone)]
@@ -57,9 +57,7 @@ pub struct Preview {
     pub rows: Vec<PreviewRow>,
 }
 pub fn read(path: &Path) -> Result<Workbook> {
-    if std::fs::metadata(path)?.len() > 25 * 1024 * 1024 {
-        return Err(invalid("Fichier trop volumineux (25 Mo maximum)."));
-    }
+    let bytes = import_limits::read_file(path)?;
     let ext = path
         .extension()
         .and_then(|s| s.to_str())
@@ -68,7 +66,6 @@ pub fn read(path: &Path) -> Result<Workbook> {
     let mut sheets = vec![];
     match ext.as_str() {
         "csv" => {
-            let bytes = std::fs::read(path)?;
             let text = std::str::from_utf8(&bytes)
                 .map_err(|_| invalid("Le CSV doit être encodé en UTF-8."))?
                 .trim_start_matches('\u{feff}');
@@ -78,6 +75,7 @@ pub fn read(path: &Path) -> Result<Workbook> {
             } else {
                 b','
             };
+            import_limits::csv(text.as_bytes(), delimiter)?;
             let mut r = csv::ReaderBuilder::new()
                 .delimiter(delimiter)
                 .from_reader(text.as_bytes());
@@ -97,7 +95,16 @@ pub fn read(path: &Path) -> Result<Workbook> {
             });
         }
         "xls" | "xlsx" => {
-            let mut book = open_workbook_auto(path)?;
+            let excel_bytes = if ext == "xlsx" {
+                import_limits::xlsx(&bytes)?;
+                bytes
+            } else {
+                import_limits::xls(&bytes)?
+            };
+            let mut book = open_workbook_auto_from_rs(std::io::Cursor::new(excel_bytes))?;
+            if book.sheet_names().len() > import_limits::MAX_SHEETS {
+                return Err(invalid("16 feuilles maximum par import."));
+            }
             for name in book.sheet_names().to_vec() {
                 let range = book.worksheet_range(&name)?;
                 if range.height() > 50_001 || range.width() > 256 {
@@ -171,7 +178,8 @@ pub fn read(path: &Path) -> Result<Workbook> {
             }
         }
         "json" => {
-            let value: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+            import_limits::json(&bytes)?;
+            let value: serde_json::Value = serde_json::from_slice(&bytes)?;
             let rows=value.as_array().ok_or_else(||invalid("Pour une sauvegarde complète, utilisez Restaurer. L’import de mesures attend un tableau JSON."))?;
             if rows.len() > 50_000 {
                 return Err(invalid("50 000 lignes maximum."));

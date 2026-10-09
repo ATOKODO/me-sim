@@ -19,7 +19,10 @@ rusqlite = { version = "0.38", features = ["bundled"] }
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 csv = "1"
-calamine = { version = "0.34", features = ["dates"] }
+csv-core = "0.1.13"
+calamine = { version = "=0.36.1", features = ["chrono"] }
+quick-xml = "=0.41.0"
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
 rust_xlsxwriter = "0.94"
 cfb = "0.14"
 rfd = "0.17"

@@ -87,6 +87,13 @@ function navigation(language: "fr" | "en"): DefaultTheme.Config {
             ),
             link: path("open-source-review-2026-10-09"),
           },
+          {
+            text: t(
+              "Dépendances et imports · 9 octobre",
+              "Dependencies and imports · 9 October",
+            ),
+            link: path("dependency-import-hardening"),
+          },
         ],
       },
     ],

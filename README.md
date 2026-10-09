@@ -23,6 +23,7 @@ npm ci
 npm run desktop
 ```
 
+- `npm run check:dependencies` : audit npm et tests du correctif local de dépendance ; voir [les correctifs de sécurité](docs/dependency-import-hardening.md).
 - `npm run build` : compiler Angular.
 - `npm run preview` : aperçu navigateur sur http://127.0.0.1:1420, données fictives temporaires, échanges de fichiers désactivés.
 - `npm test` : tests Playwright avec Edge installé, sur le port 1421. Exécuter le build avant.

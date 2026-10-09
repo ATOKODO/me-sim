@@ -1,5 +1,7 @@
 # Open source publication readiness — 9 October 2026 {#open-source-publication-2026-10-09}
 
+**9 October follow-up:** npm, XML parser and preallocation checks are addressed in [dependency and import hardening](./dependency-import-hardening.md). Findings below describe the audited commit.
+
 Review of commit `ca8eca2`, clean working tree at the start: 404 tracked files, about 38.7 MB and 14 reachable commits. Scope: licenses, assets, Git history, dependencies, file inputs, CI and documentation. This review changes no business code, asset, license or Git history.
 
 **Defer publication until licenses are clarified and exposed dependencies are addressed.** Local habit tracking can be presented as an alpha; scientific projections remain disabled. Publishing source and distributing a finished installer have different criteria.

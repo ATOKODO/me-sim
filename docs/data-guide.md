@@ -36,7 +36,9 @@ Mesures reconnues : `weight`/poids, `sleep`/sommeil, `steps`/pas, `activity`/act
 
 CSV UTF-8 avec ou sans BOM, virgule ou point-virgule ; virgule décimale acceptée. Les milliers peuvent utiliser des espaces. Pas de détection implicite d’une unité ou de l’ordre jour/mois. Les fichiers Excel contenant des formules sont refusés : exporter leurs valeurs uniquement. Les macros ne sont jamais exécutées. Fichiers chiffrés non pris en charge.
 
-Limites : 25 Mo par fichier d’import, 50 000 lignes par feuille, 256 colonnes Excel ; base limitée à 100 profils et 100 000 observations. JSON tabulaire : tableau d’objets plats ; colonnes définies par le premier objet.
+Limites : 25 Mio par fichier d’import, 50 000 mesures par feuille, 256 colonnes dans tous les formats et 16 feuilles Excel ; base limitée à 100 profils et 100 000 observations. JSON tabulaire : tableau d’objets plats ; colonnes définies par le premier objet.
+
+Les grilles Excel creuses et le contenu décompressé ont des [limites de ressources supplémentaires](./dependency-import-hardening.md#preallocation-checks). Diviser les grands fichiers ou exporter une plage compacte.
 
 ## Export et restauration
 

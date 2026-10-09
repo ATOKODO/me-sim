@@ -543,6 +543,16 @@ export const ENGLISH: Readonly<Record<string, string>> = {
     "Sheet too large: maximum 50,000 rows and 256 columns.",
   "Fichier expiré. Sélectionnez-le à nouveau.":
     "File expired. Select it again.",
+  "Import trop volumineux : limite de ressources dépassée. Divisez le fichier en plusieurs imports.":
+    "Import exceeds resource limits. Split the file into smaller imports.",
+  "16 feuilles maximum par import.": "Maximum 16 sheets per import.",
+  "ZIP64 non pris en charge pour les imports.":
+    "ZIP64 is not supported for imports.",
+  "XML : encodage UTF-8 requis.": "XML: UTF-8 encoding is required.",
+  "Classeur XLS chiffré non pris en charge.":
+    "Encrypted XLS workbooks are not supported.",
+  "DTD et entités XML personnalisées non prises en charge.":
+    "DTDs and custom XML entities are not supported.",
   "Fichier trop volumineux (25 Mo maximum).": "File too large (25 MB maximum).",
   "Format inconnu.": "Unknown format.",
   "Formats acceptés : CSV, XLS, XLSX, JSON.":

@@ -1,5 +1,7 @@
 # Préparation de la publication open source — 9 octobre 2026 {#open-source-publication-2026-10-09}
 
+**Suivi du 9 octobre :** les points npm, parseur XML et contrôles avant chargement sont traités dans les [correctifs de dépendances et d’import](./dependency-import-hardening.md). Les constats ci-dessous décrivent l’état du commit audité.
+
 Revue du commit `ca8eca2`, arbre propre au démarrage : 404 fichiers suivis, environ 38,7 Mo et 14 commits accessibles. Périmètre : licences, assets, historique Git, dépendances, entrées de fichiers, CI et documentation. Aucun code métier, asset, licence ou historique Git modifié par cette revue.
 
 **Publication à différer jusqu’à clarification des licences et traitement des dépendances exposées.** Le suivi local des habitudes peut être présenté comme une alpha ; les projections scientifiques restent désactivées. Publier les sources et distribuer un installateur final ont des critères distincts.

@@ -168,12 +168,13 @@ test("habit check-ins validate a day and update its trajectory without mixing pr
 
 test("dashboard renders locally and captures the PS1 scene", async ({
   page,
+  baseURL,
 }) => {
   const errors: string[] = [];
   const requests: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("request", (r) => {
-    if (new URL(r.url()).origin !== "http://127.0.0.1:1421")
+    if (new URL(r.url()).origin !== new URL(baseURL!).origin)
       requests.push(r.url());
   });
   await page.goto("/");

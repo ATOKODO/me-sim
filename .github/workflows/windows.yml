@@ -16,6 +16,7 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
+      - run: npm run check:dependencies
       - run: npm run docs:build
       - run: npm run build
       - run: npm test

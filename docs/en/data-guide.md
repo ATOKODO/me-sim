@@ -36,7 +36,9 @@ Recognized metrics: `weight`/poids, `sleep`/sommeil, `steps`/pas, `activity`/act
 
 CSV supports UTF-8 with or without BOM, commas or semicolons, and decimal commas. Thousands may use spaces. Unit and day/month order are never inferred implicitly. Excel files containing formulas are rejected: export their values only. Macros are never executed. Encrypted files are unsupported.
 
-Limits: 25 MB per import file, 50,000 rows per sheet, 256 Excel columns; up to 100 profiles and 100,000 observations in the database. Tabular JSON is an array of flat objects, with columns defined by the first object.
+Limits: 25 MiB per import file, 50,000 measurements per sheet, 256 columns in every format and 16 Excel sheets; up to 100 profiles and 100,000 observations in the database. Tabular JSON is an array of flat objects, with columns defined by the first object.
+
+Sparse Excel grids and decompressed content have additional [resource limits](./dependency-import-hardening.md#preallocation-checks). Split large files or export a compact range.
 
 ## Export and restore {#export-et-restauration}
 

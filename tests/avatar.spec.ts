@@ -21,6 +21,7 @@ const modes = [
 for (const variant of ["default", "female"] as const) {
   test(`${variant} textured rig plays every habit from one local GLB`, async ({
     page,
+    baseURL,
   }) => {
     const errors: string[] = [];
     const modelRequests: string[] = [];
@@ -36,7 +37,7 @@ for (const variant of ["default", "female"] as const) {
     page.on("request", (request) => {
       if (
         /^https?:/.test(request.url()) &&
-        new URL(request.url()).origin !== "http://127.0.0.1:1421"
+        new URL(request.url()).origin !== new URL(baseURL!).origin
       )
         remoteRequests.push(request.url());
       if (
