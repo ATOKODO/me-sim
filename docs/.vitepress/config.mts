@@ -80,6 +80,13 @@ function navigation(language: "fr" | "en"): DefaultTheme.Config {
             text: t("Refactorings · 7 octobre", "Refactoring · 7 October"),
             link: path("refactoring-review-2026-10-07"),
           },
+          {
+            text: t(
+              "Publication open source · 9 octobre",
+              "Open source publication · 9 October",
+            ),
+            link: path("open-source-review-2026-10-09"),
+          },
         ],
       },
     ],
