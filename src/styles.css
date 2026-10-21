@@ -2352,3 +2352,7 @@ summary {
   color: var(--muted);
   white-space: nowrap;
 }
+
+.ghost-overview-link {
+  margin-bottom: 24px;
+}

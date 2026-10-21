@@ -376,6 +376,7 @@ fn parse_row(
         batch_id: None,
         at: at_time,
         duration_minutes: duration,
+        context: None,
     };
     validate_observation(&o)?;
     Ok(o)

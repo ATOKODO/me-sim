@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from "@angular/core";
+import { applyGhostMutation, recordLinkedHabit, observationKey } from "./ghost";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { LocalClock } from "./clock";
 import { dailyRecap, targetTrajectory, timelineEvents } from "./daily-summary";
@@ -57,7 +58,12 @@ export class Store {
     dailyRecap(this.observations(), this.clock.today(), this.clock.now()),
   );
   readonly targetTrajectory = computed(() =>
-    targetTrajectory(this.observations(), this.target(), this.clock.today()),
+    targetTrajectory(
+      this.observations(),
+      this.target(),
+      this.clock.today(),
+      this.clock.now(),
+    ),
   );
   readonly scenarios = computed(() =>
     this.data().scenarios.filter((s) => s.profileId === this.activeId()),
@@ -195,6 +201,7 @@ export class Store {
   }
   private previewMutation(op: Mutation): Snapshot {
     const s = structuredClone(this.data());
+    if (applyGhostMutation(s, op)) return s;
     switch (op.type) {
       case "demo":
         addDemo(s);
@@ -223,7 +230,7 @@ export class Store {
               o.profileId === op.value.profileId &&
               o.date === op.value.date &&
               o.metric === op.value.metric &&
-              (o.at ?? null) === (op.value.at ?? null) &&
+              observationKey(o) === observationKey(op.value) &&
               o.id !== op.value.id,
           )
         )
@@ -232,6 +239,7 @@ export class Store {
           );
         s.observations = s.observations.filter((o) => o.id !== op.value.id);
         s.observations.push(op.value);
+        recordLinkedHabit(s, op.value);
         break;
       case "saveHabitDay":
         if (!s.profiles.some((p) => p.id === op.value.profileId))

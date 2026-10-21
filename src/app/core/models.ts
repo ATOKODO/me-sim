@@ -30,6 +30,43 @@ export interface Profile {
   demo: boolean;
   target?: TargetDay | null;
   habits?: HabitDefinition[];
+  ghost?: GhostState | null;
+}
+export interface ActivityContext {
+  label: string;
+  habitId: string | null;
+  start: string | null;
+  end: string | null;
+  timeZone: string;
+}
+export interface ActivitySession {
+  id: string;
+  metric: Metric;
+  label: string;
+  habitId: string | null;
+  start: string;
+  timeZone: string;
+}
+export interface RoutineBlock {
+  id: string;
+  metric: Metric;
+  label: string;
+  habitId: string | null;
+  startMinute: number;
+  durationMinutes: number;
+  toleranceMinutes?: number;
+}
+export interface RoutineVersion {
+  id: string;
+  routineId: string;
+  name: string;
+  effectiveFrom: string;
+  weekdays: number[];
+  blocks: RoutineBlock[];
+}
+export interface GhostState {
+  plans: RoutineVersion[];
+  active: ActivitySession | null;
 }
 export interface HabitDefinition {
   id: string;
@@ -73,6 +110,7 @@ export interface Observation {
   at?: string | null;
   /** Duration in minutes for an activity event. Kept separate from value for import compatibility. */
   durationMinutes?: number | null;
+  context?: ActivityContext | null;
 }
 export interface Scenario {
   id: string;
@@ -166,6 +204,19 @@ export interface RestorePreview {
   scenarios: number;
 }
 export type Mutation =
+  | {
+      type: "saveGhostPlan";
+      value: { profileId: string; plan: RoutineVersion };
+    }
+  | {
+      type: "startActivity";
+      value: { profileId: string; session: ActivitySession };
+    }
+  | {
+      type: "finishActivity";
+      value: { profileId: string; sessionId: string; end: string };
+    }
+  | { type: "cancelActivity"; value: { profileId: string; sessionId: string } }
   | { type: "saveProfile"; value: Profile }
   | { type: "deleteProfile"; value: string }
   | { type: "saveObservation"; value: Observation }

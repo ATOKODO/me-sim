@@ -100,6 +100,10 @@ import { Icon } from "../core/icon";
             /></label>
             @if (currentMetric().event) {
               <label
+                >{{ "Nom de l’activité (facultatif)" | t
+                }}<input formControlName="label" maxlength="100"
+              /></label>
+              <label
                 >{{ "Heure de début" | t
                 }}<input type="time" formControlName="time" required
               /></label>
@@ -190,7 +194,7 @@ import { Icon } from "../core/icon";
                     <td>
                       <span class="table-metric"
                         ><ui-icon [name]="store.metric(o.metric).icon" />{{
-                          tr(store.metric(o.metric).label)
+                          o.context?.label || tr(store.metric(o.metric).label)
                         }}</span
                       >
                     </td>
@@ -275,7 +279,7 @@ import { Icon } from "../core/icon";
         >
           <h2 id="delete-title">{{ "Supprimer cette mesure ?" | t }}</h2>
           <p>
-            {{ tr(store.metric(o.metric).label) }} ·
+            {{ o.context?.label || tr(store.metric(o.metric).label) }} ·
             {{ o.date | localDate: "dd MMM yyyy" }} · {{ o.value }}
             {{ tr(o.unit) }}
           </p>
@@ -327,6 +331,7 @@ export class Journal {
     metric: ["weight" as Metric, Validators.required],
     value: [null as number | null, Validators.required],
     time: [""],
+    label: ["", Validators.maxLength(100)],
   });
   constructor() {
     effect(() => {
@@ -388,6 +393,7 @@ export class Journal {
       metric: "weight",
       value: null,
       time: this.nowTime(),
+      label: "",
     });
   }
   nowTime() {
@@ -406,6 +412,7 @@ export class Journal {
       metric: o.metric,
       value: o.value,
       time: o.at ?? this.nowTime(),
+      label: o.context?.label ?? "",
     });
   }
   async save() {
@@ -419,6 +426,20 @@ export class Journal {
       metric: v.metric,
       value: v.value,
       unit: this.currentMetric().unit,
+      context:
+        this.currentMetric().event &&
+        (v.label?.trim() || this.editing()?.context)
+          ? {
+              label: v.label?.trim() || this.tr(this.currentMetric().label),
+              habitId:
+                this.editing()?.metric === v.metric
+                  ? (this.editing()?.context?.habitId ?? null)
+                  : null,
+              start: null,
+              end: null,
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }
+          : null,
       source: "Saisie manuelle",
       batchId: this.editing()?.batchId ?? null,
       at:

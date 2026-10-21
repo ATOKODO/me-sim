@@ -63,3 +63,5 @@ Le calendrier, le titre du jour, les trajectoires et la timeline suivent une hor
 L’assistant propose l’unité fixe `cigarette`, y compris pour un fichier tabac sans colonne d’unité. Les dates, heures natives Excel et durées restent distinctes jusqu’au mapping ; une heure 18:30 ne devient plus une date. Une durée invalide est signalée au lieu d’être remplacée implicitement par la valeur. Les heures sont enregistrées à la minute et les durées dans `durationMinutes` sont en minutes.
 
 La limite de suivi porte sur 100 habitudes actives ; retirer une habitude conserve son historique sans occuper une place active. Une limite totale de 10 000 définitions par profil protège la taille des sauvegardes.
+
+Le [mode fantôme](./ghost-mode.md) permet de comparer les activités à la même heure et de préparer un planning Target versionné.

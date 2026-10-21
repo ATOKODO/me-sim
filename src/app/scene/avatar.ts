@@ -19,6 +19,8 @@ import type { AvatarVariant, AvatarSource } from "./artist-animations";
     class="scene"
     [class.compact]="compact()"
     [attr.data-mode]="mode()"
+    [attr.data-ghost-mode]="ghostMode()"
+    [attr.data-ghost-source]="ghostSource()"
     [attr.data-variant]="variant()"
     [attr.data-source]="source()"
   >
@@ -276,11 +278,13 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
   animations = input(true);
   jitter = input(false);
   mode = input("idle");
+  ghostMode = input<string | null>(null);
   replayKey = input(0);
   compact = input(false);
   label = input("TON ESPACE");
   unavailable = signal(false);
   source = signal<AvatarSource>("loading");
+  ghostSource = signal<AvatarSource>("loading");
   cameraReady = signal(false);
   cameraState = signal<CameraState>({
     zoom: 1,
@@ -303,14 +307,17 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         mode: this.mode(),
         replayKey: this.replayKey(),
       };
+      const ghostMode = this.ghostMode();
       if (!this.ready()) return;
       if (this.unavailable()) {
         this.room?.dispose();
         this.room = undefined;
         this.cameraReady.set(false);
         this.source.set("procedural");
-      } else if (this.room) this.room.update(options);
-      else if (!this.creating) this.roomTask = this.createRoom();
+      } else if (this.room) {
+        this.room.update(options);
+        this.room.setGhost(ghostMode, options.variant, options.animations);
+      } else if (!this.creating) this.roomTask = this.createRoom();
     });
   }
   ngAfterViewInit() {
@@ -326,6 +333,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         () => this.unavailable.set(true),
         (source) => this.source.set(source),
         (state) => this.cameraState.set(state),
+        (source) => this.ghostSource.set(source),
       );
       this.room.update({
         color: this.color(),
@@ -335,6 +343,7 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
         mode: this.mode(),
         replayKey: this.replayKey(),
       });
+      this.room.setGhost(this.ghostMode(), this.variant(), this.animations());
       this.cameraReady.set(true);
     } catch {
       this.unavailable.set(true);

@@ -95,6 +95,7 @@ export class ArtistAnimations {
   constructor(
     root: T.Group,
     private readonly onSourceChange: (source: AvatarSource) => void,
+    private readonly ghost = false,
   ) {
     // The model origin is at the avatar's feet; the room remains procedural.
     this.anchor.position.set(-0.45, 0.1, 0.75);
@@ -295,6 +296,13 @@ export class ArtistAnimations {
             value.minFilter = T.NearestFilter;
             value.needsUpdate = true;
           }
+      if (this.ghost)
+        for (const material of materialsIn(gltf.scene)) {
+          material.transparent = true;
+          material.opacity = 0.32;
+          material.depthWrite = false;
+          material.needsUpdate = true;
+        }
       gltf.scene.visible = false;
       this.anchor.add(gltf.scene);
       this.colorShirt(gltf.scene);

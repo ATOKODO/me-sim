@@ -5,6 +5,12 @@ import { REFERENCE_VIEWPORTS } from "../../config/viewports";
 import { ENGLISH } from "../../src/app/core/translations";
 const routes = [
   {
+    name: "ghost",
+    route: "/fantome",
+    link: "Comparer avec mon fantôme",
+    heading: "Mon fantôme",
+  },
+  {
     name: "dashboard",
     route: "/",
     link: "Mon aperçu",
@@ -135,6 +141,10 @@ async function navigate(
 ) {
   const translated = (source: string) =>
     language === "en" ? (ENGLISH[source] ?? source) : source;
+  if (route.name === "ghost")
+    await page
+      .getByRole("link", { name: translated("Mon aperçu"), exact: true })
+      .click();
   await page
     .getByRole("link", { name: translated(route.link), exact: true })
     .click();
@@ -151,6 +161,7 @@ async function navigate(
       (canvas as HTMLCanvasElement).style.visibility = "hidden";
   });
   await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => window.scrollTo(0, 0));
 }
 async function prepare(
   page: Page,

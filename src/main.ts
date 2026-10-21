@@ -1,5 +1,9 @@
 import { bootstrapApplication } from "@angular/platform-browser";
-import { provideRouter, withHashLocation } from "@angular/router";
+import {
+  provideRouter,
+  withHashLocation,
+  withInMemoryScrolling,
+} from "@angular/router";
 import { LOCALE_ID } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import fr from "@angular/common/locales/fr";
@@ -28,6 +32,11 @@ bootstrapApplication(App, {
             import("./app/pages/habits").then((m) => m.Habits),
         },
         {
+          path: "fantome",
+          loadComponent: () =>
+            import("./app/pages/ghost").then((m) => m.GhostPage),
+        },
+        {
           path: "futurs",
           loadComponent: () =>
             import("./app/pages/futures").then((m) => m.Futures),
@@ -50,6 +59,7 @@ bootstrapApplication(App, {
         { path: "**", redirectTo: "" },
       ],
       withHashLocation(),
+      withInMemoryScrolling({ scrollPositionRestoration: "enabled" }),
     ),
   ],
 }).catch(console.error);

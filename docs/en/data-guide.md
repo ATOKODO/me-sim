@@ -63,3 +63,5 @@ The calendar, day heading, trajectories and timeline follow a shared local clock
 The wizard offers the fixed `cigarette` unit, including tobacco files with no unit column. Dates, native Excel times and durations stay distinct until mapping; 18:30 no longer becomes a date. An invalid duration is reported instead of implicitly replaced with the value. Times are stored to the minute and `durationMinutes` uses minutes.
 
 Tracking is limited to 100 active habits; removing one preserves history without occupying an active slot. A total limit of 10,000 definitions per profile protects backup size.
+
+[Ghost mode](./ghost-mode.md) compares activities at the same time of day and provides versioned Target schedules.

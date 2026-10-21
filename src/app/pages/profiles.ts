@@ -243,6 +243,7 @@ export class Profiles {
       demo: latest?.demo ?? false,
       target: latest ? (latest.target ?? null) : { ...DEFAULT_TARGET },
       habits: latest?.habits ?? [],
+      ghost: latest?.ghost ?? null,
     };
     // After an explicit retry, retain fields changed elsewhere when they were not edited here.
     if (original && latest) {

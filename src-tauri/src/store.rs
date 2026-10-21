@@ -132,7 +132,7 @@ impl Store {
                     o.profile_id,
                     o.date,
                     o.metric,
-                    o.at.clone().unwrap_or_default(),
+                    observation_key(o),
                     serde_json::to_string(o)?
                 ],
             )?;
@@ -244,6 +244,7 @@ mod tests {
             demo: false,
             target: None,
             habits: vec![],
+            ghost: None,
         };
         conn.execute(
             "INSERT INTO profiles VALUES(?1,?2)",
@@ -271,6 +272,7 @@ mod tests {
                 batch_id: None,
                 at: Some(at.into()),
                 duration_minutes: Some(30.),
+                context: None,
             });
         }
         db.replace(&s).unwrap();

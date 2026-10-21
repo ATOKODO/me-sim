@@ -1,0 +1,591 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">{{ "UNE JOURNÉE, PLUSIEURS TRACÉS" | t }}</div>
+    <h1>{{ "Mon fantôme" | t }}<span class="accent">.</span></h1>
+    <p>
+      {{ "Observe tes habitudes à la même heure, puis choisis ton prochain pas."
+      | t }}
+    </p>
+  </div>
+  <a class="button secondary" routerLink="/habitudes"
+    >{{ "Mes habitudes" | t }}</a
+  >
+</div>
+@if (store.profile(); as profile) {
+<section class="panel ghost-controls">
+  <label
+    >{{ "Journée suivie" | t }}<input
+      type="date"
+      [ngModel]="date()"
+      (ngModelChange)="changeDate($event)"
+      [max]="today()"
+  /></label>
+  <label
+    >{{ "Fantôme de référence" | t }}<select
+      [ngModel]="reference()"
+      (ngModelChange)="reference.set($event)"
+    >
+      <option value="past">{{ "Journée passée" | t }}</option>
+      <option value="average">{{ "Mes habitudes sur une période" | t }}</option>
+      <option value="target">{{ "Journée Target" | t }}</option>
+    </select></label
+  >
+  @if (reference() === "past") {
+  <label
+    >{{ "Date de référence" | t }}<input
+      type="date"
+      [ngModel]="pastDate()"
+      (ngModelChange)="pastDate.set($event)"
+      [max]="yesterday()"
+  /></label>
+  } @if (reference() === "average") {
+  <label
+    >{{ "Période précédente" | t }}<select
+      [ngModel]="period()"
+      (ngModelChange)="period.set(+$event)"
+    >
+      <option [ngValue]="7">{{ "7 jours" | t }}</option>
+      <option [ngValue]="14">{{ "14 jours" | t }}</option>
+      <option [ngValue]="30">{{ "30 jours" | t }}</option>
+    </select></label
+  >
+  <label
+    >{{ "Journées comparables" | t }}<select
+      [ngModel]="dayKind()"
+      (ngModelChange)="dayKind.set($event)"
+    >
+      <option value="all">{{ "Tous les jours" | t }}</option>
+      <option value="workdays">{{ "Lundi à vendredi" | t }}</option>
+      <option value="weekend">{{ "Week-ends" | t }}</option>
+    </select></label
+  >
+  }
+  <label
+    >{{ "Habitude comparée" | t }}<select
+      [ngModel]="focusKey()"
+      (ngModelChange)="focusKey.set($event)"
+    >
+      @for (option of focuses(); track option.key) {
+      <option [value]="option.key">{{ option.label }}</option>
+      }
+    </select></label
+  >
+</section>
+<section class="panel race-panel">
+  <div class="panel-heading">
+    <div>
+      <div class="eyebrow">{{ (live() ? "MAINTENANT" : "RELECTURE") | t }}</div>
+      <h2>{{ time(minute()) }} · {{ date() }}</h2>
+    </div>
+    <div class="button-row">
+      <button
+        type="button"
+        class="button secondary"
+        (click)="goLive()"
+        [disabled]="live()"
+      >
+        {{ "Revenir au direct" | t }}</button
+      ><button
+        type="button"
+        class="button secondary"
+        (click)="togglePlayback()"
+      >
+        {{ (playing() ? "Pause" : "Lire la journée") | t }}
+      </button>
+    </div>
+  </div>
+  <label class="scrubber"
+    >{{ "Heure comparée" | t }}<input
+      type="range"
+      min="0"
+      max="1439"
+      step="1"
+      [ngModel]="minute()"
+      (ngModelChange)="scrub(+$event)"
+      [attr.aria-valuetext]="time(minute())"
+  /></label>
+  <div class="ghost-scene">
+    <avatar-scene
+      [compact]="true"
+      [color]="profile.color"
+      [variant]="profile.sex === 'female' ? 'female' : 'default'"
+      [mode]="currentMode()"
+      [ghostMode]="referenceMode()"
+      [animations]="store.data().settings.animations"
+      [jitter]="store.data().settings.jitter"
+      [label]="'Fantôme' | t"
+    />
+  </div>
+  <div class="race-labels">
+    <span
+      ><strong>{{ "Journée suivie" | t }}</strong> · {{ stateLabel(currentAt())
+      }}</span
+    ><span
+      ><strong>{{ "Fantôme" | t }}</strong> · {{ stateLabel(referenceAt())
+      }}</span
+    >
+  </div>
+  <h3>{{ "Journée suivie · enregistré" | t }}</h3>
+  <ghost-timeline
+    [events]="currentEvents()"
+    [minute]="minute()"
+    [label]="'Activités enregistrées' | t"
+    [focusMetric]="focus().metric"
+    (select)="selectEvent($event)"
+  />
+  <h3>
+    {{ (reference() === "target" ? "Target · prévu" : reference() === "average"
+    ? "Fréquence horaire de l’habitude" : "Journée passée · enregistré" ) | t }}
+  </h3>
+  <ghost-timeline
+    [events]="referenceEvents()"
+    [minute]="minute()"
+    [ghost]="true"
+    [label]="'Activités du fantôme' | t"
+    [focusMetric]="focus().metric"
+    (select)="selectEvent($event)"
+  />
+  <p class="field-help">
+    {{ "Les zones hachurées sont inconnues ou sans activité prévue. Les points
+    sont des événements, pas des durées. Le fantôme transparent illustre la
+    référence ; une activité inconnue ne déclenche pas d’animation." | t }}
+  </p>
+  @if (selected(); as event) {
+  <div class="ghost-selected" role="status">
+    <strong>{{ event.label }}</strong> · {{ time(event.start) }} @if
+    (!event.point) { – {{ time(event.end) }} } @if (event.point) { · {{
+    event.value | localNumber: "1.0-1" }} {{ store.metric(event.metric).unit | t
+    }} }
+    <a routerLink="/journal" class="text-button"
+      >{{ "Corriger dans le journal" | t }}</a
+    >
+    @if (!event.point) {
+    <button type="button" class="text-button" (click)="prepareChange(event)">
+      {{ "Préparer un changement sur ce créneau" | t }}
+    </button>
+    }
+  </div>
+  }
+  <div class="ghost-stats" aria-live="polite">
+    <div>
+      <span>{{ "Renseigné jusqu’à cette heure" | t }}</span
+      ><strong
+        >{{ actualTotal() === null ? "?" : (actualTotal() | localNumber:
+        "1.0-1") }} {{ focusUnit() | t }}</strong
+      >
+    </div>
+    <div>
+      <span
+        >{{ (reference() === "target" ? "Prévu jusqu’à cette heure" :
+        reference() === "average" ? "Moyenne des quantités renseignées" :
+        "Renseigné dans la référence" ) | t }}</span
+      ><strong
+        >{{ referenceTotal() === null ? "?" : (referenceTotal() | localNumber:
+        "1.0-1") }} {{ focusUnit() | t }}</strong
+      >
+    </div>
+    <div>
+      <span>{{ "Écart enregistré" | t }}</span
+      ><strong
+        >{{ difference() === null ? "?" : (difference()! > 0 ? "+" : "") +
+        (difference() | localNumber: "1.0-1") }} {{ focusUnit() | t }}</strong
+      >
+    </div>
+  </div>
+  @if (reference() === "average") {
+  <p>
+    {{ "À cette heure, cette habitude apparaît sur" | t }}
+    <strong>{{ sameTime().matched }} / {{ sameTime().known }}</strong>
+    {{ "journées renseignées" | t }} · {{ sameTime().known }} / {{
+    referenceDays().length }} {{ "journées couvertes à cette heure." | t }}
+  </p>
+  <p class="field-help">
+    {{ "Moyenne calculée sur les jours ayant des activités horodatées. Elle
+    décrit ce qui a été renseigné, pas tout le temps réellement passé.
+    L’intensité des créneaux de 15 minutes indique la fréquence ; une égalité ne
+    choisit pas arbitrairement une animation." | t }} {{ coveredDays().length }}
+    / {{ referenceDays().length }} {{ "jours avec données." | t }}
+  </p>
+  } @else {
+  <p class="field-help">
+    {{ "Couverture horaire renseignée" | t }} : {{ currentCoverage() |
+    localNumber: "1.0-0" }} {{ "min" | t }} · {{ "Un écart de quantité ne
+    signifie pas une avance ou un retard de santé." | t }}
+  </p>
+  } @if (currentAt().length > 1 || referenceAt().length > 1) {
+  <p class="field-help">
+    {{ "Plusieurs activités se chevauchent : consulte les créneaux. Aucune
+    animation unique n’est déduite." | t }}
+  </p>
+  }
+  <div class="ghost-events">
+    @if(reference()==='target'){
+    <div class="target-comparison">
+      <h3>{{'Prévu et réalisé par créneau'|t}}</h3>
+      <p class="field-help">
+        {{'Rapprochement par habitude ou catégorie, puis horaire le plus proche.
+        Les noms personnalisés d’écran doivent correspondre. Une absence reste
+        non renseignée.'|t}}
+      </p>
+      @for(comparison of scheduleComparison();track comparison.plan.id){
+      <div class="slot-comparison">
+        <strong
+          >{{comparison.plan.label}} ·
+          {{time(comparison.plan.start)}}–{{time(comparison.plan.end)}}</strong
+        ><span>{{slotStatus(comparison.status)}}</span
+        >@if(comparison.match){<span
+          >{{'Décalage du début'|t}} :
+          {{comparison.delay!>0?'+':''}}{{comparison.delay}} {{'min'|t}} ·
+          {{(comparison.withinTolerance?'Dans la marge prévue':'Hors marge
+          prévue')|t}} (±{{comparison.plan.toleranceMinutes??0}} {{'min'|t}}) ·
+          {{'Écart de durée'|t}} :
+          {{comparison.durationDelta!>0?'+':''}}{{comparison.durationDelta}}
+          {{'min'|t}}</span
+        >}
+      </div>
+      }@empty{
+      <p>{{'Aucun créneau prévu.'|t}}</p>
+      }
+    </div>
+    }
+    <h3>{{ "Créneaux et écarts" | t }}</h3>
+    @for (event of referenceAt(); track event.id) {
+    <p>
+      {{ event.label }} · {{ time(event.start) }}–{{ time(event.end) }} · {{
+      (event.planned ? "Prévu" : "Référence") | t }}
+    </p>
+    } @for (event of currentAt(); track event.id) {
+    <p>
+      {{ event.label }} · {{ time(event.start) }}–{{ time(event.end) }} · {{
+      "Réalisé" | t }}
+    </p>
+    } @if (!currentAt().length) {
+    <p>
+      {{ "Activité actuelle inconnue. Renseigne une session ou complète le
+      journal." | t }}
+    </p>
+    }
+  </div>
+</section>
+
+<section class="panel session-panel">
+  <div class="panel-heading">
+    <div>
+      <div class="eyebrow">{{ "SAISIE LOCALE" | t }}</div>
+      <h2>{{ "Mon activité en cours" | t }}</h2>
+    </div>
+    <a class="text-button" routerLink="/journal"
+      >{{ "Journal détaillé" | t }}</a
+    >
+  </div>
+  @if (active(); as session) {
+  <p>
+    <strong>{{ session.label }}</strong> · {{ "Depuis" | t }} {{
+    session.start.slice(0, 10) }} {{ session.start.slice(11, 16) }} · {{
+    elapsed() | localNumber: "1.0-0" }} {{ "min" | t }}
+  </p>
+  <p class="field-help">
+    {{ "Cette session reste ouverte après fermeture. Vérifie la fin si tu as
+    oublié de l’arrêter ; rien n’est fermé automatiquement." | t }}
+  </p>
+  <label
+    >{{ "Corriger l’heure de fin (facultatif)" | t }}<input
+      type="datetime-local"
+      [(ngModel)]="endTime"
+      [min]="session.start.slice(0, 16)"
+      [max]="localNow()"
+  /></label>
+  <div class="button-row">
+    <button
+      type="button"
+      class="button primary"
+      [disabled]="store.busy()"
+      (click)="finish()"
+    >
+      {{ "Terminer et enregistrer" | t }}</button
+    ><button
+      type="button"
+      class="button secondary"
+      [disabled]="store.busy()"
+      (click)="finish()"
+    >
+      {{ "Pause · enregistrer ce segment" | t }}</button
+    ><button
+      type="button"
+      class="button ghost"
+      (click)="discarding.set(!discarding())"
+    >
+      {{ "Abandonner la session" | t }}
+    </button>
+  </div>
+  @if (discarding()) {
+  <p>
+    {{ "Abandonner ne crée aucune observation. Ce temps restera inconnu." | t }}
+  </p>
+  <button
+    type="button"
+    class="button danger"
+    (click)="cancel()"
+    [disabled]="store.busy()"
+  >
+    {{ "Confirmer l’abandon" | t }}
+  </button>
+  } } @else {
+  <div class="ghost-form-grid">
+    <label
+      >{{ "Habitude liée (facultative)" | t }}<select
+        [ngModel]="sessionHabit"
+        (ngModelChange)="linkSession($event)"
+      >
+        <option value="">{{ "Aucune" | t }}</option>
+        @for (habit of linkableHabits(); track habit.id) { @if
+        (!habit.archivedAt) {
+        <option [value]="habit.id">{{ habit.label }}</option>
+        } }
+      </select></label
+    ><label
+      >{{ "Activité" | t }}<select [(ngModel)]="sessionMetric">
+        @for (metric of durationMetrics; track metric.id) {
+        <option [value]="metric.id">{{ metric.label | t }}</option>
+        }
+      </select></label
+    ><label
+      >{{ "Nom de l’activité" | t }}<input
+        [(ngModel)]="sessionLabel"
+        maxlength="100"
+        [placeholder]="'Ex. Instagram, marche, lecture…' | t"
+    /></label>
+  </div>
+  <button
+    type="button"
+    class="button primary"
+    [disabled]="store.busy()"
+    (click)="start()"
+  >
+    {{ "Je commence maintenant" | t }}
+  </button>
+  <p class="field-help">
+    {{ "Le minuteur suit uniquement une activité déclarée. Aucun suivi
+    automatique des applications ou du téléphone." | t }}
+  </p>
+  }
+  <details class="instant-editor">
+    <summary>{{ "Noter un événement ponctuel" | t }}</summary>
+    <div class="ghost-form-grid">
+      <label
+        >{{ "Habitude liée à l’événement" | t }}<select
+          [(ngModel)]="pointHabit"
+        >
+          <option value="">{{ "Aucune" | t }}</option>
+          @for(habit of store.habits();track
+          habit.id){@if(!habit.archivedAt&&(!habit.metric||habit.metric===pointMetric)){
+          <option [value]="habit.id">{{habit.label}}</option>
+          }}
+        </select></label
+      >
+      <label
+        >{{ "Événement" | t }}<select
+          [(ngModel)]="pointMetric"
+          (ngModelChange)="pointHabit=''"
+        >
+          @for (metric of pointMetrics; track metric.id) {
+          <option [value]="metric.id">{{ metric.label | t }}</option>
+          }
+        </select></label
+      ><label
+        >{{ "Quantité" | t }}<input
+          type="number"
+          [(ngModel)]="pointValue"
+          min="1"
+          [max]="store.metric(pointMetric).max"
+          step="1" /></label
+      ><label
+        >{{ "Date et heure" | t }}<input
+          type="datetime-local"
+          [(ngModel)]="pointTime"
+          [max]="localNow()"
+      /></label>
+    </div>
+    <button
+      type="button"
+      class="button secondary"
+      (click)="recordPoint()"
+      [disabled]="store.busy()"
+    >
+      {{ "Enregistrer l’événement" | t }}
+    </button>
+  </details>
+</section>
+
+<section class="panel routine-panel" id="ghost-target-editor">
+  <div class="panel-heading">
+    <div>
+      <div class="eyebrow">{{ "LE TRACÉ SOUHAITÉ" | t }}</div>
+      <h2>{{ "Mon planning Target" | t }}</h2>
+    </div>
+    <button type="button" class="button secondary" (click)="newRoutine()">
+      {{ "Nouvelle journée type" | t }}
+    </button>
+  </div>
+  <p>
+    {{ "Planifie des créneaux réalistes, avec du repos et de la souplesse.
+    Chaque enregistrement crée une version ; les jours précédents gardent leur
+    planning." | t }}
+  </p>
+  <div class="ghost-form-grid">
+    <label
+      >{{ "Journée type à modifier" | t }}<select
+        [ngModel]="routineId"
+        (ngModelChange)="loadRoutine($event)"
+      >
+        <option value="">{{ "Nouvelle journée type" | t }}</option>
+        @for (plan of latestPlans(); track plan.routineId) {
+        <option [value]="plan.routineId">{{ plan.name }}</option>
+        }
+      </select></label
+    ><label
+      >{{ "Nom de la journée type" | t }}<input
+        [(ngModel)]="routineName"
+        maxlength="100" /></label
+    ><label
+      >{{ "Applicable à partir du" | t }}<input
+        type="date"
+        [(ngModel)]="effectiveFrom"
+        [min]="today()"
+    /></label>
+  </div>
+  <fieldset class="weekdays">
+    <legend>{{ "Jours de la semaine" | t }}</legend>
+    @for (day of weekdays; track day.value) {
+    <label
+      ><input
+        type="checkbox"
+        [ngModel]="routineDays.includes(day.value)"
+        (ngModelChange)="toggleDay(day.value, $event)"
+      />{{ day.label | t }}</label
+    >
+    }
+  </fieldset>
+  <div class="ghost-form-grid">
+    <label
+      >{{ "Habitude du créneau" | t }}<select
+        [ngModel]="blockHabit"
+        (ngModelChange)="linkBlock($event)"
+      >
+        <option value="">{{ "Aucune" | t }}</option>
+        @for (habit of linkableHabits(); track habit.id) { @if
+        (!habit.archivedAt) {
+        <option [value]="habit.id">{{ habit.label }}</option>
+        } }
+      </select></label
+    ><label
+      >{{ "Activité du créneau" | t }}<select [(ngModel)]="blockMetric">
+        @for (metric of durationMetrics; track metric.id) {
+        <option [value]="metric.id">{{ metric.label | t }}</option>
+        }
+      </select></label
+    ><label
+      >{{ "Nom du créneau" | t }}<input
+        [(ngModel)]="blockLabel"
+        maxlength="100" /></label
+    ><label
+      >{{ "Début prévu" | t }}<input
+        type="time"
+        [(ngModel)]="blockTime" /></label
+    ><label
+      >{{ "Durée prévue (min)" | t }}<input
+        type="number"
+        [(ngModel)]="blockDuration"
+        min="1"
+        max="1440"
+        step="1"
+    /></label>
+    <label
+      >{{'Marge sur le début (± min)'|t}}<input
+        type="number"
+        [(ngModel)]="blockTolerance"
+        min="0"
+        max="180"
+        step="1"
+    /></label>
+  </div>
+  <button
+    type="button"
+    class="button secondary"
+    (click)="addBlock()"
+    [disabled]="blocks().length >= 128"
+  >
+    {{ "Ajouter le créneau" | t }}
+  </button>
+  <ul class="routine-blocks">
+    @for (block of blocks(); track block.id) {
+    <li>
+      <span
+        >{{ time(block.startMinute) }}–{{ time(block.startMinute +
+        block.durationMinutes) }} · {{ block.label }}</span
+      ><button
+        type="button"
+        class="text-button"
+        (click)="removeBlock(block.id)"
+        [attr.aria-label]="tr('Retirer le créneau') + ' ' + block.label"
+      >
+        {{ "Retirer" | t }}
+      </button>
+    </li>
+    } @empty {
+    <li>
+      {{ "Aucun créneau prévu. Un planning vide peut suspendre cette journée
+      type à partir de la date choisie." | t }}
+    </li>
+    }
+  </ul>
+  @if (overlapping()) {
+  <p class="field-help">
+    {{ "Des créneaux se chevauchent. Ils seront présentés comme simultanés." | t
+    }}
+  </p>
+  }
+  <button
+    type="button"
+    class="button primary"
+    (click)="saveRoutine()"
+    [disabled]="
+            store.busy() ||
+            !routineName.trim() ||
+            !effectiveFrom ||
+            !routineDays.length
+          "
+  >
+    {{ "Enregistrer une nouvelle version" | t }}
+  </button>
+  <div class="ghost-events">
+    <h3>{{ "Planning applicable au jour suivi" | t }}</h3>
+    @for (plan of applicable(); track plan.id) {
+    <p>
+      {{ plan.name }} · {{ plan.effectiveFrom }} · {{ plan.blocks.length }} {{
+      "créneaux" | t }}
+    </p>
+    } @empty {
+    <p>{{ "Aucune journée type applicable à cette date." | t }}</p>
+    }
+  </div>
+  <details>
+    <summary>
+      {{ "Historique des versions du planning" | t }} ({{ plans().length }})
+    </summary>
+    @for (plan of plans().slice().reverse(); track plan.id) {
+    <p>
+      {{ plan.name }} · {{ plan.effectiveFrom }} · {{ plan.blocks.length }} {{
+      "créneaux" | t }}
+    </p>
+    }
+  </details>
+</section>
+} @else {
+<section class="panel">
+  <h2>{{ "Commence par ton profil" | t }}</h2>
+  <a class="button primary" routerLink="/profils"
+    >{{ "Créer un profil" | t }}</a
+  >
+</section>
+}

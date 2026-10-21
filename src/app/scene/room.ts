@@ -33,6 +33,8 @@ export class Room {
   private legs: T.Group[] = [];
   private activityProps: Record<string, T.Group> = {};
   private artist: ArtistAnimations;
+  private ghostArtist?: ArtistAnimations;
+  private ghostRoot?: T.Group;
   private vaporPuffs: T.Mesh[] = [];
   private shirt = new T.MeshLambertMaterial({
     color: "#bde883",
@@ -59,6 +61,7 @@ export class Room {
     private onUnavailable: () => void,
     private onAnimationSource?: (source: AvatarSource) => void,
     private onCameraState?: (state: CameraState) => void,
+    private onGhostSource?: (source: AvatarSource) => void,
   ) {
     this.renderer = new T.WebGLRenderer({
       antialias: false,
@@ -424,6 +427,26 @@ export class Room {
     this.artist.setVariant(o.variant);
     this.artist.play(o.mode, o.replayKey, o.animations);
   }
+  setGhost(mode: string | null, variant: AvatarVariant, animations: boolean) {
+    if (!mode) {
+      if (this.ghostRoot) this.ghostRoot.visible = false;
+      this.onGhostSource?.("loading");
+      return;
+    }
+    if (!this.ghostArtist) {
+      this.ghostRoot = new T.Group();
+      this.ghostRoot.position.set(1.1, 0, -0.35);
+      this.root.add(this.ghostRoot);
+      this.ghostArtist = new ArtistAnimations(
+        this.ghostRoot,
+        (source) => this.onGhostSource?.(source),
+        true,
+      );
+    }
+    this.ghostRoot!.visible = true;
+    this.ghostArtist.setVariant(variant);
+    this.ghostArtist.play(mode, this.options.replayKey, animations);
+  }
   async preloadModes(modes: string[]) {
     await this.artist.preload(modes);
   }
@@ -597,11 +620,13 @@ export class Room {
         ? Math.round(Math.sin(t * 7) * 2) * 0.001
         : 0;
     this.artist.tick(delta);
+    if (this.ghostRoot?.visible) this.ghostArtist?.tick(delta);
     this.renderer.render(this.scene, this.camera);
   };
   dispose() {
     this.dead = true;
     this.artist.dispose();
+    this.ghostArtist?.dispose();
     this.controls.removeEventListener("change", this.emitCameraState);
     this.controls.dispose();
     cancelAnimationFrame(this.frame);

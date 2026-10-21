@@ -1,5 +1,23 @@
 import { HABIT_METRICS, Observation, TargetDay } from "./models";
 import { shiftDate } from "./habit-tracking";
+import { eventsForDay, recorded } from "./ghost";
+
+/** Absolute sessions may cross midnight; retain the original journal entry while splitting summaries. */
+function rowsOnDay(observations: Observation[], date: string, now: number) {
+  return observations.flatMap((o) => {
+    if (o.context?.start && o.context?.end && o.unit === "min") {
+      const events = eventsForDay([o], date, now);
+      const minutes = recorded(events, 1440);
+      return minutes > 0
+        ? [{ ...o, date, value: minutes, durationMinutes: minutes }]
+        : [];
+    }
+    return o.date === date &&
+      (!o.at || new Date(o.date + "T" + o.at + ":00").getTime() <= now)
+      ? [o]
+      : [];
+  });
+}
 
 export function timelineEvents(observations: Observation[], now: number) {
   const start = now - 24 * 60 * 60 * 1000;
@@ -10,7 +28,10 @@ export function timelineEvents(observations: Observation[], now: number) {
     )
     .map((observation) => ({
       observation,
-      time: new Date(observation.date + "T" + observation.at + ":00"),
+      time: new Date(
+        observation.context?.start ??
+          observation.date + "T" + observation.at + ":00",
+      ),
     }))
     .filter(
       ({ time }) =>
@@ -26,11 +47,7 @@ export function dailyRecap(
   date: string,
   now: number,
 ) {
-  const rows = observations.filter(
-    (o) =>
-      o.date === date &&
-      (!o.at || new Date(o.date + "T" + o.at + ":00").getTime() <= now),
-  );
+  const rows = rowsOnDay(observations, date, now);
   const sum = (...metrics: string[]) => {
     const known = rows.filter((o) => metrics.includes(o.metric));
     return known.length
@@ -60,10 +77,11 @@ export function targetTrajectory(
   observations: Observation[],
   target: TargetDay,
   today: string,
+  now = Date.now(),
 ) {
   return Array.from({ length: 7 }, (_, index) => {
     const date = shiftDate(today, index - 6);
-    const rows = observations.filter((o) => o.date === date);
+    const rows = rowsOnDay(observations, date, now);
     const latest = (metric: string) =>
       rows.find((o) => o.metric === metric)?.value;
     const sum = (metric: string) => {

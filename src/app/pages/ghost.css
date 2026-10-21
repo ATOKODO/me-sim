@@ -1,0 +1,178 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.panel {
+  margin-bottom: 24px;
+  padding: 24px;
+}
+.ghost-controls,
+.ghost-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.ghost-controls label,
+.ghost-form-grid label {
+  min-width: 0;
+}
+.panel-heading {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.button-row {
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.scrubber {
+  margin: 20px 0;
+}
+.scrubber input {
+  padding: 0;
+  accent-color: var(--accent);
+}
+.ghost-scene {
+  height: 330px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.race-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.race-labels span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.race-panel h3 {
+  margin-top: 18px;
+}
+.ghost-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.ghost-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.ghost-stats span {
+  font-size: 12px;
+  color: var(--text-96a09b, #96a09b);
+}
+.ghost-stats strong {
+  font-size: 22px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.ghost-selected,
+.ghost-events {
+  margin: 20px 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--edge-343d40, #343d40);
+  overflow-wrap: anywhere;
+}
+.ghost-selected a {
+  margin-left: 12px;
+}
+.session-panel > label {
+  max-width: 360px;
+  margin: 16px 0;
+}
+.session-panel p,
+.routine-panel > p {
+  margin: 12px 0;
+}
+.instant-editor {
+  margin-top: 20px;
+}
+.ghost-form-grid {
+  margin: 16px 0;
+}
+details summary {
+  cursor: pointer;
+  margin: 14px 0;
+  color: var(--accent);
+}
+.weekdays {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  border: 0;
+  padding: 0;
+  margin: 20px 0;
+}
+.weekdays legend {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.weekdays label {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+.routine-blocks {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+}
+.routine-blocks li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--edge-343d40, #343d40);
+  overflow-wrap: anywhere;
+}
+.routine-blocks span {
+  min-width: 0;
+}
+.ghost-events p {
+  margin-top: 8px;
+}
+@media (max-width: 600px) {
+  .panel {
+    padding: 18px;
+  }
+  .ghost-stats {
+    grid-template-columns: 1fr;
+  }
+  .ghost-scene {
+    height: 300px;
+  }
+  .ghost-controls,
+  .ghost-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .button-row button {
+    max-width: 100%;
+  }
+  .race-labels {
+    flex-direction: column;
+  }
+  .panel-heading .button-row {
+    margin: 0;
+  }
+}
+
+.slot-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.slot-comparison span {
+  font-size: 12px;
+}

@@ -226,6 +226,9 @@ import { AvatarScene } from "../scene/avatar";
           }}
         </a>
       </section>
+      <a class="button secondary ghost-overview-link" routerLink="/fantome">{{
+        "Comparer avec mon fantôme" | t
+      }}</a>
       <section class="panel day-panel">
         <div class="panel-heading day-panel-heading">
           <div>

@@ -33,9 +33,17 @@ import { Icon } from "../core/icon";
           }}
         </p>
       </div>
-      <a class="button secondary" routerLink="/journal"
-        ><ui-icon name="journal" /> {{ "Journal détaillé" | t }}</a
-      >
+      <div class="button-row">
+        <a
+          class="button secondary"
+          routerLink="/fantome"
+          [queryParams]="{ date: selectedDate() }"
+          >{{ "Mon fantôme" | t }}</a
+        >
+        <a class="button secondary" routerLink="/journal"
+          ><ui-icon name="journal" /> {{ "Journal détaillé" | t }}</a
+        >
+      </div>
     </div>
     @if (store.profile(); as profile) {
       <div class="habit-intro">

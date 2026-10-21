@@ -70,6 +70,8 @@ pub struct Profile {
     pub target: Option<TargetDay>,
     #[serde(default)]
     pub habits: Vec<HabitDefinition>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ghost: Option<crate::ghost::GhostState>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -110,6 +112,8 @@ pub struct Observation {
     pub at: Option<String>,
     #[serde(default)]
     pub duration_minutes: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub context: Option<crate::ghost::ActivityContext>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -281,7 +285,14 @@ pub fn unit(metric: &str) -> Option<&'static str> {
         _ => None,
     }
 }
+pub fn observation_key(o: &Observation) -> &str {
+    o.context
+        .as_ref()
+        .and_then(|c| c.start.as_deref())
+        .unwrap_or(o.at.as_deref().unwrap_or(""))
+}
 pub fn validate_observation(o: &Observation) -> Result<()> {
+    crate::ghost::validate_context(o)?;
     if o.id.is_empty()
         || o.source.is_empty()
         || o.source.len() > 500
@@ -360,6 +371,7 @@ pub fn validate(s: &Snapshot) -> Result<()> {
         {
             return Err(invalid("Données physiques invalides."));
         }
+        crate::ghost::validate_profile(p)?;
         if let Some(target) = &p.target {
             validate_target(target)?;
         }
@@ -442,14 +454,17 @@ pub fn validate(s: &Snapshot) -> Result<()> {
     let mut keys = HashSet::new();
     for o in &s.observations {
         validate_observation(o)?;
+        crate::ghost::validate_link(s, o)?;
+        if o.context
+            .as_ref()
+            .and_then(|c| c.habit_id.as_ref())
+            .is_some_and(|id| !habit_ids.contains(&(o.profile_id.as_str(), id.as_str())))
+        {
+            return Err(invalid("Habitude liée introuvable."));
+        }
         if !ids.contains(o.profile_id.as_str())
             || !obs_ids.insert(&o.id)
-            || !keys.insert((
-                &o.profile_id,
-                &o.date,
-                &o.metric,
-                o.at.as_deref().unwrap_or(""),
-            ))
+            || !keys.insert((&o.profile_id, &o.date, &o.metric, observation_key(o)))
             || o.batch_id
                 .as_ref()
                 .is_some_and(|b| !batches.contains(&(o.profile_id.as_str(), b.as_str())))
@@ -488,6 +503,29 @@ pub fn validate(s: &Snapshot) -> Result<()> {
 #[derive(Deserialize)]
 #[serde(tag = "type", content = "value", rename_all = "camelCase")]
 pub enum Mutation {
+    SaveGhostPlan {
+        #[serde(rename = "profileId")]
+        profile_id: String,
+        plan: crate::ghost::RoutineVersion,
+    },
+    StartActivity {
+        #[serde(rename = "profileId")]
+        profile_id: String,
+        session: crate::ghost::ActivitySession,
+    },
+    FinishActivity {
+        #[serde(rename = "profileId")]
+        profile_id: String,
+        #[serde(rename = "sessionId")]
+        session_id: String,
+        end: String,
+    },
+    CancelActivity {
+        #[serde(rename = "profileId")]
+        profile_id: String,
+        #[serde(rename = "sessionId")]
+        session_id: String,
+    },
     SaveProfile(Profile),
     DeleteProfile(String),
     SaveObservation(Observation),
@@ -508,7 +546,31 @@ pub enum Mutation {
 }
 pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
     match m {
+        Mutation::SaveGhostPlan { profile_id, plan } => {
+            crate::ghost::save_plan(s, &profile_id, plan)?
+        }
+        Mutation::StartActivity {
+            profile_id,
+            session,
+        } => crate::ghost::start(s, &profile_id, session)?,
+        Mutation::FinishActivity {
+            profile_id,
+            session_id,
+            end,
+        } => crate::ghost::finish(s, &profile_id, &session_id, Some(end))?,
+        Mutation::CancelActivity {
+            profile_id,
+            session_id,
+        } => crate::ghost::finish(s, &profile_id, &session_id, None)?,
         Mutation::SaveProfile(p) => {
+            if s.profiles
+                .iter()
+                .find(|x| x.id == p.id)
+                .and_then(|x| x.ghost.as_ref())
+                != p.ghost.as_ref()
+            {
+                return Err(invalid("Utilisez les commandes du mode fantôme pour modifier le planning ou la session."));
+            }
             s.profiles.retain(|x| x.id != p.id);
             s.profiles.push(p);
         }
@@ -527,6 +589,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
             {
                 return Err(invalid("Profil différent."));
             }
+            crate::ghost::record_habit(s, &o)?;
             s.observations.retain(|x| x.id != o.id);
             s.observations.push(o);
         }
@@ -582,6 +645,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
                 demo: true,
                 target: Some(TargetDay::default()),
                 habits: demo_habits.clone(),
+                ghost: None,
             });
             for offset in (0..14).rev() {
                 let date = (chrono::Local::now().date_naive() - chrono::Duration::days(offset))
@@ -634,6 +698,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
                         batch_id: None,
                         at: None,
                         duration_minutes: None,
+                        context: None,
                     });
                 }
             }
@@ -665,6 +730,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
                     source: "Démonstration fictive".into(),
                     batch_id: None,
                     at: Some(when.format("%H:%M").to_string()),
+                    context: None,
                     duration_minutes: if unit(metric) == Some("min") {
                         Some(value)
                     } else {
@@ -692,6 +758,7 @@ mod journal_regressions {
             batch_id: None,
             at: None,
             duration_minutes: None,
+            context: None,
         };
         validate_observation(&o).unwrap();
         o.at = Some("12:00".into());
