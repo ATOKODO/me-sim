@@ -3,6 +3,7 @@ import { test } from "./fixtures";
 import { VISUAL_ORIGINS } from "../../config/test-origins";
 import { REFERENCE_VIEWPORTS } from "../../config/viewports";
 import { ENGLISH } from "../../src/app/core/translations";
+import { snapshotPath } from "./snapshot-path";
 const routes = [
   {
     name: "ghost",
@@ -61,7 +62,14 @@ for (const theme of ["dark", "light"])
         await navigate(page, route, "fr");
         await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
         await expect(page).toHaveScreenshot(
-          "app-" + route.name + "-" + theme + "-" + width + ".png",
+          snapshotPath(
+            "application",
+            width,
+            1000,
+            "fr",
+            theme,
+            route.name + ".png",
+          ),
           { fullPage: true },
         );
       });
@@ -75,7 +83,14 @@ for (const theme of ["dark", "light"])
       await navigate(page, route, "en");
       await expect(page.locator("html")).toHaveAttribute("lang", "en");
       await expect(page).toHaveScreenshot(
-        "app-" + route.name + "-" + theme + "-en.png",
+        snapshotPath(
+          "application",
+          1440,
+          1000,
+          "en",
+          theme,
+          route.name + ".png",
+        ),
         { fullPage: true },
       );
     });
@@ -120,15 +135,14 @@ for (const theme of ["dark", "light"])
               await page.evaluate(() => document.documentElement.scrollWidth),
             ).toBeLessThanOrEqual(viewport.width);
             await expect(page).toHaveScreenshot(
-              "app-" +
-                route.name +
-                "-" +
-                theme +
-                "-" +
-                language +
-                "-" +
-                device +
-                ".png",
+              snapshotPath(
+                "application",
+                viewport.width,
+                viewport.height,
+                language,
+                theme,
+                route.name + ".png",
+              ),
               { fullPage: true },
             );
           },

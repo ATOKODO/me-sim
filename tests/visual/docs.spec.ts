@@ -3,6 +3,7 @@ import { expect, type Page } from "@playwright/test";
 import { test } from "./fixtures";
 import { VISUAL_ORIGINS } from "../../config/test-origins";
 import { REFERENCE_VIEWPORTS } from "../../config/viewports";
+import { snapshotPath } from "./snapshot-path";
 
 const origin = VISUAL_ORIGINS.documentation;
 const pages = ["index", "getting-started"];
@@ -44,7 +45,14 @@ for (const theme of ["dark", "light"])
             await page.evaluate(() => document.documentElement.scrollWidth),
           ).toBeLessThanOrEqual(viewport.width);
           await expect(page).toHaveScreenshot(
-            `docs-${name}-${theme}-${language}-${device}.png`,
+            snapshotPath(
+              "documentation",
+              viewport.width,
+              viewport.height,
+              language,
+              theme,
+              name + ".png",
+            ),
             { fullPage: true },
           );
         });

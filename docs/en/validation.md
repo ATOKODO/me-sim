@@ -1,12 +1,14 @@
 # Delivery validation {#validation-de-la-livraison}
 
-## Verified on this Windows computer {#verifie-sur-ce-poste-windows}
+## Latest verification — 22 October 2026 {#latest-verification-2026-10-22}
 
-- Angular production build passed; roughly 411 KB initially, with Three.js loaded separately on demand.
-- 22 Rust tests cover profile isolation/deletion, cross references, lossless backup/restore, rejection of unknown versions/invalid data, rollback after SQL failure, concurrency between two SQLite connections, CSV/XLS/XLSX/JSON, Excel numbers/dates, multiple sheets, unit conversion, duplicates/conflicts, formulas/malformed files and the scientific gate.
-- 45 Playwright tests in Microsoft Edge cover local 3D without remote requests, profiles/journal, habits/Target, edits/deletion, scenarios without invented projections, unavailable WebGL, context loss/retry, 960 px width, keyboard dialog focus and automated WCAG A/AA audits of seven routes. Male/female characters each play fifteen clips with one GLB load, including timeline playback; animation stopping and scene recreation are checked. Preview uses a nonce CSP like the native app.
-- Real Tauri debug startup in WebView2, profile creation, observation input, reload and reading SQLite persistence; no JavaScript errors. Fifteen modes of the supplied character checked in WebView2. Data tests in `.tmp/native-smoke/avatar` and camera tests in `.tmp/native-smoke/camera`, with isolated WebView2 caches and no personal data.
-- Native capture: `docs/native-dashboard.png`.
+- Angular production, VitePress and Storybook builds pass. The documentation contains 14 pages per language with matching French/English section anchors.
+- All 46 offline Rust tests and 64 functional Playwright tests in Edge pass. Coverage includes profile isolation, SQLite persistence, imports, habit tracking, timed sessions, versioned Target schedules and male/female scenes.
+- All 246 Playwright visual tests pass without updating images. The 243 PNG references are grouped by category, viewport, language and theme in `tests/visual/__screenshots__/win32/chromium/`: eight routes in French/English and light/dark across four formats, plus 960/1440 references, Storybook and documentation pages.
+- This pass did not relaunch the Tauri app in WebView2, build an installer, run GitHub CI or test a physical device. Phone and tablet captures are Chromium viewports on Windows.
+- Remaining open-source publication work is recorded in the [publication review](./open-source-review-2026-10-09.md); the code license and character redistribution rights still need clarification.
+
+The dated sections below preserve historical results from earlier changes.
 
 ## Supplied character — verification of 30 September 2026 {#personnage-fourni-—-verification-du-30-septembre-2026}
 

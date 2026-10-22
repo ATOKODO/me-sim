@@ -1,12 +1,14 @@
 # Validation de la livraison
 
-## Vérifié sur ce poste Windows
+## Vérification la plus récente — 22 octobre 2026 {#latest-verification-2026-10-22}
 
-- Build Angular de production : réussi ; environ 411 Ko initiaux, Three.js chargé séparément à la demande.
-- 22 tests Rust : isolation et suppression des profils, références croisées, sauvegarde/restauration sans perte, refus des versions inconnues et des données invalides, annulation transactionnelle après échec SQL, concurrence entre deux connexions SQLite, formats CSV/XLS/XLSX/JSON, nombres et dates Excel, feuilles multiples, conversions d’unités, doublons/conflits, formules et fichiers malformés, verrou scientifique.
-- 45 tests Playwright dans Microsoft Edge : rendu 3D local sans requête distante, profils et journal, habitudes et Target, modification/suppression, scénarios sans projection inventée, WebGL indisponible, perte du contexte et réessai, largeur 960 px, focus clavier des dialogues, audit automatisé WCAG A/AA sur les sept routes. Les personnages masculin et féminin jouent chacun les quinze clips avec un seul chargement de leur GLB, y compris pendant la timeline ; l’arrêt des animations et la recréation de la scène sont vérifiés. L’aperçu utilise une CSP avec nonce, comme la version native.
-- Exécutable Tauri debug : lancement réel dans WebView2, création de profil, ajout d’une observation, rechargement et lecture de la donnée persistée dans SQLite ; aucune erreur JavaScript capturée. Quinze modes du personnage fourni vérifiés dans WebView2. Test de données dans `.tmp/native-smoke/avatar` et test de caméra dans `.tmp/native-smoke/camera`, avec caches WebView2 isolés, sans donnée personnelle.
-- Capture native : `docs/native-dashboard.png`.
+- Les builds de production Angular, VitePress et Storybook réussissent. La documentation compte 14 pages par langue et leurs sections FR/EN correspondent.
+- Les 46 tests Rust hors ligne et les 64 tests fonctionnels Playwright dans Edge passent. Ils couvrent notamment l’isolation des profils, la persistance SQLite, les imports, les habitudes, les sessions horodatées, les versions Target et les scènes masculine/féminine.
+- Les 246 tests visuels Playwright passent sans mise à jour des images. Les 243 références PNG sont classées par catégorie, viewport, langue et thème dans `tests/visual/__screenshots__/win32/chromium/` : huit routes en FR/EN, clair/sombre et quatre formats, ainsi que les références 960/1440, Storybook et les pages de documentation.
+- Cette passe n’a pas relancé l’application Tauri dans WebView2, construit d’installateur, exécuté la CI GitHub ni testé un appareil physique. Les captures de téléphone et tablette sont des viewports Chromium sous Windows.
+- Les limites et travaux préalables à une publication open source restent détaillés dans [la revue de publication](./open-source-review-2026-10-09.md) ; les licences du code et les droits de redistribution des personnages doivent encore être clarifiés.
+
+Les rubriques datées ci-dessous conservent les résultats historiques des changements précédents.
 
 ## Personnage fourni — vérification du 30 septembre 2026
 
@@ -55,14 +57,14 @@ L’intégration Angular/Tauri désactive l’inlining du CSS critique (pas de g
 
 Les six défauts confirmés dans `review-2026-10-01.md` sont corrigés.
 
-| Défaut | Preuve de correction |
-| --- | --- |
-| Vue ancienne écrasant un Target récent | Test Rust avec deux connexions utilisant la même méthode que la commande réelle ; tests de brouillons et de réessai explicite ; refus confirmé via IPC dans WebView2 |
-| Récap reprenant une ancienne activité et inventant des zéros | Calcul pur daté ; tests de données absentes, anciennes et nulles ; affichage natif de zéro explicite et de tabac inconnu |
-| Calendrier et timeline figés | Horloge réactive ; tests du passage de septembre à octobre, sélection historique, expiration sans mutation et brouillon du journal à minuit |
-| Heure Excel transformée en date | Test XLSX avec date, heure 18:30 et durée Excel native ; conversion correcte vers date, HH:mm et minutes |
-| Unité tabac absente | Choix issu du catalogue de métriques ; aperçu puis import UI de CSV à deux colonnes ; validation Rust de cigarette |
-| Zéro minute refusé et fractions de cigarettes admises par le formulaire | Zéro enregistré sans événement ; validation entière dans le formulaire ; test natif de persistance après rechargement et validation Rust |
+| Défaut                                                                  | Preuve de correction                                                                                                                                                 |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vue ancienne écrasant un Target récent                                  | Test Rust avec deux connexions utilisant la même méthode que la commande réelle ; tests de brouillons et de réessai explicite ; refus confirmé via IPC dans WebView2 |
+| Récap reprenant une ancienne activité et inventant des zéros            | Calcul pur daté ; tests de données absentes, anciennes et nulles ; affichage natif de zéro explicite et de tabac inconnu                                             |
+| Calendrier et timeline figés                                            | Horloge réactive ; tests du passage de septembre à octobre, sélection historique, expiration sans mutation et brouillon du journal à minuit                          |
+| Heure Excel transformée en date                                         | Test XLSX avec date, heure 18:30 et durée Excel native ; conversion correcte vers date, HH:mm et minutes                                                             |
+| Unité tabac absente                                                     | Choix issu du catalogue de métriques ; aperçu puis import UI de CSV à deux colonnes ; validation Rust de cigarette                                                   |
+| Zéro minute refusé et fractions de cigarettes admises par le formulaire | Zéro enregistré sans événement ; validation entière dans le formulaire ; test natif de persistance après rechargement et validation Rust                             |
 
 Contrôles supplémentaires : couverture de la déviation sur 13 indicateurs, règle explicite pour les cibles à zéro, absence de double comptage du total d’activité, conservation des champs non modifiés après conflit et conservation de l’aperçu d’import lors d’un changement de langue. Les habitudes archivées ne consomment plus la limite active ; un test vérifie la conservation de l’historique et le refus de plus de 100 habitudes actives.
 
@@ -97,7 +99,6 @@ Pour reproduire le test natif : construire `npm run tauri -- build --debug --no-
 - Navigation et absence de débordement horizontal global vérifiées à 402 × 874, 834 × 1194, 1512 × 982 et 1920 × 1080. Captures du guide de démarrage inspectées sur mobile et ordinateur. Thèmes clair/sombre, serveur de développement et menu mobile vérifiés séparément.
 - Serveur de développement limité à `127.0.0.1:5174`, aperçu statique à `127.0.0.1:4174`, avec ports stricts. Les sorties/cache sous `docs/.vitepress/` sont ignorés par Git. La documentation reste distincte du paquet Tauri et ne lit aucune base personnelle.
 
-
 ## Rendu exclusivement 3D — 8 octobre 2026
 
 - Option 2D, avatar CSS, animations de remplacement et branche de masquage du moteur supprimés. Les préférences ne conservent que les animations, le tremblement rétro, la langue et le thème.
@@ -105,7 +106,6 @@ Pour reproduire le test natif : construire `npm run tauri -- build --debug --no-
 - WebGL absent ou contexte perdu : message traduit, aucune silhouette de remplacement, retrait des commandes de caméra et du focus. Le bouton de réessai recrée une scène 3D ; l’autre caméra de comparaison reste indépendante. Le journal reste utilisable. Ces parcours sont testés dans Edge, et les messages, le réessai et la 3D réelle ont été inspectés sur mobile dans Chromium.
 - Builds Angular et Storybook, types du catalogue, 22 tests Rust, 42 tests fonctionnels et 74 tests visuels réussis. Quatorze références de pages actualisées, puis comparées sans mise à jour ; tableau de bord, paramètres et comparaison inspectés par échantillonnage. Le masquage du canvas est réservé aux tests visuels, sans option correspondante dans l’application.
 - Aucun accès à une base personnelle pendant cette vérification. Les installateurs et exécutables de `release/` n’ont pas été reconstruits pour ce changement.
-
 
 ## Personnage féminin — 8 octobre 2026
 
@@ -115,7 +115,6 @@ Pour reproduire le test natif : construire `npm run tauri -- build --debug --no-
 - Tests Edge : quinze clips de chaque variante, timeline, absence de requête distante et d’erreur JavaScript, changement de profil sans recréer la scène ou réinitialiser la caméra, réutilisation des deux modèles et refus d’activer une ancienne variante après un chargement tardif. Modification du profil et deux avatars féminins dans la comparaison vérifiés. Captures des activités et vues rapprochées de face et de profil inspectées.
 - Build Angular, build et types Storybook, 45 tests fonctionnels et 74 tests visuels réussis sans actualisation des références. Le serveur de développement sur 1420 charge le modèle féminin sans erreur JavaScript. Les sources et le guide artiste permettent de remplacer les modèles ou leurs animations indépendamment.
 - Aucun accès à une base personnelle. Les exécutables et installateurs de `release/` n’ont pas été reconstruits pour ce changement.
-
 
 ## Modèle féminin fourni — 9 octobre 2026
 

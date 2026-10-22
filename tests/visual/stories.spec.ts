@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { expect } from "@playwright/test";
 import { test } from "./fixtures";
+import { snapshotPath } from "./snapshot-path";
 const index = JSON.parse(
   fs.readFileSync("storybook-static/index.json", "utf8"),
 );
@@ -22,9 +23,10 @@ for (const theme of ["dark", "light"])
       await expect(page.locator("[data-visual-ready]")).toBeVisible();
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await page.evaluate(() => document.fonts.ready);
-      await expect(page).toHaveScreenshot(story.id + "-" + theme + ".png", {
-        fullPage: true,
-      });
+      await expect(page).toHaveScreenshot(
+        snapshotPath("storybook", 1200, 900, "fr", theme, story.id + ".png"),
+        { fullPage: true },
+      );
     });
   }
 test("keyboard focus and disabled button use native semantics", async ({
@@ -43,7 +45,16 @@ test("keyboard focus and disabled button use native semantics", async ({
   await expect(
     page.getByRole("button", { name: "Enregistrer", exact: true }).last(),
   ).toBeDisabled();
-  await expect(page).toHaveScreenshot("button-keyboard-focus.png", {
-    fullPage: true,
-  });
+  await expect(page).toHaveScreenshot(
+    snapshotPath(
+      "storybook",
+      1200,
+      900,
+      "fr",
+      "default",
+      "accessibility",
+      "button-keyboard-focus.png",
+    ),
+    { fullPage: true },
+  );
 });
