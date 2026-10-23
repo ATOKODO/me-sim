@@ -1,3 +1,4 @@
+mod companion;
 mod domain;
 mod exchange;
 mod ghost;
@@ -9,6 +10,7 @@ use std::{collections::HashMap, path::PathBuf, sync::Mutex};
 use tauri::{Manager, State};
 struct AppState {
     store: Mutex<store::Store>,
+    companion: Mutex<companion::Runtime>,
     directory: PathBuf,
     books: Mutex<HashMap<String, exchange::Workbook>>,
     previews: Mutex<HashMap<String, exchange::Preview>>,
@@ -203,7 +205,7 @@ fn commit_restore(
     let previous = db.load()?;
     db.require_revision(expected_revision)?;
     exchange::atomic_write(&backup, &serde_json::to_vec_pretty(&previous)?)?;
-    db.replace(s)?;
+    db.replace_for_restore(s)?;
     let versioned = db.versioned(s.clone());
     drop(db);
     pending.clear();
@@ -233,6 +235,32 @@ fn run_simulation(
         .ok_or_else(|| invalid("Scénario introuvable."))?;
     science::run(p, v)
 }
+#[tauri::command]
+fn companion_start(
+    profile_id: String,
+    app: tauri::AppHandle,
+) -> Result<companion::CompanionStatus> {
+    companion::start(app, profile_id)
+}
+#[tauri::command]
+fn companion_status(state: State<AppState>) -> Result<companion::CompanionStatus> {
+    companion::status(&state)
+}
+#[tauri::command]
+fn companion_new_pairing_code(state: State<AppState>) -> Result<companion::CompanionStatus> {
+    companion::refresh_pairing(&state)
+}
+#[tauri::command]
+fn companion_stop(state: State<AppState>) -> Result<companion::CompanionStatus> {
+    companion::stop(&state)
+}
+#[tauri::command]
+fn companion_revoke(
+    device_id: String,
+    state: State<AppState>,
+) -> Result<companion::CompanionStatus> {
+    companion::revoke(&state, &device_id)
+}
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -246,6 +274,7 @@ pub fn run() {
                 .map_err(|e| std::io::Error::other(e.message))?;
             app.manage(AppState {
                 store: Mutex::new(db),
+                companion: Mutex::new(companion::Runtime::default()),
                 directory,
                 books: Mutex::new(HashMap::new()),
                 previews: Mutex::new(HashMap::new()),
@@ -262,7 +291,12 @@ pub fn run() {
             export_data,
             preview_restore,
             commit_restore,
-            run_simulation
+            run_simulation,
+            companion_start,
+            companion_status,
+            companion_new_pairing_code,
+            companion_stop,
+            companion_revoke
         ])
         .run(tauri::generate_context!())
         .expect("Impossible de démarrer Me-Sim");

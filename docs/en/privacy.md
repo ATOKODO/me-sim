@@ -26,6 +26,6 @@ An export folder may be synchronized by software outside Me-Sim. Choose its loca
 
 Deletion removes the profile's data from the active database. It does not remove exports, preventive backups, system copies or files copied elsewhere. It is not forensic disk erasure.
 
-## Future connections {#connexions-futures}
+## Local mobile companion {#compagnon-mobile-local}
 
-No Android/iOS companion or remote network access to data is currently implemented. Any future private connection between devices will need authentication, permissions, encryption and exposure limits defined before implementation.
+An [offline companion PWA](./mobile-companion.md) is under development. It should let people enter data on a phone and transfer it to the PC database when both devices are on the local network. Pending entries and the pairing token reside in the phone's browser storage; application-level encryption of this storage is not currently planned. Protection of the phone, its session and browser therefore matters too. The PC network service is off by default and must not become remote access.

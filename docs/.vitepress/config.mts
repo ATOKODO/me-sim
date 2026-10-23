@@ -39,6 +39,10 @@ function navigation(language: "fr" | "en"): DefaultTheme.Config {
             link: path("data-guide"),
           },
           {
+            text: t("Compagnon mobile local", "Local mobile companion"),
+            link: path("mobile-companion"),
+          },
+          {
             text: t("Personnage et animations", "Character and animations"),
             link: path("artist-animation-guide"),
           },

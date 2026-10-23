@@ -1,5 +1,31 @@
 /** Bundled UI translations. User-entered text and canonical data are never rewritten. */
 export const ENGLISH: Readonly<Record<string, string>> = {
+  "Compagnon téléphone": "Phone companion",
+  "Saisis tes observations sur ton téléphone, même hors ligne. Quand la PWA est ouverte et retrouve ce PC sur le même Wi-Fi, elle renvoie les saisies en attente.":
+    "Record observations on your phone, even offline. When the PWA is open and finds this PC on the same Wi-Fi, it sends pending entries.",
+  "Les saisies et la clé d’association conservées sur le téléphone ne sont pas chiffrées par Me-Sim. Protège l’accès à ton téléphone.":
+    "Entries and the pairing key stored on the phone are not encrypted by Me-Sim. Protect access to your phone.",
+  "Me-Sim n’utilise ni compte ni service distant. La base principale reste sur le PC ; le compagnon conserve ses saisies en attente sur le téléphone.":
+    "Me-Sim uses no account or remote service. The main database stays on the PC; the companion keeps pending entries on the phone.",
+  "Disponible dans l’application Windows.": "Available in the Windows app.",
+  "Profil accessible sur le téléphone": "Profile available on the phone",
+  "Créer un code d’appairage": "Create a pairing code",
+  "Arrêter le compagnon": "Stop companion",
+  "Activer sur ce Wi-Fi": "Enable on this Wi-Fi",
+  "ADRESSE DU COMPAGNON": "COMPANION ADDRESS",
+  "CODE TEMPORAIRE · 5 MINUTES": "TEMPORARY CODE · 5 MINUTES",
+  "Pour installer la PWA hors ligne, approuve d’abord le certificat local sur le téléphone. Vérifie son empreinte avec celle affichée ici.":
+    "To install the offline PWA, first trust the local certificate on your phone. Compare its fingerprint with the one shown here.",
+  "Si Windows demande une autorisation réseau, choisis uniquement les réseaux privés. Garde cette adresse locale stable : un changement d’adresse isole les saisies en attente sur le téléphone.":
+    "If Windows asks for network access, allow private networks only. Keep this local address stable: changing it isolates pending entries on the phone.",
+  "CERTIFICAT LOCAL À TRANSFÉRER": "LOCAL CERTIFICATE TO TRANSFER",
+  "TÉLÉCHARGEMENT SUR LE TÉLÉPHONE": "DOWNLOAD ON PHONE",
+  "EMPREINTE SHA-256": "SHA-256 FINGERPRINT",
+  "Au premier accès, vérifie l’empreinte du certificat avant de l’approuver sur le téléphone, puis rouvre l’adresse du compagnon.":
+    "On first access, check the certificate fingerprint before trusting it on the phone, then reopen the companion address.",
+  "Téléphones associés": "Paired phones",
+  "Retirer l’accès": "Revoke access",
+  "Aucun téléphone associé.": "No paired phones.",
   "Échantillons renseignés avec cette activité":
     "Recorded samples with this activity",
   "Habitude liée à l’événement": "Habit linked to this event",

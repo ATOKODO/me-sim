@@ -27,6 +27,9 @@ rust_xlsxwriter = "0.94"
 cfb = "0.14"
 rfd = "0.17"
 tempfile = "3"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rcgen = { version = "0.14", features = ["x509-parser"] }
+sha2 = "0.10"
 
 [profile.release]
 strip = true

@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from "@angular/core";
 import { applyGhostMutation, recordLinkedHabit, observationKey } from "./ghost";
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { LocalClock } from "./clock";
 import { dailyRecap, targetTrajectory, timelineEvents } from "./daily-summary";
 import {
@@ -78,6 +79,13 @@ export class Store {
         this.apply(v);
         this.storagePath.set(v.storagePath);
         this.model.set(v.model);
+        window.addEventListener("focus", () => void this.refreshFromDisk());
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) void this.refreshFromDisk();
+        });
+        void listen("companion-sync", () => void this.refreshFromDisk()).catch(
+          () => {},
+        );
       } else {
         const s = emptySnapshot();
         addDemo(s);
@@ -102,6 +110,18 @@ export class Store {
       this.fail(e);
     } finally {
       this.loading.set(false);
+    }
+  }
+  private async refreshFromDisk() {
+    if (!this.desktop || this.loading() || this.busy()) return;
+    try {
+      const current = await invoke<Initial>("initial_state");
+      if (current.revision !== this.revision()) {
+        this.apply(current);
+        this.externalRefresh.update((value) => value + 1);
+      }
+    } catch {
+      // A temporary read failure must not erase a form the user is editing.
     }
   }
   select(id: string) {

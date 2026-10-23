@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#12191c" />
+    <meta
+      name="description"
+      content="Note tes habitudes et observations hors ligne, puis synchronise-les sur ton PC Me-Sim."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'none'; object-src 'none'; connect-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'"
+    />
+    <title>Me-Sim · Compagnon</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.mjs"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">me<span>—</span>sim <small>compagnon</small></div>
+        <span id="connection" class="connection" role="status">Hors ligne</span>
+      </header>
+      <main>
+        <section class="intro">
+          <p class="eyebrow">TON JOURNAL DE POCHE</p>
+          <h1>Note ta journée<span>.</span></h1>
+          <p>
+            Quelques secondes pour saisir un moment. Tes données restent sur ce
+            téléphone jusqu’à leur envoi vers ton PC.
+          </p>
+        </section>
+
+        <section class="card" id="pair-panel" aria-labelledby="pair-title">
+          <p class="eyebrow">PREMIÈRE CONNEXION</p>
+          <h2 id="pair-title">Associer ce téléphone</h2>
+          <p>
+            Sur ton PC, active le compagnon et saisis ici le code affiché. Le
+            téléphone doit être sur le même Wi-Fi.
+          </p>
+          <form id="pair-form" class="stack">
+            <label
+              >Nom de cet appareil<input
+                id="device-name"
+                required
+                maxlength="60"
+                autocomplete="off"
+                placeholder="Mon téléphone"
+            /></label>
+            <label
+              >Code d’association<input
+                id="pair-code"
+                required
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                placeholder="Code affiché sur le PC"
+            /></label>
+            <button class="primary" type="submit">Associer</button>
+          </form>
+        </section>
+
+        <section
+          class="card hidden"
+          id="capture-panel"
+          aria-labelledby="capture-title"
+        >
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">SAISIE RAPIDE</p>
+              <h2 id="capture-title">Un nouveau repère</h2>
+            </div>
+            <span id="pending-badge" class="badge">0 en attente</span>
+          </div>
+          <label
+            >Profil<select id="profile-select" aria-label="Profil"></select
+          ></label>
+          <div class="tabs" role="tablist" aria-label="Type de saisie">
+            <button
+              id="tab-observation"
+              class="active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="observation-panel"
+            >
+              Mesure
+            </button>
+            <button
+              id="tab-habit"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="habit-panel"
+            >
+              Habitude
+            </button>
+          </div>
+          <div
+            id="observation-panel"
+            role="tabpanel"
+            aria-labelledby="tab-observation"
+          >
+            <form id="observation-form" class="stack">
+              <label
+                >Qu’as-tu fait ou mesuré ?<select id="metric" required></select
+              ></label>
+              <div class="form-row">
+                <label
+                  >Valeur <span id="metric-unit"></span
+                  ><input id="value" type="number" inputmode="decimal" required
+                /></label>
+                <label
+                  >Date<input id="observation-date" type="date" required
+                /></label>
+              </div>
+              <label id="time-row" class="hidden"
+                >Heure de début<input id="observation-time" type="time"
+              /></label>
+              <button class="primary" type="submit">Garder cette mesure</button>
+            </form>
+          </div>
+          <div
+            id="habit-panel"
+            class="hidden"
+            role="tabpanel"
+            aria-labelledby="tab-habit"
+          >
+            <label>Jour<input id="habit-date" type="date" /></label>
+            <div id="habit-list" class="habit-list"></div>
+            <p id="no-habits" class="muted hidden">
+              Aucune habitude active pour ce profil et ce jour.
+            </p>
+          </div>
+        </section>
+
+        <section
+          class="card hidden"
+          id="sync-panel"
+          aria-labelledby="sync-title"
+        >
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">SUR TON APPAREIL</p>
+              <h2 id="sync-title">À synchroniser</h2>
+            </div>
+          </div>
+          <p id="sync-description">
+            Les saisies sont conservées sur ce téléphone. Elles sont retirées
+            seulement après confirmation du PC.
+          </p>
+          <button id="sync-button" class="primary" type="button">
+            Synchroniser avec mon PC
+          </button>
+          <p id="last-sync" class="small"></p>
+          <div id="queue-list" class="queue-list"></div>
+        </section>
+        <p
+          id="message"
+          class="message hidden"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </main>
+      <footer>LOCAL FIRST <span>·</span> Aucun compte, aucun cloud</footer>
+    </div>
+  </body>
+</html>

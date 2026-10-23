@@ -53,7 +53,7 @@ impl Store {
     pub fn init(conn: Connection) -> Result<Self> {
         conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;")?;
         let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
-        if version > 3 {
+        if version > 4 {
             return Err(AppError::new(
                 "UNSUPPORTED_VERSION",
                 "Base créée par une version plus récente.",
@@ -66,6 +66,9 @@ impl Store {
         }
         if version == 1 || version == 2 {
             conn.execute_batch("BEGIN; CREATE TABLE habit_days(profile_id TEXT NOT NULL REFERENCES profiles(id),date TEXT NOT NULL,data TEXT NOT NULL,PRIMARY KEY(profile_id,date)); PRAGMA user_version=3; COMMIT;")?;
+        }
+        if version < 4 {
+            conn.execute_batch("BEGIN; CREATE TABLE companion_devices(id TEXT PRIMARY KEY, profile_id TEXT NOT NULL, name TEXT NOT NULL, token_hash TEXT NOT NULL UNIQUE); CREATE TABLE companion_operations(device_id TEXT NOT NULL, operation_id TEXT NOT NULL, PRIMARY KEY(device_id,operation_id)); PRAGMA user_version=4; COMMIT;")?;
         }
         let revision =
             conn.query_row("SELECT revision FROM metadata WHERE id=1", [], |r| r.get(0))?;
@@ -108,6 +111,20 @@ impl Store {
         Ok(snapshot)
     }
     pub fn replace(&mut self, s: &Snapshot) -> Result<()> {
+        self.replace_inner(s, &[], false)
+    }
+    pub fn replace_with_companion_ops(&mut self, s: &Snapshot, ops: &[(&str, &str)]) -> Result<()> {
+        self.replace_inner(s, ops, false)
+    }
+    pub fn replace_for_restore(&mut self, s: &Snapshot) -> Result<()> {
+        self.replace_inner(s, &[], true)
+    }
+    fn replace_inner(
+        &mut self,
+        s: &Snapshot,
+        ops: &[(&str, &str)],
+        revoke_devices: bool,
+    ) -> Result<()> {
         validate(s)?;
         let tx = self
             .conn
@@ -123,6 +140,10 @@ impl Store {
                 "INSERT INTO profiles VALUES(?1,?2)",
                 params![p.id, serde_json::to_string(p)?],
             )?;
+        }
+        tx.execute_batch("DELETE FROM companion_devices WHERE profile_id NOT IN (SELECT id FROM profiles); DELETE FROM companion_operations WHERE device_id NOT IN (SELECT id FROM companion_devices);")?;
+        if revoke_devices {
+            tx.execute_batch("DELETE FROM companion_operations; DELETE FROM companion_devices;")?;
         }
         for o in &s.observations {
             tx.execute(
@@ -165,6 +186,12 @@ impl Store {
             "INSERT INTO settings VALUES(1,?1)",
             [serde_json::to_string(&s.settings)?],
         )?;
+        for (device_id, operation_id) in ops {
+            tx.execute(
+                "INSERT INTO companion_operations(device_id,operation_id) VALUES(?1,?2)",
+                params![device_id, operation_id],
+            )?;
+        }
         tx.execute("UPDATE metadata SET revision=revision+1 WHERE id=1", [])?;
         tx.commit()?;
         self.revision.set(current + 1);
@@ -201,7 +228,7 @@ mod tests {
             .conn
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(version, 3);
+        assert_eq!(version, 4);
         let mut snapshot = Snapshot::default();
         mutate(&mut snapshot, Mutation::Demo).unwrap();
         assert_eq!(snapshot.habit_days.len(), 14);

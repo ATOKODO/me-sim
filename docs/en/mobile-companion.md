@@ -1,0 +1,35 @@
+# Local mobile companion {#compagnon-mobile-local}
+
+## Goal and status {#objectif-et-etat}
+
+The companion PWA is a quick entry screen for habits and measurements. The phone keeps pending entries while the PC is unavailable. The PC's SQLite database remains the source of truth: synchronization transfers these entries only over the local network, after pairing. This version has no account, remote relay or health connector.
+
+**Status: under development.** The current Windows application does not yet provide an end-to-end validated mobile installation flow. This page describes the required contract; it does not yet promise installation on iPhone or Android.
+
+To try this version, open **Preferences → Phone companion**, select the profile and enable the service. If Windows requests network access, allow private networks only. Transfer the public `companion-ca.crt` file shown on screen to the phone by a local method, then compare the SHA-256 of the **received file** with the fingerprint displayed on the PC before trusting it. Open the displayed HTTPS address, enter the temporary code, and install the PWA from the browser. Offline entries sync when the PWA is reopened and the PC is reachable again. Certificate setup and installation vary by phone and still need validation on real devices.
+
+## First installation and connection {#premiere-installation-et-connexion}
+
+The first visit must happen while phone and PC are on the same Wi-Fi and sharing is enabled in Me-Sim. The PC presents a local address and a short-lived pairing code. The user pairs the phone with one specific profile and can later revoke its access from the PC. The local service must be off by default and listen only on the chosen network, with a firewall rule limited to private networks.
+
+An installable PWA with a service worker requires **HTTPS trusted by the phone**. The `http://localhost` exception only applies to the device opening the page: on a phone, that address points to the phone, not the PC. Clicking through a certificate warning is not a reliable trust flow. A cloud-free installation must therefore provide a local certificate, show its fingerprint on the PC to compare it with the received file, explain how to trust it on the phone, then check that the browser exposes a secure context before installation. On iOS, a manually installed root certificate also requires enabling _full trust_ in certificate trust settings. See [MDN — PWA installation](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable), [MDN — service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) and [Apple — trusting an installed certificate](https://support.apple.com/en-us/102390).
+
+The HTTPS address must remain stable: the browser isolates data by origin (scheme, host and port). If the IP address or port changes, the new address will not automatically find pending entries still stored under the old one. This version uses the PC's local IP address, so a router address reservation is recommended. Support for a stable local name remains to be developed. No private certificate or secret may be bundled into public PWA files.
+
+## Offline entry {#saisie-hors-ligne}
+
+After a successful first HTTPS load, the service worker caches the files needed to open offline. Pending entries are stored in IndexedDB on the phone, with a unique operation ID, chosen local date and time, creation instant in UTC and associated profile. This version does not send a separate time zone field. The screen shows the pending count and the last confirmed synchronization time. An entry leaves the queue only after durable acknowledgement from the PC; retries send the same ID to avoid duplicates. The app retries after each entry, on launch, network return, becoming visible again and every 30 seconds while it stays open with pending entries; a manual button is also available. A closed app cannot promise background sync, especially on iOS.
+
+This data **exists on the phone until transferred**. IndexedDB is browser storage that the user can clear or the device may evict; requesting persistent storage reduces some risks without guaranteeing a backup. Private browsing is unsuitable. The UI must report write failures and must not claim an entry was saved before its local transaction finishes. See [MDN — IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB) and [MDN — storage quotas and eviction](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria).
+
+In this first version, Me-Sim does not encrypt the queue or pairing token on the phone. Device locking and browser storage protections are therefore necessary to keep someone with access to the phone from reading them. The local certificate authority's private key must stay exclusively on the PC; only its public certificate may be copied to the phone.
+
+## Synchronization and conflicts {#synchronisation-et-conflits}
+
+The phone has no access to SQLite or PC files. It sends typed operations to a local service in the Windows process, which checks the device, profile, values and payload size before a transactional write. The PC returns IDs that were accepted, conflicted or rejected. An operation already applied with the same ID receives another `accepted` acknowledgement, making retries safe. A different answer for the same habit and date, or a different measurement at the same moment, remains a conflict with no silent overwrite. In this first version, correction of an already synchronized habit answer happens on the PC. Revoking a device blocks its future synchronization but does not automatically erase entries still on that phone.
+
+Sharing works only while the PC is on, Me-Sim permits the connection and both devices can reach each other on the local network. Some guest Wi-Fi networks isolate devices. No remote access, relay, public DNS or cloud service is required. Real iPhone and Android tests, with the network disconnected and restored, are part of validation before this feature is declared ready.
+
+## Checks before release {#verifications-avant-livraison}
+
+The flow must be exercised on real Android and iOS phones: first install with a trusted certificate; entry in airplane mode followed by a PWA restart; Wi-Fi return and one-time synchronization despite retries; a conflict kept visible; device revocation; a powered-off PC or isolated guest Wi-Fi; and a local address change while entries are pending. These checks remain necessary before declaring the feature ready.

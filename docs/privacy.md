@@ -26,6 +26,6 @@ Le dossier choisi pour un export peut être synchronisé par un outil extérieur
 
 La suppression retire les données du profil de la base active. Elle ne supprime pas les exports, sauvegardes préventives, copies système ou fichiers copiés ailleurs. Elle ne constitue pas un effacement forensique du disque.
 
-## Connexions futures
+## Compagnon mobile local
 
-Aucun compagnon Android/iOS ni accès réseau distant aux données n’est actuellement implémenté. Une éventuelle connexion privée entre appareils devra définir l’authentification, les autorisations, le chiffrement et les limites d’exposition avant son ajout.
+Un [compagnon PWA hors ligne](./mobile-companion.md) est en cours de développement. Il doit permettre de saisir des données sur le téléphone et de les transférer à la base du PC quand les deux appareils se retrouvent sur le réseau local. Les saisies en attente et le jeton d'appairage résident dans le stockage du navigateur du téléphone ; aucun chiffrement applicatif de ce stockage n'est actuellement prévu. La protection du téléphone, de sa session et de son navigateur compte donc aussi. Le service réseau du PC est désactivé par défaut et ne doit pas devenir un accès distant.
