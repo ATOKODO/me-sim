@@ -641,7 +641,8 @@ fn response(
     cache: &str,
 ) -> std::io::Result<()> {
     write!(stream, "HTTP/1.1 {status}\r\nContent-Type: {mime}\r\nContent-Length: {}\r\nCache-Control: {cache}\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'\r\nConnection: close\r\n\r\n", body.len())?;
-    stream.write_all(body)
+    stream.write_all(body)?;
+    stream.flush()
 }
 
 fn json_response(
@@ -658,6 +659,14 @@ fn json_response(
     )
 }
 
+fn configure_connection(stream: &TcpStream) -> std::io::Result<()> {
+    // Winsock inherits the listener's nonblocking mode on accepted sockets.
+    // Each worker uses blocking TLS reads bounded by these timeouts.
+    stream.set_nonblocking(false)?;
+    stream.set_read_timeout(Some(StdDuration::from_secs(2)))?;
+    stream.set_write_timeout(Some(StdDuration::from_secs(5)))
+}
+
 fn serve(
     stream: TcpStream,
     tls: Arc<ServerConfig>,
@@ -669,8 +678,7 @@ fn serve(
     profile_id: &str,
     ca_public: &[u8],
 ) -> Result<()> {
-    stream.set_read_timeout(Some(StdDuration::from_secs(2)))?;
-    stream.set_write_timeout(Some(StdDuration::from_secs(5)))?;
+    configure_connection(&stream)?;
     let connection = ServerConnection::new(tls).map_err(internal)?;
     let mut stream = StreamOwned::new(connection, stream);
     let request = match read_request(&mut stream) {
@@ -957,6 +965,76 @@ mod tests {
     use rusqlite::Connection;
     use std::collections::HashMap;
     use std::path::PathBuf;
+
+    #[test]
+    fn https_worker_accepts_a_request_split_across_network_packets() {
+        use rustls::pki_types::pem::PemObject;
+
+        let directory = tempfile::tempdir().unwrap();
+        let (tls, _, _, ca_pem) = ca_and_server(directory.path(), Ipv4Addr::LOCALHOST).unwrap();
+        let mut roots = rustls::RootCertStore::empty();
+        roots
+            .add(rustls::pki_types::CertificateDer::from_pem_slice(&ca_pem).unwrap())
+            .unwrap();
+        let client_config = rustls::ClientConfig::builder()
+            .with_root_certificates(roots)
+            .with_no_client_auth();
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let address = listener.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            let deadline = Instant::now() + StdDuration::from_secs(8);
+            let socket = loop {
+                match listener.accept() {
+                    Ok((socket, _)) => break socket,
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        assert!(Instant::now() < deadline, "Client did not connect");
+                        thread::sleep(StdDuration::from_millis(5));
+                    }
+                    Err(error) => panic!("{error}"),
+                }
+            };
+            // Model Winsock inheritance on every platform running this regression.
+            socket.set_nonblocking(true).unwrap();
+            configure_connection(&socket).unwrap();
+            let mut stream = StreamOwned::new(ServerConnection::new(tls).unwrap(), socket);
+            let request = read_request(&mut stream).unwrap();
+            assert_eq!(request.path, "/companion/");
+            response(&mut stream, "200 OK", "text/plain", b"OK", "no-store").unwrap();
+        });
+        let socket = TcpStream::connect(address).unwrap();
+        socket
+            .set_read_timeout(Some(StdDuration::from_secs(5)))
+            .unwrap();
+        socket
+            .set_write_timeout(Some(StdDuration::from_secs(5)))
+            .unwrap();
+        let connection = rustls::ClientConnection::new(
+            Arc::new(client_config),
+            rustls::pki_types::ServerName::try_from("127.0.0.1").unwrap(),
+        )
+        .unwrap();
+        let mut stream = StreamOwned::new(connection, socket);
+        stream
+            .write_all(b"GET /companion/ HTTP/1.1\r\nHost: localhost\r\n")
+            .unwrap();
+        stream.flush().unwrap();
+        thread::sleep(StdDuration::from_millis(100));
+        stream.write_all(b"\r\n").unwrap();
+        stream.flush().unwrap();
+        let mut header = Vec::new();
+        while !header.ends_with(b"\r\n\r\n") {
+            let mut byte = [0; 1];
+            stream.read_exact(&mut byte).unwrap();
+            header.push(byte[0]);
+            assert!(header.len() <= MAX_HEADER);
+        }
+        assert!(header.starts_with(b"HTTP/1.1 200 OK\r\n"));
+        let mut body = [0; 2];
+        stream.read_exact(&mut body).unwrap();
+        assert_eq!(&body, b"OK");
+        worker.join().unwrap();
+    }
 
     fn fixture() -> (AppState, String, String, String) {
         let mut db = crate::store::Store::init(Connection::open_in_memory().unwrap()).unwrap();
