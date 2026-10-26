@@ -2,6 +2,8 @@
 
 Reviewed the current working tree, including the uncommitted Storybook/design system changes. Scope: Angular state and page components, domain contracts, SQLite mutations, imports, error translation, and shared UI styles. This review changes documentation only.
 
+**26 October 2026 follow-up:** import commit lookups are now indexed and ordinary transactions write only changed rows. Sections 1 and 2 below describe the historical findings; IPC still uses complete snapshots. Stale refresh responses and permanent rendering of static or offscreen 3D scenes have also been addressed. See the [current architecture](./architecture.md).
+
 The existing concurrency, unknown-versus-zero, date rollover and import corrections remain covered by passing tests. The findings below are maintainability and scaling concerns; they are not newly reproduced user-facing defects. Complexity statements come from code inspection, not a performance benchmark.
 
 <!-- prettier-ignore -->

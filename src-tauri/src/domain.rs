@@ -20,7 +20,7 @@ impl<E: std::error::Error> From<E> for AppError {
         Self::new("IO", e)
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 pub struct TargetDay {
     pub sleep_hours: f64,
@@ -56,7 +56,7 @@ impl Default for TargetDay {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Profile {
     pub id: String,
@@ -73,13 +73,13 @@ pub struct Profile {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ghost: Option<crate::ghost::GhostState>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HabitKind {
     Good,
     Bad,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct HabitDefinition {
     pub id: String,
@@ -89,7 +89,7 @@ pub struct HabitDefinition {
     pub archived_at: Option<String>,
     pub metric: Option<String>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct HabitDay {
     pub profile_id: String,
@@ -97,7 +97,7 @@ pub struct HabitDay {
     pub answers: BTreeMap<String, bool>,
     pub validated_at: Option<String>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Observation {
     pub id: String,
@@ -115,7 +115,7 @@ pub struct Observation {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub context: Option<crate::ghost::ActivityContext>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ImportBatch {
     pub id: String,
@@ -124,7 +124,7 @@ pub struct ImportBatch {
     pub imported_at: String,
     pub count: usize,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Scenario {
     pub id: String,
@@ -134,7 +134,7 @@ pub struct Scenario {
     pub intake_delta: f64,
     pub activity_delta: f64,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SimulationRun {
     pub id: String,
@@ -157,7 +157,7 @@ pub enum Theme {
     Dark,
     Light,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", from = "SettingsInput")]
 pub struct Settings {
     pub animations: bool,
@@ -200,7 +200,7 @@ impl Default for Settings {
         }
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Snapshot {
     pub version: u32,

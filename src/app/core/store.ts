@@ -72,6 +72,8 @@ export class Store {
   readonly batches = computed(() =>
     this.data().batches.filter((b) => b.profileId === this.activeId()),
   );
+  private refreshInFlight?: Promise<void>;
+  private refreshPending = false;
   async init() {
     try {
       if (this.desktop) {
@@ -112,16 +114,34 @@ export class Store {
       this.loading.set(false);
     }
   }
-  private async refreshFromDisk() {
-    if (!this.desktop || this.loading() || this.busy()) return;
-    try {
-      const current = await invoke<Initial>("initial_state");
-      if (current.revision !== this.revision()) {
-        this.apply(current);
-        this.externalRefresh.update((value) => value + 1);
+  private refreshFromDisk(): Promise<void> {
+    if (!this.desktop || this.loading()) return Promise.resolve();
+    this.refreshPending = true;
+    if (this.busy()) return Promise.resolve();
+    if (!this.refreshInFlight) {
+      this.refreshInFlight = this.drainRefreshes().finally(() => {
+        this.refreshInFlight = undefined;
+        if (this.refreshPending && !this.busy()) void this.refreshFromDisk();
+      });
+    }
+    return this.refreshInFlight;
+  }
+  private async drainRefreshes() {
+    while (this.refreshPending && !this.busy()) {
+      this.refreshPending = false;
+      try {
+        const current = await invoke<Initial>("initial_state");
+        if (this.busy()) {
+          this.refreshPending = true;
+          return;
+        }
+        if (current.revision > this.revision()) {
+          this.apply(current);
+          this.externalRefresh.update((value) => value + 1);
+        }
+      } catch {
+        // The next focus or sync event retries a failed read without erasing drafts.
       }
-    } catch {
-      // A temporary read failure must not erase a form the user is editing.
     }
   }
   select(id: string) {
@@ -164,6 +184,7 @@ export class Store {
       return undefined;
     } finally {
       this.busy.set(false);
+      if (this.refreshPending) void this.refreshFromDisk();
     }
   }
   async mutate(operation: Mutation) {
@@ -201,6 +222,7 @@ export class Store {
     });
   }
   apply(current: VersionedSnapshot) {
+    if (current.revision < this.revision()) return;
     const s = current.snapshot;
     this.revision.set(current.revision);
     this.data.set(s);

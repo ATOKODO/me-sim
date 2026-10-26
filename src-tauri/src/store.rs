@@ -1,6 +1,9 @@
 use crate::domain::*;
 use rusqlite::{params, Connection};
 use std::{cell::Cell, path::Path};
+mod delta;
+#[cfg(test)]
+mod incremental_tests;
 pub struct Store {
     pub conn: Connection,
     revision: Cell<i64>,
@@ -31,10 +34,11 @@ impl Store {
         operation: Mutation,
         expected: i64,
     ) -> Result<VersionedSnapshot> {
-        let mut snapshot = self.load()?;
+        let before = self.load()?;
         self.require_revision(expected)?;
+        let mut snapshot = before.clone();
         mutate(&mut snapshot, operation)?;
-        self.replace(&snapshot)?;
+        self.replace_inner(&snapshot, &[], false, Some(&before))?;
         Ok(VersionedSnapshot {
             snapshot,
             revision: self.revision.get(),
@@ -77,53 +81,30 @@ impl Store {
             revision: Cell::new(revision),
         })
     }
-    fn rows<T: serde::de::DeserializeOwned>(&self, table: &str) -> Result<Vec<T>> {
-        let mut q = self
-            .conn
-            .prepare(&format!("SELECT data FROM {table} ORDER BY rowid"))?;
-        let rows = q.query_map([], |r| r.get::<_, String>(0))?;
-        let mut out = vec![];
-        for row in rows {
-            out.push(serde_json::from_str(&row?)?)
-        }
-        Ok(out)
-    }
     pub fn load(&self) -> Result<Snapshot> {
         let tx = self.conn.unchecked_transaction()?;
         let revision =
             tx.query_row("SELECT revision FROM metadata WHERE id=1", [], |r| r.get(0))?;
-        let snapshot = Snapshot {
-            version: 1,
-            profiles: self.rows("profiles")?,
-            observations: self.rows("observations")?,
-            habit_days: self.rows("habit_days")?,
-            batches: self.rows("batches")?,
-            scenarios: self.rows("scenarios")?,
-            runs: self.rows("runs")?,
-            settings: self
-                .rows("settings")?
-                .into_iter()
-                .next()
-                .unwrap_or_default(),
-        };
+        let snapshot = delta::read(&tx)?;
         tx.commit()?;
         self.revision.set(revision);
         Ok(snapshot)
     }
     pub fn replace(&mut self, s: &Snapshot) -> Result<()> {
-        self.replace_inner(s, &[], false)
+        self.replace_inner(s, &[], false, None)
     }
     pub fn replace_with_companion_ops(&mut self, s: &Snapshot, ops: &[(&str, &str)]) -> Result<()> {
-        self.replace_inner(s, ops, false)
+        self.replace_inner(s, ops, false, None)
     }
     pub fn replace_for_restore(&mut self, s: &Snapshot) -> Result<()> {
-        self.replace_inner(s, &[], true)
+        self.replace_inner(s, &[], true, None)
     }
     fn replace_inner(
         &mut self,
         s: &Snapshot,
         ops: &[(&str, &str)],
         revoke_devices: bool,
+        before: Option<&Snapshot>,
     ) -> Result<()> {
         validate(s)?;
         let tx = self
@@ -134,58 +115,21 @@ impl Store {
         if current != self.revision.get() {
             return Err(AppError::new("CONCURRENT_CHANGE","Les données ont changé dans une autre fenêtre. Rechargez les données avant de recommencer."));
         }
-        tx.execute_batch("DELETE FROM observations; DELETE FROM habit_days; DELETE FROM batches; DELETE FROM scenarios; DELETE FROM runs; DELETE FROM profiles; DELETE FROM settings;")?;
-        for p in &s.profiles {
-            tx.execute(
-                "INSERT INTO profiles VALUES(?1,?2)",
-                params![p.id, serde_json::to_string(p)?],
-            )?;
-        }
-        tx.execute_batch("DELETE FROM companion_devices WHERE profile_id NOT IN (SELECT id FROM profiles); DELETE FROM companion_operations WHERE device_id NOT IN (SELECT id FROM companion_devices);")?;
         if revoke_devices {
+            delta::replace_all(&tx, s)?;
             tx.execute_batch("DELETE FROM companion_operations; DELETE FROM companion_devices;")?;
+        } else {
+            let loaded;
+            let before = match before {
+                Some(before) => before,
+                None => {
+                    loaded = delta::read(&tx)?;
+                    &loaded
+                }
+            };
+            delta::write(&tx, before, s)?;
+            tx.execute_batch("DELETE FROM companion_devices WHERE profile_id NOT IN (SELECT id FROM profiles); DELETE FROM companion_operations WHERE device_id NOT IN (SELECT id FROM companion_devices);")?;
         }
-        for o in &s.observations {
-            tx.execute(
-                "INSERT INTO observations(id,profile_id,date,metric,at,data) VALUES(?1,?2,?3,?4,?5,?6)",
-                params![
-                    o.id,
-                    o.profile_id,
-                    o.date,
-                    o.metric,
-                    observation_key(o),
-                    serde_json::to_string(o)?
-                ],
-            )?;
-        }
-        for day in &s.habit_days {
-            tx.execute(
-                "INSERT INTO habit_days(profile_id,date,data) VALUES(?1,?2,?3)",
-                params![day.profile_id, day.date, serde_json::to_string(day)?],
-            )?;
-        }
-        for b in &s.batches {
-            tx.execute(
-                "INSERT INTO batches VALUES(?1,?2,?3)",
-                params![b.id, b.profile_id, serde_json::to_string(b)?],
-            )?;
-        }
-        for v in &s.scenarios {
-            tx.execute(
-                "INSERT INTO scenarios VALUES(?1,?2,?3)",
-                params![v.id, v.profile_id, serde_json::to_string(v)?],
-            )?;
-        }
-        for v in &s.runs {
-            tx.execute(
-                "INSERT INTO runs VALUES(?1,?2,?3)",
-                params![v.id, v.profile_id, serde_json::to_string(v)?],
-            )?;
-        }
-        tx.execute(
-            "INSERT INTO settings VALUES(1,?1)",
-            [serde_json::to_string(&s.settings)?],
-        )?;
         for (device_id, operation_id) in ops {
             tx.execute(
                 "INSERT INTO companion_operations(device_id,operation_id) VALUES(?1,?2)",

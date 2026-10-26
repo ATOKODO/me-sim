@@ -2,6 +2,8 @@
 
 Revue de l’arbre de travail actuel, y compris les changements Storybook/design système non commités. Périmètre : état et pages Angular, contrats métier, mutations SQLite, imports, traduction des erreurs et styles partagés. Cette revue modifie uniquement la documentation.
 
+**Suivi du 26 octobre 2026 :** les recherches à la confirmation d’import sont maintenant indexées et les transactions ordinaires ne réécrivent que les lignes modifiées. Les sections 1 et 2 ci-dessous décrivent le constat historique ; le contrat IPC conserve des snapshots complets. Les rafraîchissements obsolètes et le rendu 3D permanent des scènes fixes ou hors écran sont également corrigés. Voir l’[architecture actuelle](./architecture.md).
+
 Les corrections de concurrence, données inconnues contre zéro, changement de date et imports restent couvertes par des tests réussis. Les constats concernent la maintenabilité et la montée en charge ; aucun nouveau défaut utilisateur n’est reproduit. Les estimations de complexité viennent de la lecture du code, sans benchmark.
 
 <!-- prettier-ignore -->

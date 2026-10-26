@@ -398,7 +398,7 @@ pub fn preview(book: &Workbook, m: &Mapping, pid: &str, s: &Snapshot) -> Result<
                 (
                     o.date.clone(),
                     o.metric.clone(),
-                    o.at.clone().unwrap_or_default(),
+                    observation_key(o).to_owned(),
                 ),
                 o.value,
             )
@@ -411,7 +411,7 @@ pub fn preview(book: &Workbook, m: &Mapping, pid: &str, s: &Snapshot) -> Result<
                 let key = (
                     o.date.clone(),
                     o.metric.clone(),
-                    o.at.clone().unwrap_or_default(),
+                    observation_key(&o).to_owned(),
                 );
                 let (status, message) = match seen.get(&key) {
                     Some(v) if *v == o.value => ("duplicate", "Déjà présent : sera ignoré."),
@@ -456,15 +456,30 @@ pub fn commit(s: &mut Snapshot, p: &Preview, policy: &str, skip_errors: bool) ->
     }
     let bid = id();
     let mut count = 0;
+    let mut positions: HashMap<_, _> = s
+        .observations
+        .iter()
+        .enumerate()
+        .filter(|(_, o)| o.profile_id == p.profile_id)
+        .map(|(i, o)| {
+            (
+                (
+                    o.date.clone(),
+                    o.metric.clone(),
+                    observation_key(o).to_owned(),
+                ),
+                i,
+            )
+        })
+        .collect();
     for row in &p.rows {
         if let Some(o) = &row.observation {
-            let pos = s.observations.iter().position(|x| {
-                x.profile_id == p.profile_id
-                    && x.date == o.date
-                    && x.metric == o.metric
-                    && x.at == o.at
-            });
-            if let Some(i) = pos {
+            let key = (
+                o.date.clone(),
+                o.metric.clone(),
+                observation_key(o).to_owned(),
+            );
+            if let Some(&i) = positions.get(&key) {
                 if s.observations[i].value == o.value || policy == "skip" {
                     continue;
                 }
@@ -475,6 +490,7 @@ pub fn commit(s: &mut Snapshot, p: &Preview, policy: &str, skip_errors: bool) ->
             } else {
                 let mut next = o.clone();
                 next.batch_id = Some(bid.clone());
+                positions.insert(key, s.observations.len());
                 s.observations.push(next);
             }
             count += 1;
@@ -490,6 +506,171 @@ pub fn commit(s: &mut Snapshot, p: &Preview, policy: &str, skip_errors: bool) ->
     validate(s)?;
     Ok(count)
 }
+#[cfg(test)]
+mod scaling_regressions {
+    use super::*;
+
+    #[test]
+    fn importing_a_wall_clock_event_preserves_precise_sessions_in_the_same_minute() {
+        let mut s = Snapshot::default();
+        mutate(&mut s, Mutation::Demo).unwrap();
+        s.observations.clear();
+        let pid = s.profiles[0].id.clone();
+        for second in [5, 15] {
+            s.observations.push(Observation {
+                id: id(),
+                profile_id: pid.clone(),
+                date: "2026-10-01".into(),
+                metric: "exercise".into(),
+                value: 10.,
+                unit: "min".into(),
+                source: "Session locale".into(),
+                batch_id: None,
+                at: Some("08:00".into()),
+                duration_minutes: Some(10.),
+                context: Some(crate::ghost::ActivityContext {
+                    label: "Run".into(),
+                    habit_id: None,
+                    start: Some(format!("2026-10-01T08:00:{second:02}+02:00")),
+                    end: Some(format!("2026-10-01T08:10:{second:02}+02:00")),
+                    time_zone: "Europe/Paris".into(),
+                }),
+            });
+        }
+        let original = s.observations.clone();
+        let book = Workbook {
+            token: id(),
+            filename: "events.csv".into(),
+            sheets: vec![Sheet {
+                name: "CSV".into(),
+                headers: vec!["date".into(), "value".into(), "time".into()],
+                rows: vec![vec!["2026-10-01".into(), "10".into(), "08:00".into()]],
+                temporal: HashMap::new(),
+            }],
+        };
+        let mapping = Mapping {
+            sheet: 0,
+            date_column: 0,
+            value_column: 1,
+            metric_column: None,
+            unit_column: None,
+            time_column: Some(2),
+            duration_column: None,
+            metric: "exercise".into(),
+            unit: "min".into(),
+            date_format: "iso".into(),
+        };
+        let p = preview(&book, &mapping, &pid, &s).unwrap();
+        assert_eq!(p.rows[0].status, "new");
+        assert_eq!(commit(&mut s, &p, "replace", false).unwrap(), 1);
+        assert_eq!(s.observations[..2], original);
+        assert_eq!(s.observations.len(), 3);
+    }
+
+    #[test]
+    fn repeated_import_rows_share_the_same_index_without_crossing_profiles() {
+        let mut s = Snapshot::default();
+        mutate(&mut s, Mutation::Demo).unwrap();
+        mutate(&mut s, Mutation::Demo).unwrap();
+        let mut foreign = s.observations[0].clone();
+        foreign.profile_id = s.profiles[1].id.clone();
+        s.observations = vec![foreign.clone()];
+        let mut incoming = foreign.clone();
+        incoming.profile_id = s.profiles[0].id.clone();
+        incoming.id = id();
+        let mut newer = incoming.clone();
+        newer.id = id();
+        newer.value += 1.;
+        let p = Preview {
+            token: id(),
+            profile_id: incoming.profile_id.clone(),
+            filename: "repeat.csv".into(),
+            rows: [incoming.clone(), incoming.clone(), newer.clone()]
+                .into_iter()
+                .enumerate()
+                .map(|(i, o)| PreviewRow {
+                    row: i + 2,
+                    observation: Some(o),
+                    status: "new".into(),
+                    message: String::new(),
+                })
+                .collect(),
+        };
+        assert_eq!(commit(&mut s, &p, "skip", false).unwrap(), 1);
+        assert_eq!(s.observations.len(), 2);
+        assert_eq!(s.observations[0], foreign);
+        assert_eq!(s.observations[1].value, incoming.value);
+        assert_eq!(commit(&mut s, &p, "replace", false).unwrap(), 1);
+        assert_eq!(s.observations[1].value, newer.value);
+        assert_eq!(s.observations[1].id, incoming.id);
+        assert_eq!(
+            s.observations[1].batch_id.as_deref(),
+            Some(s.batches.last().unwrap().id.as_str())
+        );
+    }
+
+    #[test]
+    fn fifty_thousand_csv_rows_commit_and_a_single_edit_has_constant_sql_write_count() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("large.csv");
+        let start = chrono::NaiveDate::from_ymd_opt(1900, 1, 1).unwrap();
+        let mut csv = String::from("date;value\n");
+        for i in 0..50_000 {
+            csv.push_str(&format!("{};70\n", start + chrono::Duration::days(i)));
+        }
+        std::fs::write(&path, csv).unwrap();
+        let mut s = Snapshot::default();
+        mutate(&mut s, Mutation::Demo).unwrap();
+        s.observations.clear();
+        let book = read(&path).unwrap();
+        let mapping = Mapping {
+            sheet: 0,
+            date_column: 0,
+            value_column: 1,
+            metric_column: None,
+            unit_column: None,
+            time_column: None,
+            duration_column: None,
+            metric: "weight".into(),
+            unit: "kg".into(),
+            date_format: "iso".into(),
+        };
+        let p = preview(&book, &mapping, &s.profiles[0].id, &s).unwrap();
+        let started = std::time::Instant::now();
+        assert_eq!(commit(&mut s, &p, "skip", false).unwrap(), 50_000);
+        eprintln!("50,000-row import commit: {:?}", started.elapsed());
+        let mut db =
+            crate::store::Store::init(rusqlite::Connection::open_in_memory().unwrap()).unwrap();
+        db.replace(&s).unwrap();
+        let current = db.current().unwrap();
+        let mut o = current.snapshot.observations[0].clone();
+        o.value = 71.;
+        let before: i64 = db
+            .conn
+            .query_row("SELECT total_changes()", [], |r| r.get(0))
+            .unwrap();
+        let started = std::time::Instant::now();
+        let saved = db
+            .mutate_at_revision(Mutation::SaveObservation(o), current.revision)
+            .unwrap();
+        eprintln!(
+            "single edit with 50,000 observations: {:?}",
+            started.elapsed()
+        );
+        let after: i64 = db
+            .conn
+            .query_row("SELECT total_changes()", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(
+            after - before,
+            3,
+            "only one observation is replaced and the revision advances"
+        );
+        assert_eq!(saved.snapshot.observations.len(), 50_000);
+        assert_eq!(db.load().unwrap(), saved.snapshot);
+    }
+}
+
 fn cells(s: &Snapshot, pid: &str) -> Vec<Vec<String>> {
     let mut rows = vec![vec![
         "date".into(),

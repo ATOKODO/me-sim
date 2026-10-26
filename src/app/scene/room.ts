@@ -22,9 +22,37 @@ export class Room {
       canZoomIn: this.camera.zoom < this.controls.maxZoom,
       canZoomOut: this.camera.zoom > this.controls.minZoom,
     });
+    this.invalidate();
   };
   private frame = 0;
   private observer: ResizeObserver;
+  private intersection: IntersectionObserver;
+  private inViewport = true;
+  private dirty = true;
+  private contextLost = false;
+  private requestFrame = () => {
+    if (
+      this.dead ||
+      this.contextLost ||
+      this.frame ||
+      document.hidden ||
+      !this.inViewport
+    )
+      return;
+    this.frame = requestAnimationFrame(this.tick);
+  };
+  private invalidate = () => {
+    this.dirty = true;
+    this.requestFrame();
+  };
+  private cancelFrame = () => {
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+  };
+  private onVisibility = () => {
+    if (document.hidden) this.cancelFrame();
+    else this.invalidate();
+  };
   private root = new T.Group();
   private person = new T.Group();
   private femaleHair = new T.Group();
@@ -53,7 +81,8 @@ export class Room {
   private dead = false;
   private onLost = (e: Event) => {
     e.preventDefault();
-    cancelAnimationFrame(this.frame);
+    this.contextLost = true;
+    this.cancelFrame();
     this.onUnavailable();
   };
   constructor(
@@ -102,11 +131,19 @@ export class Room {
         source === "procedural" ? this.options.mode : "idle",
       );
       this.onAnimationSource?.(source);
+      this.invalidate();
     });
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(host);
+    this.intersection = new IntersectionObserver(([entry]) => {
+      this.inViewport = entry.isIntersecting;
+      if (this.inViewport) this.invalidate();
+      else this.cancelFrame();
+    });
+    this.intersection.observe(host);
+    document.addEventListener("visibilitychange", this.onVisibility);
     this.resize();
-    this.tick(0);
+    this.invalidate();
     this.emitCameraState();
   }
   private box(
@@ -426,11 +463,13 @@ export class Room {
     this.artist.setColor(o.color);
     this.artist.setVariant(o.variant);
     this.artist.play(o.mode, o.replayKey, o.animations);
+    this.invalidate();
   }
   setGhost(mode: string | null, variant: AvatarVariant, animations: boolean) {
     if (!mode) {
       if (this.ghostRoot) this.ghostRoot.visible = false;
       this.onGhostSource?.("loading");
+      this.invalidate();
       return;
     }
     if (!this.ghostArtist) {
@@ -439,13 +478,17 @@ export class Room {
       this.root.add(this.ghostRoot);
       this.ghostArtist = new ArtistAnimations(
         this.ghostRoot,
-        (source) => this.onGhostSource?.(source),
+        (source) => {
+          this.onGhostSource?.(source);
+          this.invalidate();
+        },
         true,
       );
     }
     this.ghostRoot!.visible = true;
     this.ghostArtist.setVariant(variant);
     this.ghostArtist.play(mode, this.options.replayKey, animations);
+    this.invalidate();
   }
   async preloadModes(modes: string[]) {
     await this.artist.preload(modes);
@@ -492,11 +535,17 @@ export class Room {
     this.camera.top = 4.7;
     this.camera.bottom = -4.7;
     this.camera.updateProjectionMatrix();
+    this.invalidate();
   }
   private tick = (ms: number) => {
-    if (this.dead) return;
-    this.frame = requestAnimationFrame(this.tick);
-    if (ms - this.last < 32 || document.hidden) return;
+    this.frame = 0;
+    if (this.dead || this.contextLost || document.hidden || !this.inViewport)
+      return;
+    if (!this.dirty && !this.options.animations) return;
+    if (!this.dirty && ms - this.last < 32) {
+      this.requestFrame();
+      return;
+    }
     const delta = Math.min((ms - this.last) / 1000, 0.1);
     this.last = ms;
     const t = this.options.animations
@@ -622,6 +671,8 @@ export class Room {
     this.artist.tick(delta);
     if (this.ghostRoot?.visible) this.ghostArtist?.tick(delta);
     this.renderer.render(this.scene, this.camera);
+    this.dirty = false;
+    if (this.options.animations) this.requestFrame();
   };
   dispose() {
     this.dead = true;
@@ -629,8 +680,10 @@ export class Room {
     this.ghostArtist?.dispose();
     this.controls.removeEventListener("change", this.emitCameraState);
     this.controls.dispose();
-    cancelAnimationFrame(this.frame);
+    this.cancelFrame();
     this.observer.disconnect();
+    this.intersection.disconnect();
+    document.removeEventListener("visibilitychange", this.onVisibility);
     this.renderer.domElement.removeEventListener(
       "webglcontextlost",
       this.onLost,

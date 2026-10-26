@@ -426,3 +426,110 @@ test("a concurrent import clears its stale preview, keeps mapping, and succeeds 
   ).toBeVisible();
   expect(await page.evaluate(() => (window as any).__fixture.revision)).toBe(2);
 });
+
+test("a delayed refresh cannot undo a newer save and overlapping refreshes are serialized", async ({
+  page,
+}) => {
+  await native(page);
+  await page.goto("/#/journal");
+  await expect(
+    page.getByRole("heading", { name: "Mon journal.", exact: true }),
+  ).toBeVisible();
+  await page.evaluate(() => {
+    const w = window as any,
+      invoke = w.__TAURI_INTERNALS__.invoke;
+    w.__fixture.readCalls = 0;
+    w.__TAURI_INTERNALS__.invoke = async (command: string, args: unknown) => {
+      if (command !== "initial_state") return invoke(command, args);
+      const held = await invoke(command, args);
+      if (++w.__fixture.readCalls === 1)
+        return new Promise((resolve) => {
+          w.__fixture.releaseRead = () => resolve(held);
+        });
+      return held;
+    };
+    window.dispatchEvent(new Event("focus"));
+  });
+  await expect
+    .poll(() => page.evaluate(() => !!(window as any).__fixture.releaseRead))
+    .toBe(true);
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event("focus"));
+    window.dispatchEvent(new Event("focus"));
+  });
+  expect(await page.evaluate(() => (window as any).__fixture.readCalls)).toBe(
+    1,
+  );
+  await page.locator('input[formControlName="date"]').fill("2026-01-01");
+  await page.locator('input[formControlName="value"]').fill("70");
+  await page
+    .getByRole("button", { name: "Ajouter au journal", exact: true })
+    .click();
+  await expect(
+    page.getByRole("cell", { name: "70 kg", exact: true }),
+  ).toBeVisible();
+  await page.evaluate(() => (window as any).__fixture.releaseRead());
+  await expect
+    .poll(() => page.evaluate(() => (window as any).__fixture.readCalls))
+    .toBe(2);
+  await expect(
+    page.getByRole("cell", { name: "70 kg", exact: true }),
+  ).toBeVisible();
+  await page.locator('input[formControlName="date"]').fill("2026-01-02");
+  await page.locator('input[formControlName="value"]').fill("71");
+  await page
+    .getByRole("button", { name: "Ajouter au journal", exact: true })
+    .click();
+  await expect(
+    page.getByRole("cell", { name: "71 kg", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      (window as any).__fixture.mutations.map((m: any) => m.expectedRevision),
+    ),
+  ).toEqual([0, 1]);
+});
+
+test("a refresh requested while saving is applied after the save completes", async ({
+  page,
+}) => {
+  await native(page);
+  await page.goto("/#/journal");
+  await page.evaluate(() => {
+    const w = window as any,
+      invoke = w.__TAURI_INTERNALS__.invoke;
+    w.__TAURI_INTERNALS__.invoke = async (command: string, args: unknown) => {
+      const result = await invoke(command, args);
+      if (command === "mutate")
+        return new Promise((resolve) => {
+          w.__fixture.releaseSave = () => resolve(result);
+        });
+      return result;
+    };
+  });
+  await page.locator('input[formControlName="value"]').fill("70");
+  await page
+    .getByRole("button", { name: "Ajouter au journal", exact: true })
+    .click();
+  await expect
+    .poll(() => page.evaluate(() => !!(window as any).__fixture.releaseSave))
+    .toBe(true);
+  await page.evaluate(() => {
+    const fixture = (window as any).__fixture;
+    fixture.snapshot.observations.push({
+      ...fixture.snapshot.observations[0],
+      id: "mobile",
+      date: "2026-01-01",
+      value: 72,
+    });
+    fixture.revision++;
+    window.dispatchEvent(new Event("focus"));
+    fixture.releaseSave();
+  });
+  await expect(
+    page.getByRole("cell", { name: "70 kg", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "72 kg", exact: true }),
+  ).toBeVisible();
+});

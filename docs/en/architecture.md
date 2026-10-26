@@ -33,7 +33,9 @@ The main entities are `Profile`, `Observation`, `HabitDefinition`, `HabitDay`, `
 
 Exposed commands include `initial_state`, `mutate`, `choose_import`, `preview_import`, `commit_import`, `export_data`, `preview_restore`, `commit_restore` and `run_simulation`. Native pickers grant access to chosen files, then opaque tokens identify import/restore previews kept in Rust memory.
 
-A SQLite revision accompanies reads and mutations. Stale attempts are rejected, data is reloaded and users review their draft before retrying. The current implementation still rewrites the whole snapshot for ordinary mutations; the [proposed refactoring](./refactoring-review-2026-10-07.md) describes a move to targeted transactions.
+A SQLite revision accompanies reads and mutations. Stale attempts are rejected, data is reloaded and users review their draft before retrying. Mutations, imports and synchronization write only changed rows inside a transaction that checks the revision; full replacement is reserved for restoration. Entity order and linked habit/session effects are preserved. IPC still exchanges complete snapshots, so reading, validation and serialization costs continue to grow with history size.
+
+Import confirmation indexes observations by profile, date, metric and canonical temporal key. New rows immediately update that index; repeated rows within a file and precise sessions sharing a wall-clock minute remain distinct according to that key. Frontend refreshes are serialized, deferred during writes and applied only when their revision is newer.
 
 The JSON backup version is independent of the SQLite migration number. Unsupported versions are rejected before replacement. Transactions and the preventive copy protect restoration from partial writes.
 
@@ -42,6 +44,8 @@ The JSON backup version is independent of the SQLite migration number. Unsupport
 The local clock updates the calendar, summary and timeline window. Summary, coverage and deviation calculations are separate from rendering. A missing observation remains unknown; an explicitly entered zero remains a reported value.
 
 The Three.js scene loads on demand. Each scene owns its camera and releases resources on destruction. If WebGL is unavailable or its context is lost, the scene displays a message and a retry action. No 2D avatar is generated; other features remain accessible. The scene receives a profile-derived appearance variant (`default` or `female`), without a new persisted field. Clips are indexed by variant and activity; one model and mixer are shared per GLB file. The loader distinguishes loading, ready artist models and procedural fallback: the person stays hidden in the room while the manifest or GLB loads. Procedural fallback appears only when no replacement exists or loading fails. A late load after a profile switch cannot replace the current variant, and cached models are released on destruction. The [artist guide](./artist-animation-guide.md) defines the replacement contract.
+
+Animated rendering is limited to approximately 30 frames per second and suspended while the document is hidden or the scene is offscreen. With animations disabled, camera, size, model or state changes request a frame; no permanent drawing loop is maintained. Observers and listeners are released when the scene is destroyed.
 
 The research weight engine remains inaccessible to user projections. See the [model card](./model-card.md) for implemented equations and missing activation criteria.
 
