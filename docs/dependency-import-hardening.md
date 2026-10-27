@@ -60,7 +60,7 @@ npm run test:visual -- --skip-build
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 ```
 
-`check:dependencies` exécute l’audit puis les tests du correctif local ; la CI Windows l’exécute après `npm ci`. Les tests Rust couvrent les cas de référence existants et les limites : fichiers creux, grilles cumulées, répertoire ZIP falsifié, doublons, tailles incohérentes, texte partagé amplifié, entités XML, formules, champs CSV surdimensionnés, objets JSON imbriqués et continuations SST XLS. Les fixtures sont fictives et bornées ; aucun épuisement mémoire n’est provoqué sur le poste.
+`check:dependencies` exécute l’audit npm en ligne puis les tests du correctif local. Pour lancer ces seuls tests sans audit réseau, utiliser `npm run test:dependencies`. Les tests Rust couvrent les cas de référence existants et les limites : fichiers creux, grilles cumulées, répertoire ZIP falsifié, doublons, tailles incohérentes, texte partagé amplifié, entités XML, formules, champs CSV surdimensionnés, objets JSON imbriqués et continuations SST XLS. Les fixtures sont fictives et bornées ; aucun épuisement mémoire n’est provoqué sur le poste.
 
 Validation locale du 9 octobre : installation propre avec `npm ci`, audit npm sans alerte, 5 tests du correctif braces, 40 tests Rust, 48 tests fonctionnels Playwright et 220 tests visuels réussis, sans modification des captures de référence. Les builds Angular, Storybook, VitePress et natif Windows (debug) réussissent. Les serveurs de développement Angular, VitePress et Storybook ont également été vérifiés.
 

@@ -23,7 +23,8 @@ npm ci
 npm run desktop
 ```
 
-- `npm run check:dependencies` : audit npm et tests du correctif local de dépendance ; voir [les correctifs de sécurité](docs/dependency-import-hardening.md).
+- `npm run validate:local` : vérifications des dépendances locales et des avatars, tests du compagnon, builds, tests Playwright et Rust hors ligne, puis régression visuelle. Edge et Chromium doivent être installés.
+- `npm run check:dependencies` : audit npm en ligne et tests du correctif local de dépendance ; voir [les correctifs de sécurité](docs/dependency-import-hardening.md).
 - `npm run build` : compiler Angular.
 - `npm run preview` : aperçu navigateur sur http://127.0.0.1:1420, données fictives temporaires, échanges de fichiers désactivés.
 - `npm test` : tests Playwright avec Edge installé, sur le port 1421. Exécuter le build avant.
@@ -38,6 +39,8 @@ npm run desktop
 - `npm run package:offline` : installateur NSIS incluant l’installateur WebView2 hors ligne.
 
 Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `src-tauri/Cargo.lock`. Les caches peuvent être déplacés dans le projet avec `$env:CARGO_HOME = "$PWD\.cache\cargo"`.
+
+Les builds et tests sont lancés sur le poste : aucun workflow GitHub Actions n’est inclus. Après installation des dépendances et de Chromium, `npm run validate:local` utilise les outils disponibles localement. Précharger aussi les dépendances Rust avec `cargo fetch --locked --manifest-path src-tauri/Cargo.toml` avant de couper le réseau. L’installation initiale et `npm audit` nécessitent une connexion au registre ; les installateurs se construisent séparément avec `npm run package` ou `npm run package:offline`. Leur première construction peut nécessiter le téléchargement d’outils et de WebView2.
 
 ## Ce qui fonctionne
 
@@ -81,11 +84,11 @@ La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent
 
 ## Documentation
 
-La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Guides français et anglais (`/en/`), navigation et recherche locale traduites, thèmes clair/sombre et ressources embarquées. Le build vérifie la parité des pages et sections entre langues. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle. La CI est configurée pour vérifier le build ; aucune publication automatique n’est configurée.
+La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Guides français et anglais (`/en/`), navigation et recherche locale traduites, thèmes clair/sombre et ressources embarquées. Le build local vérifie la parité des pages et sections entre langues. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle.
 
 ## Design système
 
-[Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles, captures de référence et CI Windows. Les sept écrans et la documentation sont capturés aux formats iPhone 16 Pro, iPad Pro 11″, MacBook Pro 14″ et Desktop en français/anglais, clair/sombre.
+[Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles et captures de référence exécutés localement. Les écrans et la documentation sont capturés aux formats iPhone 16 Pro, iPad Pro 11″, MacBook Pro 14″ et Desktop en français/anglais, clair/sombre.
 
 ## Vérification native isolée
 

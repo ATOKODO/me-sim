@@ -60,7 +60,7 @@ npm run test:visual -- --skip-build
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 ```
 
-`check:dependencies` runs the audit and local patch tests; Windows CI runs it after `npm ci`. Rust tests cover existing references and resource limits: sparse files, cumulative grids, forged ZIP metadata, duplicates, inconsistent sizes, amplified shared text, XML entities, formulas, oversized CSV fields, nested JSON objects and XLS SST continuations. Fixtures are fictional and bounded; no memory exhaustion is triggered on the machine.
+`check:dependencies` runs the online npm audit and local patch tests. Use `npm run test:dependencies` to run only those tests without a network audit. Rust tests cover existing references and resource limits: sparse files, cumulative grids, forged ZIP metadata, duplicates, inconsistent sizes, amplified shared text, XML entities, formulas, oversized CSV fields, nested JSON objects and XLS SST continuations. Fixtures are fictional and bounded; no memory exhaustion is triggered on the machine.
 
 Local validation on 9 October: clean `npm ci` installation, npm audit with no advisories, 5 braces patch tests, 40 Rust tests, 48 functional Playwright tests and 220 visual tests passed, without changing baseline screenshots. Angular, Storybook, VitePress and native Windows (debug) builds passed. Angular, VitePress and Storybook development servers were also checked.
 

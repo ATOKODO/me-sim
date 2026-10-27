@@ -53,6 +53,6 @@ The research weight engine remains inaccessible to user projections. See the [mo
 
 VitePress 1.6.4 turns the guides in `docs/` and `docs/en/` into a static site, with localized navigation and local search indexes. Storybook exposes application styles and components. These are development dependencies and are not part of the Tauri package.
 
-Site configuration is in `docs/.vitepress/config.mts`, its theme in `docs/.vitepress/theme/` and dedicated assets in `docs/public/`. Cache and build output are ignored by Git. CI builds documentation, checks locale page/section parity and internal links, and compares screenshots at the four shared reference viewports. No automatic publication is configured.
+Site configuration is in `docs/.vitepress/config.mts`, its theme in `docs/.vitepress/theme/` and dedicated assets in `docs/public/`. Cache and build output are ignored by Git. Local checks build the documentation, verify language parity and internal links, and compare screenshots at the four shared reference viewports. The repository contains no GitHub Actions workflow or automatic publication.
 
 The [startup commands](./getting-started.md#lancer-cette-documentation), [visual protocol](./design-system.md) and [validation evidence](./validation.md) explain how to check changes before delivery.

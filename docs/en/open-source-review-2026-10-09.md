@@ -2,6 +2,8 @@
 
 **9 October follow-up:** npm, XML parser and preallocation checks are addressed in [dependency and import hardening](./dependency-import-hardening.md). Findings below describe the audited commit.
 
+**27 October follow-up:** the GitHub Actions workflow has been removed; checks and package builds run locally. CI references below describe the historical configuration.
+
 Review of commit `ca8eca2`, clean working tree at the start: 404 tracked files, about 38.7 MB and 14 reachable commits. Scope: licenses, assets, Git history, dependencies, file inputs, CI and documentation. This review changes no business code, asset, license or Git history.
 
 **Defer publication until licenses are clarified and exposed dependencies are addressed.** Local habit tracking can be presented as an alpha; scientific projections remain disabled. Publishing source and distributing a finished installer have different criteria.

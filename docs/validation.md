@@ -10,6 +10,8 @@
 
 Les rubriques datées ci-dessous conservent les résultats historiques des changements précédents.
 
+Depuis le 27 octobre 2026, le workflow GitHub Actions a été retiré du dépôt. Les mentions de CI dans les résultats datés ci-dessous décrivent l’ancienne configuration ; les vérifications courantes sont exécutées localement.
+
 ## Personnage fourni — vérification du 30 septembre 2026
 
 - FBX d’origine préservé à l’identique : 25 os, 498 sommets, 952 triangles, UV et poids du rig conservés dans le `.blend`.
@@ -49,7 +51,7 @@ Les rubriques datées ci-dessous conservent les résultats historiques des chang
 
 ## Reproduire
 
-`npm ci`, `npm run build`, `npm test`, puis `cargo test --locked --manifest-path src-tauri/Cargo.toml`. Edge doit être installé ; le port 1421 doit être libre. La CI Windows reprend les mêmes commandes et construit l’installateur. La CI n’a pas été exécutée sur GitHub dans cette session.
+Après installation des dépendances et de Chromium, exécuter `npm run validate:local` sur Windows. Edge doit être installé ; les ports 1421, 1423, 4175 et 6107 doivent être libres. Les installateurs se construisent séparément avec `npm run package` ou `npm run package:offline`.
 
 L’intégration Angular/Tauri désactive l’inlining du CSS critique (pas de gestionnaire onload inline) et transmet le nonce de style Tauri à Angular via ngCspNonce. Les styles dynamiques sont autorisés par nonce ; script-src et style-src n’utilisent pas unsafe-inline.
 

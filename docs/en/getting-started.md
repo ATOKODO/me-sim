@@ -61,17 +61,14 @@ npm run docs:preview
 
 The preview is at [127.0.0.1:4174](http://127.0.0.1:4174/). Output is in `docs/.vitepress/dist/` and must be served over HTTP. Markdown files are the sources of the guides. Update both versions together: French in `docs/`, English in `docs/en/`. Keep the explicit English heading IDs aligned with the French headings so section links survive language changes. Add each new page to both locales and to the navigation in `docs/.vitepress/config.mts`.
 
-The build checks page/section parity and rejects broken internal links. Search uses a local index built from the pages in each language. Fonts, styles and scripts are bundled; no remote search or analytics service is configured. CI checks the build without publishing the site.
+The local build checks page/section parity and rejects broken internal links. Search uses a local index built from the pages in each language. Fonts, styles and scripts are bundled; no remote search or analytics service is configured.
 
 Configuration references: [VitePress installation](https://vuejs.github.io/vitepress/v1/guide/getting-started) and [local search](https://vuejs.github.io/vitepress/v1/reference/default-theme-search).
 
 ## Run the checks {#executer-les-verifications}
 
 ```powershell
-npm run build
-npm test
-npm run test:rust
-npm run check:avatar
+npm run validate:local
 ```
 
-Functional tests use Edge and port 1421. For visual references, install Chromium once with `npx playwright install chromium`, then run `npm run test:visual`. Application and documentation screenshots cover the four reference formats in French/English and light/dark themes. Isolated native checks, coverage limits and delivery checks are in the [validation guide](./validation.md).
+This command runs local dependency and avatar checks, companion tests, builds, functional and offline Rust tests, then visual regression. Functional tests use Edge and port 1421. Install Chromium once with `npx playwright install chromium`; its test servers use ports 4175, 1423 and 6107. Preload Rust dependencies with `cargo fetch --locked --manifest-path src-tauri/Cargo.toml`. These initial downloads and `npm run check:dependencies` (the online npm audit) require Internet access. Build installers separately with `npm run package` or `npm run package:offline`; their first build may need downloads. No GitHub Actions workflow is provided. Isolated native checks and coverage limits are in the [validation guide](./validation.md).

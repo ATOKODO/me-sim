@@ -34,26 +34,30 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [{ name: "chromium" }],
-  webServer: [
-    {
-      command:
-        "node node_modules/vitepress/bin/vitepress.js preview docs --host 127.0.0.1 --port 4175",
-      url: VISUAL_ORIGINS.documentation,
-      reuseExistingServer: false,
-      timeout: 20000,
-    },
-    {
-      command: "node scripts/serve-storybook.mjs",
-      url: VISUAL_ORIGINS.storybook,
-      reuseExistingServer: false,
-      timeout: 20000,
-    },
-    {
-      command: "node scripts/serve.mjs",
-      url: VISUAL_ORIGINS.application,
-      env: { ME_SIM_PREVIEW_PORT: new URL(VISUAL_ORIGINS.application).port },
-      reuseExistingServer: false,
-      timeout: 20000,
-    },
-  ],
+  webServer: process.env.ME_SIM_VISUAL_SERVERS_MANAGED
+    ? []
+    : [
+        {
+          command: "node scripts/serve-docs.mjs",
+          url: VISUAL_ORIGINS.documentation,
+          env: { ME_SIM_DOCS_PORT: new URL(VISUAL_ORIGINS.documentation).port },
+          reuseExistingServer: false,
+          timeout: 20000,
+        },
+        {
+          command: "node scripts/serve-storybook.mjs",
+          url: VISUAL_ORIGINS.storybook,
+          reuseExistingServer: false,
+          timeout: 20000,
+        },
+        {
+          command: "node scripts/serve.mjs",
+          url: VISUAL_ORIGINS.application,
+          env: {
+            ME_SIM_PREVIEW_PORT: new URL(VISUAL_ORIGINS.application).port,
+          },
+          reuseExistingServer: false,
+          timeout: 20000,
+        },
+      ],
 });

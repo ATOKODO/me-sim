@@ -61,17 +61,14 @@ npm run docs:preview
 
 L’aperçu est sur [127.0.0.1:4174](http://127.0.0.1:4174/). Le résultat se trouve dans `docs/.vitepress/dist/` ; il doit être servi par un serveur HTTP. Les fichiers Markdown sont les sources des guides. Mettre à jour les deux versions ensemble : français dans `docs/`, anglais dans `docs/en/`. Garder les identifiants explicites des titres anglais alignés sur les titres français pour conserver les liens de section lors du changement de langue. Ajouter toute nouvelle page dans les deux langues et dans la navigation de `docs/.vitepress/config.mts`.
 
-Le build vérifie la parité des pages et sections entre langues et refuse les liens internes cassés. La recherche utilise un index local construit avec les pages de chaque langue. Polices, styles et scripts sont embarqués ; aucun service de recherche ou d’analytique distant n’est configuré. La CI est configurée pour vérifier la construction, sans publier le site.
+Le build local vérifie la parité des pages et sections entre langues et refuse les liens internes cassés. La recherche utilise un index local construit avec les pages de chaque langue. Polices, styles et scripts sont embarqués ; aucun service de recherche ou d’analytique distant n’est configuré.
 
 Configuration de référence : [installation VitePress](https://vuejs.github.io/vitepress/v1/guide/getting-started) et [recherche locale](https://vuejs.github.io/vitepress/v1/reference/default-theme-search).
 
 ## Exécuter les vérifications
 
 ```powershell
-npm run build
-npm test
-npm run test:rust
-npm run check:avatar
+npm run validate:local
 ```
 
-Les tests fonctionnels utilisent Edge et le port 1421. Pour les références visuelles, installer Chromium une fois avec `npx playwright install chromium`, puis lancer `npm run test:visual`. Les captures de l’application et de la documentation couvrent les quatre formats de référence, en français/anglais et clair/sombre. Les procédures natives isolées, limites de couverture et contrôles de livraison sont dans la [validation](./validation.md).
+Cette commande exécute les contrôles de dépendances locales et d’avatars, les tests du compagnon, les builds, les tests fonctionnels et Rust hors ligne, puis la régression visuelle. Les tests fonctionnels utilisent Edge et le port 1421. Installer Chromium une fois avec `npx playwright install chromium` ; ses serveurs de test utilisent les ports 4175, 1423 et 6107. Précharger les dépendances Rust avec `cargo fetch --locked --manifest-path src-tauri/Cargo.toml`. Ces téléchargements initiaux et `npm run check:dependencies` (audit npm en ligne) nécessitent Internet. Construire l’installateur séparément avec `npm run package` ou `npm run package:offline` ; leur première construction peut nécessiter des téléchargements. Aucun workflow GitHub Actions n’est fourni. Les procédures natives isolées et limites de couverture sont dans la [validation](./validation.md).
