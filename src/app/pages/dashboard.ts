@@ -664,6 +664,7 @@ export class Dashboard implements OnDestroy {
   private targetFormSource = "";
   private targetProfile = "";
   private targetBaseline: TargetDay = { ...DEFAULT_TARGET };
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   constructor() {
     effect(() => {
       const target = this.store.target();
@@ -697,12 +698,15 @@ export class Dashboard implements OnDestroy {
       label: metric.label,
     })),
   ];
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   values(metric: string) {
     return this.store.series(metric).map((o) => o.value);
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   barHeight(value: number | null) {
     return value === null ? 8 : Math.max(8, Math.min(100, value));
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   async saveTarget() {
     if (this.targetForm.invalid) return;
     const value = this.targetForm.getRawValue();
@@ -730,15 +734,18 @@ export class Dashboard implements OnDestroy {
       this.targetForm.reset(merged, { emitEvent: false });
     }
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   selectEvent(o: Observation) {
     this.stopReplay();
     this.showEvent(o);
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   private showEvent(o: Observation) {
     this.selectedEvent.set(o);
     this.mode.set(o.metric);
     this.replayKey.update((key) => key + 1);
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   previewMode(mode: string) {
     if (!this.previewModes.some((item) => item.id === mode)) return;
     this.stopReplay();
@@ -746,6 +753,7 @@ export class Dashboard implements OnDestroy {
     this.mode.set(mode);
     this.replayKey.update((key) => key + 1);
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   async replay() {
     if (this.replaying()) {
       this.stopReplay();
@@ -761,6 +769,7 @@ export class Dashboard implements OnDestroy {
     ]);
     if (generation !== this.replayGeneration) return;
     let index = 0;
+    /** @spec TECH-FRONTEND-DASHBOARD-101 */
     const next = () => {
       if (generation !== this.replayGeneration) return;
       if (index >= events.length) {
@@ -772,12 +781,14 @@ export class Dashboard implements OnDestroy {
     };
     next();
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   private stopReplay() {
     this.replayGeneration += 1;
     if (this.replayTimer) clearTimeout(this.replayTimer);
     this.replayTimer = undefined;
     this.replaying.set(false);
   }
+  /** @spec TECH-FRONTEND-DASHBOARD-101 */
   ngOnDestroy() {
     this.stopReplay();
   }

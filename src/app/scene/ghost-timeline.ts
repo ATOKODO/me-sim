@@ -123,9 +123,11 @@ export class GhostTimeline {
   ghost = input(false);
   focusMetric = input("screen");
   select = output<GhostEvent>();
+  /** @spec TECH-FRONTEND-GHOSTTIMELINE-101 */
   width(e: GhostEvent) {
     return Math.max(0.15, (e.end - e.start) / 14.4);
   }
+  /** @spec TECH-FRONTEND-GHOSTTIMELINE-101 */
   description(e: GhostEvent) {
     return `${this.i18n.t(e.label)} · ${timeLabel(e.start)}${e.point ? "" : "–" + timeLabel(e.end)}${e.running ? " · " + this.i18n.t("En cours") : ""}`;
   }

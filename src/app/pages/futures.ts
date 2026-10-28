@@ -255,12 +255,14 @@ export class Futures {
       [Validators.required, Validators.min(-100), Validators.max(100)],
     ],
   });
+  /** @spec TECH-FRONTEND-FUTURES-101 */
   constructor() {
     effect(() => {
       this.store.activeId();
       this.reset();
     });
   }
+  /** @spec TECH-FRONTEND-FUTURES-101 */
   reset() {
     this.editing.set(null);
     this.form.reset({
@@ -270,6 +272,7 @@ export class Futures {
       activityDelta: 0,
     });
   }
+  /** @spec TECH-FRONTEND-FUTURES-101 */
   edit(s: Scenario) {
     this.editing.set(s.id);
     this.form.setValue({
@@ -279,6 +282,7 @@ export class Futures {
       activityDelta: s.activityDelta,
     });
   }
+  /** @spec TECH-FRONTEND-FUTURES-101 */
   async save() {
     if (this.form.invalid) return;
     if (
@@ -293,6 +297,7 @@ export class Futures {
     )
       this.reset();
   }
+  /** @spec TECH-FRONTEND-FUTURES-101 */
   async remove(s: Scenario) {
     if (
       await this.store.mutate({

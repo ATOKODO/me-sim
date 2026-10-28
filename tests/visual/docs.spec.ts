@@ -15,6 +15,7 @@ const homeText = {
   fr: "Tes habitudes, ton petit monde.",
   en: "Your habits, your little world.",
 };
+/** @spec TECH-TOOLING-TESTS */
 const path = (language: string, name: string) =>
   (language === "en" ? "/en/" : "/") + (name === "index" ? "" : name);
 
@@ -184,12 +185,14 @@ for (const language of ["fr", "en"] as const) {
     expect(missing).toEqual([]);
   });
 }
+/** @spec TECH-TOOLING-TESTS */
 async function prepare(page: Page, theme: string) {
   await page.addInitScript(
     (theme) => localStorage.setItem("vitepress-theme-appearance", theme),
     theme,
   );
 }
+/** @spec TECH-TOOLING-TESTS */
 async function ready(page: Page, language: "fr" | "en", name: string) {
   await expect(page.locator("html")).toHaveAttribute(
     "lang",

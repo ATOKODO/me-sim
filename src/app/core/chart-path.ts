@@ -1,4 +1,5 @@
 /** Interpolate observed samples without overshooting the range of either neighbour. */
+/** @spec TECH-FRONTEND-CHART-101 */
 export function chartPath(values: readonly number[], smooth = false): string {
   if (!values.length) return "";
   const min = Math.min(...values),
@@ -6,6 +7,7 @@ export function chartPath(values: readonly number[], smooth = false): string {
   const span = max - min || 1;
   const y = values.map((value) => 85 - ((value - min) / span) * 65);
   const step = 400 / Math.max(values.length - 1, 1);
+  /** @spec TECH-FRONTEND-CHART-101 */
   const coordinate = (value: number) => Number(value.toFixed(3));
   let path = "M0," + coordinate(y[0]);
   if (!smooth || values.length < 3) {

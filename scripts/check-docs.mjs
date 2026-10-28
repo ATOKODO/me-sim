@@ -3,6 +3,7 @@ import path from "node:path";
 import { createMarkdownRenderer } from "vitepress";
 
 const root = path.resolve("docs");
+/** @spec TECH-TOOLING-VALIDATION */
 const pages = (folder) =>
   fs
     .readdirSync(folder)
@@ -17,8 +18,10 @@ if (JSON.stringify(french) !== JSON.stringify(english))
 const md = await createMarkdownRenderer(root, {
   headers: { level: [1, 2, 3] },
 });
+/** @spec TECH-TOOLING-VALIDATION */
 const flatten = (nodes) =>
   nodes.flatMap((node) => [node, ...flatten(node.children ?? [])]);
+/** @spec TECH-TOOLING-VALIDATION */
 function sections(file) {
   const env = {};
   md.render(fs.readFileSync(file, "utf8"), env);

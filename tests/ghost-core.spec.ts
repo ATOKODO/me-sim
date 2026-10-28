@@ -20,6 +20,7 @@ import type {
   RoutineVersion,
   Snapshot,
 } from "../src/app/core/models";
+/** @spec TECH-TOOLING-TESTS */
 const row = (
   id: string,
   date: string,

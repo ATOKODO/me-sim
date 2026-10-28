@@ -86,6 +86,8 @@ La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent
 
 La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Guides français et anglais (`/en/`), navigation et recherche locale traduites, thèmes clair/sombre et ressources embarquées. Le build local vérifie la parité des pages et sections entre langues. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle.
 
+Les [spécifications fonctionnelles et techniques](docs/specifications.md) décrivent les contrats du code et les références placées sur ses déclarations.
+
 ## Design système
 
 [Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles et captures de référence exécutés localement. Les écrans et la documentation sont capturés aux formats iPhone 16 Pro, iPad Pro 11″, MacBook Pro 14″ et Desktop en français/anglais, clair/sombre.

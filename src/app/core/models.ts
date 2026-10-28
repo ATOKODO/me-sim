@@ -476,11 +476,14 @@ export const DEFAULT_HABITS: Omit<HabitDefinition, "id" | "startDate">[] = [
     archivedAt: null,
   },
 ];
+/** @spec TECH-FRONTEND-MODELS-101 */
 export const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
+/** @spec TECH-FRONTEND-MODELS-101 */
 export const uid = () => crypto.randomUUID();
+/** @spec TECH-FRONTEND-MODELS-101 */
 export function emptySnapshot(): Snapshot {
   return {
     version: 1,
@@ -497,6 +500,7 @@ export function emptySnapshot(): Snapshot {
     },
   };
 }
+/** @spec TECH-FRONTEND-MODELS-101 */
 export function addDemo(s: Snapshot): Profile {
   const start = new Date();
   start.setDate(start.getDate() - 13);

@@ -197,8 +197,10 @@ export class Profiles {
     sex: [""],
     color: ["#bde883", Validators.required],
   });
+  /** @spec TECH-FRONTEND-PROFILES-101 */
   count = (id: string) =>
     this.store.data().observations.filter((o) => o.profileId === id).length;
+  /** @spec TECH-FRONTEND-PROFILES-101 */
   reset() {
     this.editing.set(null);
     this.form.reset({
@@ -209,6 +211,7 @@ export class Profiles {
       color: "#bde883",
     });
   }
+  /** @spec TECH-FRONTEND-PROFILES-101 */
   edit(p: Profile) {
     this.editing.set(p);
     this.form.setValue({
@@ -219,6 +222,7 @@ export class Profiles {
       color: p.color,
     });
   }
+  /** @spec TECH-FRONTEND-PROFILES-101 */
   async save() {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
@@ -262,6 +266,7 @@ export class Profiles {
       this.reset();
     }
   }
+  /** @spec TECH-FRONTEND-PROFILES-101 */
   async remove(p: Profile) {
     if (await this.store.mutate({ type: "deleteProfile", value: p.id })) {
       if (this.editing()?.id === p.id) this.reset();

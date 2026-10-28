@@ -2,6 +2,7 @@ use super::excel_binary::sst;
 use super::*;
 use std::io::Cursor;
 use std::io::Write;
+// @spec TECH-RUST-113
 fn zipped(entries: &[(&str, &[u8])]) -> Vec<u8> {
     let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
     for (name, data) in entries {
@@ -15,6 +16,7 @@ fn zipped(entries: &[(&str, &[u8])]) -> Vec<u8> {
     }
     zip.finish().unwrap().into_inner()
 }
+// @spec TECH-RUST-113
 fn workbook(sheet: &str) -> Vec<u8> {
     zipped(&[
         (
@@ -24,10 +26,12 @@ fn workbook(sheet: &str) -> Vec<u8> {
         ("xl/worksheets/sheet1.xml", sheet.as_bytes()),
     ])
 }
+// @spec TECH-RUST-113
 fn rejected(result: Result<()>) {
     let error = result.unwrap_err();
     assert_eq!(error.code, "INVALID_DATA");
 }
+// @spec TECH-RUST-113
 #[test]
 fn sparse_and_declared_xlsx_extents_are_rejected_before_range_loading() {
     for sheet in [
@@ -42,6 +46,7 @@ fn sparse_and_declared_xlsx_extents_are_rejected_before_range_loading() {
         assert_eq!(crate::exchange::read(&path).unwrap_err().code,"INVALID_DATA");
     }
 }
+// @spec TECH-RUST-113
 #[test]
 fn implicit_xlsx_cells_and_cumulative_grids_are_bounded() {
     let sheet = format!(
@@ -57,6 +62,7 @@ fn implicit_xlsx_cells_and_cumulative_grids_are_bounded() {
         ("c.xml", grid),
     ])));
 }
+// @spec TECH-RUST-113
 #[test]
 fn zip_metadata_is_bounded_before_archive_allocation() {
     let names: Vec<_> = (0..513).map(|i| format!("{i}.xml")).collect();
@@ -81,6 +87,7 @@ fn zip_metadata_is_bounded_before_archive_allocation() {
     }
     rejected(xlsx(&bytes));
 }
+// @spec TECH-RUST-113
 #[test]
 fn dishonest_zip_sizes_duplicate_names_and_malformed_archives_fail() {
     let mut bytes = workbook("<worksheet/>");
@@ -102,6 +109,7 @@ fn dishonest_zip_sizes_duplicate_names_and_malformed_archives_fail() {
     let bytes = workbook("<worksheet><sheetData>");
     rejected(xlsx(&bytes));
 }
+// @spec TECH-RUST-113
 #[test]
 fn xml_counts_depth_attributes_formulas_and_entities_are_checked() {
     for sheet in [
@@ -125,6 +133,7 @@ fn xml_counts_depth_attributes_formulas_and_entities_are_checked() {
     );
     rejected(xlsx(&zipped(&[("xl/workbook.xml", sheets.as_bytes())])));
 }
+// @spec TECH-RUST-113
 #[test]
 fn shared_text_amplification_is_bounded_across_sheets() {
     let strings = format!("<sst><si><t>{}</t></si></sst>", "x".repeat(1024));
@@ -138,6 +147,7 @@ fn shared_text_amplification_is_bounded_across_sheets() {
         ("xl/worksheets/sheet.xml", sheet.as_bytes()),
     ])));
 }
+// @spec TECH-RUST-113
 #[test]
 fn csv_quotes_limits_and_exact_row_boundary() {
     csv(
@@ -156,6 +166,7 @@ fn csv_quotes_limits_and_exact_row_boundary() {
     let line = format!("{}\n", vec!["1"; 256].join(","));
     rejected(csv(line.repeat(2000).as_bytes(), b','));
 }
+// @spec TECH-RUST-113
 #[test]
 fn json_preflight_rejects_nested_values_and_large_tables() {
     json(br#"[{"date":"2026-10-01","value":75.5,"empty":null,"flag":true}]"#).unwrap();
@@ -182,11 +193,13 @@ fn json_preflight_rejects_nested_values_and_large_tables() {
         format!("[{}]", vec!["{\"v\":1}"; 50001].join(",")).as_bytes(),
     ));
 }
+// @spec TECH-RUST-113
 fn record(out: &mut Vec<u8>, kind: u16, data: &[u8]) {
     out.extend(kind.to_le_bytes());
     out.extend((data.len() as u16).to_le_bytes());
     out.extend(data);
 }
+// @spec TECH-RUST-113
 fn biff_book(records: &[(u16, Vec<u8>)], globals: &[(u16, Vec<u8>)]) -> Vec<u8> {
     let mut out = Vec::new();
     record(&mut out, 0x0809, &[0, 6, 5, 0]);
@@ -205,6 +218,7 @@ fn biff_book(records: &[(u16, Vec<u8>)], globals: &[(u16, Vec<u8>)]) -> Vec<u8> 
     record(&mut out, 0x000A, &[]);
     out
 }
+// @spec TECH-RUST-113
 fn compound(workbook: &[u8]) -> Vec<u8> {
     let mut file =
         cfb::CompoundFile::create_with_version(cfb::Version::V3, Cursor::new(Vec::new())).unwrap();
@@ -214,6 +228,7 @@ fn compound(workbook: &[u8]) -> Vec<u8> {
         .unwrap();
     file.into_inner().into_inner()
 }
+// @spec TECH-RUST-113
 fn number(row: u16, col: u16) -> Vec<u8> {
     let mut out = Vec::new();
     out.extend(row.to_le_bytes());
@@ -222,6 +237,7 @@ fn number(row: u16, col: u16) -> Vec<u8> {
     out.extend(1f64.to_le_bytes());
     out
 }
+// @spec TECH-RUST-113
 #[test]
 fn xls_dimensions_sparse_cells_and_formulas_fail_before_calamine() {
     let mut dims = Vec::new();
@@ -246,6 +262,7 @@ fn xls_dimensions_sparse_cells_and_formulas_fail_before_calamine() {
         );
     }
 }
+// @spec TECH-RUST-113
 #[test]
 fn xls_shared_strings_and_continuations_remain_supported() {
     let mut first = vec![1, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0];
@@ -264,6 +281,7 @@ fn xls_shared_strings_and_continuations_remain_supported() {
         vec!["test"]
     );
 }
+// @spec TECH-RUST-113
 #[test]
 fn entity_encoded_and_split_cell_text_cannot_bypass_text_budgets() {
     let strings = format!("<sst><si><t>{}</t></si></sst>", "&amp;".repeat(4096));
@@ -283,6 +301,7 @@ fn entity_encoded_and_split_cell_text_cannot_bypass_text_budgets() {
     );
     rejected(xlsx(&workbook(&fragments)));
 }
+// @spec TECH-RUST-113
 #[test]
 fn escaped_unicode_xlsx_text_remains_readable() {
     let dir = tempfile::tempdir().unwrap();
@@ -297,6 +316,7 @@ fn escaped_unicode_xlsx_text_remains_readable() {
         vec!["Été & repos < 5"]
     );
 }
+// @spec TECH-RUST-113
 #[test]
 fn compressed_xml_payload_is_rejected_without_loading_a_sheet() {
     let body = format!("<worksheet>{}</worksheet>", "x".repeat(2 * 1024 * 1024));
@@ -304,6 +324,7 @@ fn compressed_xml_payload_is_rejected_without_loading_a_sheet() {
     assert!(bytes.len() < 10_000);
     rejected(xlsx(&bytes));
 }
+// @spec TECH-RUST-113
 #[test]
 fn xls_shared_text_amplification_and_malformed_cfb_are_rejected() {
     let mut table = vec![0x28, 0x23, 0, 0, 1, 0, 0, 0];
@@ -317,6 +338,7 @@ fn xls_shared_text_amplification_and_malformed_cfb_are_rejected() {
     malformed[44..48].copy_from_slice(&u32::MAX.to_le_bytes());
     assert!(xls(&malformed).is_err());
 }
+// @spec TECH-RUST-113
 #[test]
 fn raw_file_size_is_bounded_without_loading_oversize_data() {
     let dir = tempfile::tempdir().unwrap();
@@ -326,6 +348,7 @@ fn raw_file_size_is_bounded_without_loading_oversize_data() {
     assert_eq!(read_file(&path).unwrap_err().code, "INVALID_DATA");
 }
 
+// @spec TECH-RUST-113
 #[test]
 fn exact_csv_record_limit_and_backup_guidance_are_preserved() {
     let record = format!("{}\n", vec!["x".repeat(256 * 1024); 4].join(","));
@@ -333,6 +356,7 @@ fn exact_csv_record_limit_and_backup_guidance_are_preserved() {
     let backup = json(br#" {"version":1,"profiles":[]}"#).unwrap_err();
     assert!(backup.message.contains("utilisez Restaurer"));
 }
+// @spec TECH-RUST-113
 #[test]
 fn exchange_checks_csv_and_json_before_building_tables() {
     let dir = tempfile::tempdir().unwrap();
@@ -354,6 +378,7 @@ fn exchange_checks_csv_and_json_before_building_tables() {
     );
 }
 
+// @spec TECH-RUST-113
 #[test]
 fn compact_excel_tables_far_from_a1_retain_support() {
     let dir = tempfile::tempdir().unwrap();

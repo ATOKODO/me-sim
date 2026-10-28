@@ -51,6 +51,8 @@ Le moteur de recherche du poids reste inaccessible aux projections utilisateur. 
 
 ## Documentation et catalogue
 
+Les [spécifications fonctionnelles et techniques](./specifications.md) détaillent les contrats associés aux déclarations du code et leurs limites.
+
 VitePress 1.6.4 transforme les guides de `docs/` et `docs/en/` en site statique, avec navigation traduite et index de recherche locaux. Storybook expose les styles et composants de l’application. Ces outils sont des dépendances de développement et ne font pas partie du paquet Tauri.
 
 La configuration du site est dans `docs/.vitepress/config.mts`, son thème dans `docs/.vitepress/theme/` et ses assets dédiés dans `docs/public/`. Cache et sortie de build sont ignorés par Git. Les vérifications locales construisent la documentation, contrôlent les langues et liens internes et comparent les captures aux quatre résolutions partagées. Aucun workflow GitHub Actions ni publication automatique n’est configuré dans le dépôt.

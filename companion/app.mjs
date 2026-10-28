@@ -16,6 +16,7 @@ import {
   updateOperations,
 } from "./db.mjs";
 
+/** @spec TECH-COMPANION-UI */
 const $ = (id) => document.getElementById(id);
 const state = {
   token: null,
@@ -26,6 +27,7 @@ const state = {
   syncing: false,
 };
 
+/** @spec TECH-COMPANION-UI */
 function notice(message, error = false) {
   const node = $("message");
   node.textContent = message;
@@ -33,6 +35,7 @@ function notice(message, error = false) {
   node.classList.remove("hidden");
 }
 
+/** @spec TECH-COMPANION-UI */
 function connection(connected = false) {
   const node = $("connection");
   node.textContent = connected
@@ -43,10 +46,12 @@ function connection(connected = false) {
   node.classList.toggle("online", connected);
 }
 
+/** @spec TECH-COMPANION-UI */
 function selectedProfile() {
   return state.profiles.find((profile) => profile.id === state.activeProfileId);
 }
 
+/** @spec TECH-COMPANION-UI */
 function profileName(id) {
   return (
     state.profiles.find((profile) => profile.id === id)?.name ??
@@ -54,6 +59,7 @@ function profileName(id) {
   );
 }
 
+/** @spec TECH-COMPANION-UI */
 function renderProfiles() {
   const select = $("profile-select");
   select.replaceChildren();
@@ -77,6 +83,7 @@ function renderProfiles() {
   renderQueue();
 }
 
+/** @spec TECH-COMPANION-UI */
 function activeHabits() {
   const date = $("habit-date").value;
   return (selectedProfile()?.habits ?? []).filter(
@@ -85,6 +92,7 @@ function activeHabits() {
   );
 }
 
+/** @spec TECH-COMPANION-UI */
 function renderHabits() {
   const list = $("habit-list");
   list.replaceChildren();
@@ -126,6 +134,7 @@ function renderHabits() {
   }
 }
 
+/** @spec TECH-COMPANION-UI */
 function renderQueue() {
   $("pending-badge").textContent = `${state.pending.length} en attente`;
   $("sync-button").disabled =
@@ -176,6 +185,7 @@ function renderQueue() {
   }
 }
 
+/** @spec TECH-COMPANION-UI */
 function renderMetric() {
   const metric = METRICS.find((entry) => entry.id === $("metric").value);
   if (!metric) return;
@@ -187,6 +197,7 @@ function renderMetric() {
   $("observation-time").required = Boolean(metric.event);
 }
 
+/** @spec TECH-COMPANION-UI */
 async function queue(operation, previousId = null) {
   if (!previousId && state.pending.length >= 2000)
     throw new Error(
@@ -207,6 +218,7 @@ async function queue(operation, previousId = null) {
   if (state.token && navigator.onLine) void sync(true);
 }
 
+/** @spec TECH-COMPANION-UI */
 async function saveHabit(habitId, answer) {
   try {
     if (!selectedProfile()) throw new Error("Choisis un profil.");
@@ -237,6 +249,7 @@ async function saveHabit(habitId, answer) {
   }
 }
 
+/** @spec TECH-COMPANION-UI */
 async function api(path, options = {}) {
   if (!window.isSecureContext) {
     throw new Error("Ouvre l’adresse HTTPS du PC avant d’associer ou de synchroniser ce téléphone.");
@@ -281,6 +294,7 @@ async function api(path, options = {}) {
   }
 }
 
+/** @spec TECH-COMPANION-UI */
 async function refreshBootstrap() {
   const body = await api("/api/companion/bootstrap");
   if (!Array.isArray(body.profiles)) throw new Error("Réponse du PC invalide.");
@@ -290,6 +304,7 @@ async function refreshBootstrap() {
   connection(true);
 }
 
+/** @spec TECH-COMPANION-UI */
 async function sync(silent = false) {
   if (!state.token || state.syncing) return;
   const candidates = state.pending
@@ -357,6 +372,7 @@ async function sync(silent = false) {
   }
 }
 
+/** @spec TECH-COMPANION-UI */
 function setTab(habit) {
   $("observation-panel").classList.toggle("hidden", habit);
   $("habit-panel").classList.toggle("hidden", !habit);
@@ -369,6 +385,7 @@ function setTab(habit) {
   }
 }
 
+/** @spec TECH-COMPANION-UI */
 async function start() {
   if (!window.isSecureContext || !("serviceWorker" in navigator)) {
     notice(

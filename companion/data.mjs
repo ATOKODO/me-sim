@@ -39,14 +39,17 @@ export const METRICS = [
   },
 ];
 
+/** @spec TECH-COMPANION-DATA */
 export function localDate(now = new Date()) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+/** @spec TECH-COMPANION-DATA */
 export function localTime(now = new Date()) {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
+/** @spec TECH-COMPANION-DATA */
 export function observationOperation({
   id,
   profileId,
@@ -94,6 +97,7 @@ export function observationOperation({
   };
 }
 
+/** @spec TECH-COMPANION-DATA */
 export function habitOperation({
   id,
   profileId,
@@ -120,6 +124,7 @@ export function habitOperation({
   };
 }
 
+/** @spec TECH-COMPANION-DATA */
 function validDate(date) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
   const [year, month, day] = date.split("-").map(Number);
@@ -131,6 +136,7 @@ function validDate(date) {
   );
 }
 
+/** @spec TECH-COMPANION-DATA */
 export function applySyncResult(operations, result) {
   const accepted = new Set(result.accepted ?? []);
   const issues = new Map([

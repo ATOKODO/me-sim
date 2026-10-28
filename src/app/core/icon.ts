@@ -50,5 +50,6 @@ export const ICON_NAMES = Object.keys(PATHS);
 })
 export class Icon {
   name = input("home");
+  /** @spec TECH-FRONTEND-ICON-101 */
   path = () => PATHS[this.name()] ?? PATHS["info"];
 }

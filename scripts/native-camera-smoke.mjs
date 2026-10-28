@@ -30,6 +30,7 @@ try {
   await expect(scene.locator(".camera-zoom")).toHaveText("100 %");
   await page.waitForTimeout(150);
   const canvas = scene.locator("canvas");
+  /** @spec TECH-TOOLING-VALIDATION */
   const capture = () =>
     canvas.screenshot({ mask: [scene.locator(".camera-controls")] });
   const initial = await capture();

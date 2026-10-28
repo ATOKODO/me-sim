@@ -26,24 +26,30 @@ export interface GhostEvent {
   habitId?: string | null;
   toleranceMinutes?: number;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function minuteOf(date: Date) {
   return date.getHours() * 60 + date.getMinutes();
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function timeLabel(minute: number) {
   return `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(Math.floor(minute % 60)).padStart(2, "0")}`;
 }
 /** RFC3339 includes the original wall-clock offset; duration uses absolute instants. */
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function localStamp(date = new Date()) {
   const offset = -date.getTimezoneOffset(),
     sign = offset < 0 ? "-" : "+";
   return `${localDate(date)}T${timeLabel(minuteOf(date))}:${String(date.getSeconds()).padStart(2, "0")}${sign}${timeLabel(Math.abs(offset))}`;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function defaultLabel(metric: Metric) {
   return HABIT_METRICS.find((m) => m.id === metric)?.label ?? metric;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function eventLabel(o: Observation) {
   return o.context?.label || defaultLabel(o.metric);
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function eventsForDay(
   observations: Observation[],
   date: string,
@@ -53,6 +59,7 @@ export function eventsForDay(
   const startDay = new Date(date + "T00:00:00").getTime();
   const endDay = new Date(shiftDate(date, 1) + "T00:00:00").getTime();
   const list: GhostEvent[] = [];
+  /** @spec TECH-FRONTEND-GHOST-101 */
   const include = (
     id: string,
     metric: Metric,
@@ -160,6 +167,7 @@ export function eventsForDay(
     );
   return list.sort((a, b) => a.start - b.start);
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function routineForDay(
   plans: RoutineVersion[],
   date: string,
@@ -175,6 +183,7 @@ export function routineForDay(
   const weekday = new Date(date + "T12:00:00").getDay();
   return [...latest.values()].filter((p) => p.weekdays.includes(weekday));
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function plannedEvents(
   plans: RoutineVersion[],
   date: string,
@@ -194,6 +203,7 @@ export function plannedEvents(
     })),
   );
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function eventsAt(events: GhostEvent[], minute: number) {
   return events.filter((e) =>
     e.point
@@ -201,6 +211,7 @@ export function eventsAt(events: GhostEvent[], minute: number) {
       : e.start <= minute && (e.end > minute || (e.running && e.end >= minute)),
   );
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function referenceDates(
   today: string,
   days: number,
@@ -218,9 +229,11 @@ export interface Focus {
   metric: Metric;
   label?: string;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function matches(e: GhostEvent, focus: Focus) {
   return e.metric === focus.metric && (!focus.label || e.label === focus.label);
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 function unionLength(intervals: [number, number][]) {
   let total = 0,
     end = -1;
@@ -231,6 +244,7 @@ function unionLength(intervals: [number, number][]) {
   }
   return Math.round(total * 10) / 10;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function recorded(events: GhostEvent[], minute: number, focus?: Focus) {
   const found = events.filter(
     (e) => (!focus || matches(e, focus)) && e.start <= minute,
@@ -250,6 +264,7 @@ export function recorded(events: GhostEvent[], minute: number, focus?: Focus) {
     });
   return Math.round((unionLength(intervals) / 60000) * 10) / 10;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function frequency(days: GhostEvent[][], minute: number, focus: Focus) {
   const pointFocus =
     HABIT_METRICS.find((m) => m.id === focus.metric)?.unit !== "min";
@@ -265,6 +280,7 @@ export function frequency(days: GhostEvent[][], minute: number, focus: Focus) {
   };
 }
 /** Aggregate covered minutes, including short sessions between grid midpoints. */
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function frequencyBins(
   days: GhostEvent[][],
   focus: Focus,
@@ -292,6 +308,7 @@ export function frequencyBins(
   }
   return bins;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function compareSchedule(
   actual: GhostEvent[],
   plans: GhostEvent[],
@@ -345,6 +362,7 @@ export function compareSchedule(
       };
     });
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function dominant(
   days: GhostEvent[][],
   minute: number,
@@ -365,6 +383,7 @@ export function dominant(
 }
 
 /** Browser preview mirrors native atomic operations; production is always validated in Rust. */
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function recordLinkedHabit(s: Snapshot, o: Observation) {
   const id = o.context?.habitId,
     p = s.profiles.find((p) => p.id === o.profileId),
@@ -395,6 +414,7 @@ export function recordLinkedHabit(s: Snapshot, o: Observation) {
   day.answers[id] = true;
   day.validatedAt = null;
 }
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function applyGhostMutation(s: Snapshot, op: Mutation): boolean {
   if (
     ![
@@ -498,6 +518,7 @@ export function applyGhostMutation(s: Snapshot, op: Mutation): boolean {
   return true;
 }
 
+/** @spec TECH-FRONTEND-GHOST-101 */
 export function observationKey(o: Observation) {
   return o.context?.start ?? o.at ?? "";
 }

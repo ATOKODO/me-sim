@@ -9,6 +9,7 @@ struct BiffRecord<'a> {
     kind: usize,
     data: &'a [u8],
 }
+// @spec TECH-RUST-108
 fn biff_record<'a>(bytes: &'a [u8], position: &mut usize) -> Result<BiffRecord<'a>> {
     let kind = u16_at(bytes, *position)?;
     let length = u16_at(bytes, *position + 2)?;
@@ -27,6 +28,7 @@ struct SstCursor<'a> {
     position: usize,
 }
 impl SstCursor<'_> {
+    // @spec TECH-RUST-108
     fn advance(&mut self) -> bool {
         while self.segment < self.segments.len()
             && self.position == self.segments[self.segment].len()
@@ -36,26 +38,31 @@ impl SstCursor<'_> {
         }
         self.segment < self.segments.len()
     }
+    // @spec TECH-RUST-108
     fn contiguous(&mut self, n: usize) -> Result<()> {
         if !self.advance() || self.segments[self.segment].len() - self.position < n {
             return Err(invalid("En-tête SST tronqué."));
         }
         Ok(())
     }
+    // @spec TECH-RUST-108
     fn byte(&mut self) -> Result<u8> {
         self.contiguous(1)?;
         let value = self.segments[self.segment][self.position];
         self.position += 1;
         Ok(value)
     }
+    // @spec TECH-RUST-108
     fn short(&mut self) -> Result<usize> {
         let low = self.byte()? as usize;
         Ok(low | ((self.byte()? as usize) << 8))
     }
+    // @spec TECH-RUST-108
     fn long(&mut self) -> Result<usize> {
         let low = self.short()?;
         Ok(low | (self.short()? << 16))
     }
+    // @spec TECH-RUST-108
     fn skip(&mut self, mut n: usize) -> Result<()> {
         while n > 0 {
             if !self.advance() {
@@ -67,6 +74,7 @@ impl SstCursor<'_> {
         }
         Ok(())
     }
+    // @spec TECH-RUST-108
     fn characters(&mut self, mut n: usize, mut wide: bool) -> Result<()> {
         while n > 0 {
             if self.position == self.segments[self.segment].len() {
@@ -91,6 +99,7 @@ impl SstCursor<'_> {
         Ok(())
     }
 }
+// @spec TECH-RUST-108
 pub(super) fn sst(segments: Vec<&[u8]>, budget: &mut usize) -> Result<Vec<usize>> {
     let mut cursor = SstCursor {
         segments,
@@ -132,6 +141,7 @@ pub(super) fn sst(segments: Vec<&[u8]>, budget: &mut usize) -> Result<Vec<usize>
     }
     Ok(lengths)
 }
+// @spec TECH-RUST-108
 fn xls_dimensions(data: &[u8]) -> Result<usize> {
     let (first_row, last_row, first_col, last_col) = match data.len() {
         10 => (
@@ -159,6 +169,7 @@ fn xls_dimensions(data: &[u8]) -> Result<usize> {
     }
     rect(last_row - first_row, last_col - first_col)
 }
+// @spec TECH-RUST-108
 fn biff(bytes: &[u8]) -> Result<()> {
     let mut position = 0;
     let mut events = 0;
@@ -275,6 +286,7 @@ fn biff(bytes: &[u8]) -> Result<()> {
     }
     Ok(())
 }
+// @spec TECH-RUST-108
 /// Decode with the validated CFB implementation, check BIFF records, then create
 /// a canonical workbook-only container. Calamine never sees untrusted FAT chains
 /// or macro streams; all offsets in the unchanged workbook stream are preserved.

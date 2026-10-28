@@ -81,6 +81,8 @@ rig.select_set(True)
 character.select_set(False)
 bpy.ops.object.mode_set(mode='EDIT')
 
+
+# @spec TECH-TOOLING-ART
 def add_prop(name, position, parent=None):
     bone = rig.data.edit_bones.new('prop_' + name)
     bone.head = position
@@ -109,6 +111,7 @@ for index in range(3):
 bpy.ops.object.mode_set(mode='OBJECT')
 
 materials = {}
+# @spec TECH-TOOLING-ART
 def solid(name, color, emission=0):
     if name not in materials:
         mat = bpy.data.materials.new(name)
@@ -123,6 +126,8 @@ def solid(name, color, emission=0):
         materials[name] = mat
     return materials[name]
 
+
+# @spec TECH-TOOLING-ART
 def bind(obj, prop, mat):
     obj.data.materials.clear()
     obj.data.materials.append(mat)
@@ -134,6 +139,8 @@ def bind(obj, prop, mat):
     modifier.object = rig
     return obj
 
+
+# @spec TECH-TOOLING-ART
 def box(prop, name, size, offset=(0, 0, 0), color=(0.5, 0.5, 0.5), emission=0):
     center = props[prop]['position'] + Vector(offset)
     sx, sy, sz = [value / 2 for value in size]
@@ -146,6 +153,8 @@ def box(prop, name, size, offset=(0, 0, 0), color=(0.5, 0.5, 0.5), emission=0):
     bpy.context.collection.objects.link(obj)
     return bind(obj, prop, solid(name + 'Material', color, emission))
 
+
+# @spec TECH-TOOLING-ART
 def sphere(prop, name, radius, offset, color):
     center = props[prop]['position'] + Vector(offset)
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=radius, location=center)
@@ -199,18 +208,26 @@ rest_rotations = {b.name: b.matrix_local.to_quaternion() for b in rig.data.bones
 for bone in rig.pose.bones:
     bone.rotation_mode = 'QUATERNION'
 
+
+# @spec TECH-TOOLING-ART
 def rotate(name, x=0, y=0, z=0):
     world = Quaternion((1,0,0), x) @ Quaternion((0,1,0), y) @ Quaternion((0,0,1), z)
     rest = rest_rotations[name]
     rig.pose.bones[name].rotation_quaternion = rest.inverted() @ world @ rest
 
+
+# @spec TECH-TOOLING-ART
 def translate(name, xyz):
     rig.pose.bones[name].location = rest_rotations[name].inverted() @ Vector(xyz)
 
+
+# @spec TECH-TOOLING-ART
 def visible(*names):
     for name in names:
         rig.pose.bones[props[name]['bone']].scale = (1,1,1)
 
+
+# @spec TECH-TOOLING-ART
 def sit():
     translate('pelvis', (0,0,-sit_drop))
     for side, shin in [('left','shin.L'), ('right','shin.R')]:
@@ -218,11 +235,15 @@ def sit():
         rotate(shin, x=1.45)
     visible('chair')
 
+
+# @spec TECH-TOOLING-ART
 def hands_forward(upper=-0.35, elbow=-1.05):
     for side in ('left','right'):
         rotate('upper_arm_' + side, x=upper)
         rotate('forearm_' + side, x=elbow)
 
+
+# @spec TECH-TOOLING-ART
 def aim_bone(name, target):
     """Bake a swing into the pose, retaining the source bone's roll."""
     bone = rig.pose.bones[name]
@@ -234,6 +255,7 @@ def aim_bone(name, target):
     bpy.context.view_layer.update()
 
 
+# @spec TECH-TOOLING-ART
 def reach(side, target):
     """Analytic two-bone reach: no runtime IK or extra dependencies."""
     upper = rig.pose.bones['upper_arm_' + side]
@@ -258,6 +280,7 @@ def reach(side, target):
     bpy.context.view_layer.update()
 
 
+# @spec TECH-TOOLING-ART
 def pose(mode, u):
     wave = math.sin(u * math.tau)
     cycle = 0.5 - 0.5 * math.cos(u * math.tau)

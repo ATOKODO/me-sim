@@ -3,6 +3,7 @@ import { shiftDate } from "./habit-tracking";
 import { eventsForDay, recorded } from "./ghost";
 
 /** Absolute sessions may cross midnight; retain the original journal entry while splitting summaries. */
+/** @spec TECH-FRONTEND-SUMMARY-101 */
 function rowsOnDay(observations: Observation[], date: string, now: number) {
   return observations.flatMap((o) => {
     if (o.context?.start && o.context?.end && o.unit === "min") {
@@ -19,6 +20,7 @@ function rowsOnDay(observations: Observation[], date: string, now: number) {
   });
 }
 
+/** @spec TECH-FRONTEND-SUMMARY-101 */
 export function timelineEvents(observations: Observation[], now: number) {
   const start = now - 24 * 60 * 60 * 1000;
   return observations
@@ -42,12 +44,14 @@ export function timelineEvents(observations: Observation[], now: number) {
     .sort((a, b) => a.time.getTime() - b.time.getTime());
 }
 
+/** @spec TECH-FRONTEND-SUMMARY-101 */
 export function dailyRecap(
   observations: Observation[],
   date: string,
   now: number,
 ) {
   const rows = rowsOnDay(observations, date, now);
+  /** @spec TECH-FRONTEND-SUMMARY-101 */
   const sum = (...metrics: string[]) => {
     const known = rows.filter((o) => metrics.includes(o.metric));
     return known.length
@@ -73,6 +77,7 @@ export function dailyRecap(
   };
 }
 
+/** @spec TECH-FRONTEND-SUMMARY-101 */
 export function targetTrajectory(
   observations: Observation[],
   target: TargetDay,
@@ -82,8 +87,10 @@ export function targetTrajectory(
   return Array.from({ length: 7 }, (_, index) => {
     const date = shiftDate(today, index - 6);
     const rows = rowsOnDay(observations, date, now);
+    /** @spec TECH-FRONTEND-SUMMARY-101 */
     const latest = (metric: string) =>
       rows.find((o) => o.metric === metric)?.value;
+    /** @spec TECH-FRONTEND-SUMMARY-101 */
     const sum = (metric: string) => {
       const found = rows.filter((o) => o.metric === metric);
       return found.length ? found.reduce((n, o) => n + o.value, 0) : undefined;

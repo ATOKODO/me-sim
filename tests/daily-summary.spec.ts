@@ -6,6 +6,7 @@ import {
 } from "../src/app/core/daily-summary";
 import { DEFAULT_TARGET, Observation } from "../src/app/core/models";
 const now = new Date("2026-10-01T12:00:00").getTime();
+/** @spec TECH-TOOLING-TESTS */
 function row(
   metric: Observation["metric"],
   value: number,

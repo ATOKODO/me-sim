@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 
+/** @spec TECH-TOOLING-TESTS */
 function gate() {
   let open!: () => void;
   const wait = new Promise<void>((resolve) => (open = resolve));
   return { wait, open };
 }
+/** @spec TECH-TOOLING-TESTS */
 function pendingRequest() {
   return { entered: gate(), released: gate() };
 }
@@ -55,6 +57,7 @@ for (const variant of ["default", "female"] as const) {
     }
     const scene = page.locator(".scene").first();
     // Hide overlays so differences measure the rendered person, not its loading caption.
+    /** @spec TECH-TOOLING-TESTS */
     const capture = async () => {
       await page.waitForTimeout(100);
       return scene.locator("canvas").screenshot({

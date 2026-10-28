@@ -16,6 +16,7 @@ struct AppState {
     previews: Mutex<HashMap<String, exchange::Preview>>,
     restores: Mutex<HashMap<String, Snapshot>>,
 }
+// @spec TECH-RUST-112
 fn lock<T>(m: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>> {
     m.lock()
         .map_err(|_| AppError::new("INTERNAL", "Verrou indisponible. Redémarrez l’application."))
@@ -28,6 +29,7 @@ struct Initial {
     storage_path: String,
     model: science::ModelDefinition,
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn initial_state(state: State<AppState>) -> Result<Initial> {
     let db = lock(&state.store)?;
@@ -39,6 +41,7 @@ fn initial_state(state: State<AppState>) -> Result<Initial> {
         model: science::definition(),
     })
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn mutate(
     operation: Mutation,
@@ -47,6 +50,7 @@ fn mutate(
 ) -> Result<store::VersionedSnapshot> {
     lock(&state.store)?.mutate_at_revision(operation, expected_revision)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 async fn choose_import(state: State<'_, AppState>) -> Result<Option<exchange::Workbook>> {
     let english = matches!(lock(&state.store)?.load()?.settings.language, Language::En);
@@ -64,6 +68,7 @@ async fn choose_import(state: State<'_, AppState>) -> Result<Option<exchange::Wo
     books.insert(book.token.clone(), book.clone());
     Ok(Some(book))
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn preview_import(
     token: String,
@@ -82,6 +87,7 @@ fn preview_import(
     previews.insert(p.token.clone(), p.clone());
     Ok(p)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn commit_import(
     token: String,
@@ -102,6 +108,7 @@ fn commit_import(
     previews.remove(&token);
     Ok(db.versioned(s))
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 async fn export_data(
     format: String,
@@ -149,6 +156,7 @@ struct RestorePreview {
     habit_days: usize,
     scenarios: usize,
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 async fn preview_restore(state: State<'_, AppState>) -> Result<Option<RestorePreview>> {
     let english = matches!(lock(&state.store)?.load()?.settings.language, Language::En);
@@ -188,6 +196,7 @@ struct Restored {
     state: store::VersionedSnapshot,
     backup_path: String,
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn commit_restore(
     token: String,
@@ -216,6 +225,7 @@ fn commit_restore(
         backup_path: backup.to_string_lossy().into(),
     })
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn run_simulation(
     profile_id: String,
@@ -235,6 +245,7 @@ fn run_simulation(
         .ok_or_else(|| invalid("Scénario introuvable."))?;
     science::run(p, v)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn companion_start(
     profile_id: String,
@@ -242,18 +253,22 @@ fn companion_start(
 ) -> Result<companion::CompanionStatus> {
     companion::start(app, profile_id)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn companion_status(state: State<AppState>) -> Result<companion::CompanionStatus> {
     companion::status(&state)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn companion_new_pairing_code(state: State<AppState>) -> Result<companion::CompanionStatus> {
     companion::refresh_pairing(&state)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn companion_stop(state: State<AppState>) -> Result<companion::CompanionStatus> {
     companion::stop(&state)
 }
+// @spec TECH-RUST-112
 #[tauri::command]
 fn companion_revoke(
     device_id: String,
@@ -261,6 +276,7 @@ fn companion_revoke(
 ) -> Result<companion::CompanionStatus> {
     companion::revoke(&state, &device_id)
 }
+// @spec TECH-RUST-112
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {

@@ -1,6 +1,7 @@
 import { REFERENCE_VIEWPORTS } from "../../config/viewports";
 
 /** Keep baselines browsable by suite, viewport, locale and theme. */
+/** @spec TECH-TOOLING-TESTS */
 export function snapshotPath(
   category: string,
   width: number,

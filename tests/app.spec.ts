@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 
+/** @spec TECH-TOOLING-TESTS */
 function sampleAnimatedGlb() {
   const binary = Buffer.alloc(76);
   const vertices = [0, 0, 0, 0.2, 0, 0, 0, 0.2, 0];

@@ -493,6 +493,7 @@ export class DataPage {
     unit: [""],
     dateFormat: [""],
   });
+  /** @spec TECH-FRONTEND-DATA-101 */
   constructor() {
     effect(() => {
       this.store.activeId();
@@ -504,28 +505,35 @@ export class DataPage {
     });
     this.form.valueChanges.subscribe(() => this.previewData.set(null));
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   headers = () =>
     this.book()?.sheets[this.form.controls.sheet.value ?? 0]?.headers ?? [];
+  /** @spec TECH-FRONTEND-DATA-101 */
   sample = () =>
     this.book()?.sheets[this.form.controls.sheet.value ?? 0]?.rows.slice(
       0,
       5,
     ) ?? [];
+  /** @spec TECH-FRONTEND-DATA-101 */
   count = (status: string) =>
     this.previewData()?.rows.filter((r) => r.status === status).length ?? 0;
+  /** @spec TECH-FRONTEND-DATA-101 */
   previewRows = () =>
     this.previewData()?.rows.slice(
       this.previewPage() * 15,
       this.previewPage() * 15 + 15,
     ) ?? [];
+  /** @spec TECH-FRONTEND-DATA-101 */
   previewPages = () =>
     Math.max(1, Math.ceil((this.previewData()?.rows.length ?? 0) / 15));
+  /** @spec TECH-FRONTEND-DATA-101 */
   cancelImport() {
     this.book.set(null);
     this.previewData.set(null);
     this.skipErrors.set(false);
     this.policy.set("skip");
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   async choose() {
     await this.store.task(async () => {
       const b = await invoke<Workbook | null>("choose_import");
@@ -559,6 +567,7 @@ export class DataPage {
       }
     });
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   async preview() {
     await this.store.task(async () => {
       const p = await invoke<Preview>("preview_import", {
@@ -570,6 +579,7 @@ export class DataPage {
       this.previewPage.set(0);
     });
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   async commit() {
     await this.store.task(async () => {
       const s = await invoke<VersionedSnapshot>("commit_import", {
@@ -585,6 +595,7 @@ export class DataPage {
       );
     });
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   async export(format: string) {
     await this.store.task(async () => {
       const path = await invoke<string | null>("export_data", {
@@ -594,11 +605,13 @@ export class DataPage {
       if (path) this.store.notice.set("Export enregistré : " + path);
     });
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   async restorePreview() {
     await this.store.task(async () =>
       this.restore.set(await invoke<RestorePreview | null>("preview_restore")),
     );
   }
+  /** @spec TECH-FRONTEND-DATA-101 */
   async restoreCommit() {
     await this.store.task(async () => {
       const r = await invoke<{ state: VersionedSnapshot; backupPath: string }>(

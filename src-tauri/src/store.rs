@@ -15,6 +15,7 @@ pub struct VersionedSnapshot {
     pub revision: i64,
 }
 impl Store {
+    // @spec TECH-RUST-102
     pub fn current(&self) -> Result<VersionedSnapshot> {
         let snapshot = self.load()?;
         Ok(VersionedSnapshot {
@@ -22,6 +23,7 @@ impl Store {
             revision: self.revision.get(),
         })
     }
+    // @spec TECH-RUST-102
     // Compare the revision read by the caller, not merely this connection's last load.
     pub fn require_revision(&self, expected: i64) -> Result<()> {
         if expected != self.revision.get() {
@@ -29,6 +31,7 @@ impl Store {
         }
         Ok(())
     }
+    // @spec TECH-RUST-102
     pub fn mutate_at_revision(
         &mut self,
         operation: Mutation,
@@ -44,16 +47,19 @@ impl Store {
             revision: self.revision.get(),
         })
     }
+    // @spec TECH-RUST-102
     pub fn versioned(&self, snapshot: Snapshot) -> VersionedSnapshot {
         VersionedSnapshot {
             snapshot,
             revision: self.revision.get(),
         }
     }
+    // @spec TECH-RUST-102
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)?;
         Self::init(conn)
     }
+    // @spec TECH-RUST-102
     pub fn init(conn: Connection) -> Result<Self> {
         conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;")?;
         let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
@@ -81,6 +87,7 @@ impl Store {
             revision: Cell::new(revision),
         })
     }
+    // @spec TECH-RUST-102
     pub fn load(&self) -> Result<Snapshot> {
         let tx = self.conn.unchecked_transaction()?;
         let revision =
@@ -90,15 +97,19 @@ impl Store {
         self.revision.set(revision);
         Ok(snapshot)
     }
+    // @spec TECH-RUST-102
     pub fn replace(&mut self, s: &Snapshot) -> Result<()> {
         self.replace_inner(s, &[], false, None)
     }
+    // @spec TECH-RUST-102
     pub fn replace_with_companion_ops(&mut self, s: &Snapshot, ops: &[(&str, &str)]) -> Result<()> {
         self.replace_inner(s, ops, false, None)
     }
+    // @spec TECH-RUST-102
     pub fn replace_for_restore(&mut self, s: &Snapshot) -> Result<()> {
         self.replace_inner(s, &[], true, None)
     }
+    // @spec TECH-RUST-102
     fn replace_inner(
         &mut self,
         s: &Snapshot,
@@ -145,6 +156,7 @@ impl Store {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn backup_roundtrip_and_invalid_restore_are_atomic() {
         let mut db = Store::init(Connection::open_in_memory().unwrap()).unwrap();
@@ -163,6 +175,7 @@ mod tests {
         assert!(db.replace(&bad).is_err());
         assert_eq!(raw, serde_json::to_string(&db.load().unwrap()).unwrap());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn migrates_v2_database_and_persists_habit_days() {
         let conn = Connection::open_in_memory().unwrap();
@@ -188,6 +201,7 @@ mod tests {
         db.replace(&snapshot).unwrap();
         assert!(db.load().unwrap().habit_days.is_empty());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn delete_one_profile_preserves_other() {
         let mut s = Snapshot::default();
@@ -201,6 +215,7 @@ mod tests {
         assert!(s.observations.iter().all(|o| o.profile_id != id));
     }
 
+    // @spec TECH-RUST-113
     #[test]
     fn migrates_v1_rows_and_keeps_multiple_timed_activities() {
         let conn = Connection::open_in_memory().unwrap();
@@ -253,6 +268,7 @@ mod tests {
 #[cfg(test)]
 mod concurrency {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn stale_connection_cannot_overwrite_a_newer_commit() {
         let dir = tempfile::tempdir().unwrap();
@@ -271,6 +287,7 @@ mod concurrency {
 #[cfg(test)]
 mod presentation_tests {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn legacy_settings_and_backup_default_to_french_dark() {
         let db = Store::init(Connection::open_in_memory().unwrap()).unwrap();
@@ -301,6 +318,7 @@ mod presentation_tests {
         assert_eq!(restored.settings.language, Language::Fr);
         assert_eq!(restored.settings.theme, Theme::Dark);
     }
+    // @spec TECH-RUST-113
     #[test]
     fn retired_2d_preference_is_ignored_without_losing_backup_data() {
         let mut snapshot = Snapshot::default();
@@ -319,6 +337,7 @@ mod presentation_tests {
         invalid["settings"]["unsupportedPreference"] = serde_json::json!(true);
         assert!(serde_json::from_value::<Snapshot>(invalid).is_err());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn presentation_preferences_survive_disk_and_json_round_trip() {
         let dir = tempfile::tempdir().unwrap();
@@ -353,6 +372,7 @@ mod presentation_tests {
 #[cfg(test)]
 mod revision_regressions {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn stale_ui_revision_cannot_remove_a_newer_target_and_retry_is_explicit() {
         let dir = tempfile::tempdir().unwrap();
@@ -371,12 +391,12 @@ mod revision_regressions {
             .mutate_at_revision(Mutation::SaveProfile(changed), seed.revision)
             .unwrap();
         stale_profile.name = "New name".into();
-        let before = serde_json::to_string(&saved_b.snapshot).unwrap();
+        let before = serde_json::to_value(&saved_b.snapshot).unwrap();
         let error = a
             .mutate_at_revision(Mutation::SaveProfile(stale_profile), view_a.revision)
             .unwrap_err();
         assert_eq!(error.code, "CONCURRENT_CHANGE");
-        assert_eq!(before, serde_json::to_string(&b.load().unwrap()).unwrap());
+        assert_eq!(before, serde_json::to_value(&b.load().unwrap()).unwrap());
         let fresh = a.current().unwrap();
         let mut merged = fresh.snapshot.profiles[0].clone();
         merged.name = "New name".into();

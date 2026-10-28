@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parent
 
 
+# @spec TECH-TOOLING-ART
 def quadratic(start, control, end, steps=30):
     for index in range(steps + 1):
         t = index / steps

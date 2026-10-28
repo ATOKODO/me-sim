@@ -74,6 +74,7 @@ export class Store {
   );
   private refreshInFlight?: Promise<void>;
   private refreshPending = false;
+  /** @spec TECH-FRONTEND-STORE-101 */
   async init() {
     try {
       if (this.desktop) {
@@ -114,6 +115,7 @@ export class Store {
       this.loading.set(false);
     }
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   private refreshFromDisk(): Promise<void> {
     if (!this.desktop || this.loading()) return Promise.resolve();
     this.refreshPending = true;
@@ -126,6 +128,7 @@ export class Store {
     }
     return this.refreshInFlight;
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   private async drainRefreshes() {
     while (this.refreshPending && !this.busy()) {
       this.refreshPending = false;
@@ -144,11 +147,13 @@ export class Store {
       }
     }
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   select(id: string) {
     this.activeId.set(id);
     this.error.set("");
     this.notice.set("");
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   fail(e: unknown) {
     this.error.set(
       typeof e === "object" && e && "message" in e
@@ -156,6 +161,7 @@ export class Store {
         : String(e),
     );
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   async task<T>(fn: () => Promise<T>): Promise<T | undefined> {
     if (this.busy()) return;
     this.busy.set(true);
@@ -187,6 +193,7 @@ export class Store {
       if (this.refreshPending) void this.refreshFromDisk();
     }
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   async mutate(operation: Mutation) {
     return this.task(async () => {
       const old = this.activeId();
@@ -213,6 +220,7 @@ export class Store {
       return true;
     });
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   async saveTarget(target: TargetDay) {
     const profile = this.profile();
     if (!profile) return false;
@@ -221,6 +229,7 @@ export class Store {
       value: { ...profile, target },
     });
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   apply(current: VersionedSnapshot) {
     if (current.revision < this.revision()) return;
     const s = current.snapshot;
@@ -229,18 +238,22 @@ export class Store {
     if (!s.profiles.some((p) => p.id === this.activeId()))
       this.activeId.set(s.profiles[0]?.id ?? "");
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   latest(metric: string) {
     return this.observations().find((o) => o.metric === metric);
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   series(metric: string) {
     return this.observations()
       .filter((o) => o.metric === metric)
       .slice(0, 28)
       .reverse();
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   metric(id: string) {
     return METRICS.find((m) => m.id === id)!;
   }
+  /** @spec TECH-FRONTEND-STORE-101 */
   private previewMutation(op: Mutation): Snapshot {
     const s = structuredClone(this.data());
     if (applyGhostMutation(s, op)) return s;

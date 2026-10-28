@@ -1,9 +1,11 @@
 import { HabitDay, HabitDefinition } from "./models";
 
+/** @spec TECH-FRONTEND-TRACKING-101 */
 export function localDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+/** @spec TECH-FRONTEND-TRACKING-101 */
 export function shiftDate(key: string, days: number): string {
   const [year, month, day] = key.split("-").map(Number);
   const date = new Date(year, month - 1, day, 12);
@@ -11,6 +13,7 @@ export function shiftDate(key: string, days: number): string {
   return localDate(date);
 }
 
+/** @spec TECH-FRONTEND-TRACKING-101 */
 export function activeHabits(habits: HabitDefinition[], date: string) {
   return habits.filter(
     (habit) =>
@@ -19,6 +22,7 @@ export function activeHabits(habits: HabitDefinition[], date: string) {
   );
 }
 
+/** @spec TECH-FRONTEND-TRACKING-101 */
 export function evaluateHabitDay(
   habits: HabitDefinition[],
   day: HabitDay | undefined,

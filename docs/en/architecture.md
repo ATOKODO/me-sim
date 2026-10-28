@@ -51,6 +51,8 @@ The research weight engine remains inaccessible to user projections. See the [mo
 
 ## Documentation and catalogue {#documentation-et-catalogue}
 
+The [functional and technical specifications](./specifications.md) describe the contracts associated with code declarations and their limits.
+
 VitePress 1.6.4 turns the guides in `docs/` and `docs/en/` into a static site, with localized navigation and local search indexes. Storybook exposes application styles and components. These are development dependencies and are not part of the Tauri package.
 
 Site configuration is in `docs/.vitepress/config.mts`, its theme in `docs/.vitepress/theme/` and dedicated assets in `docs/public/`. Cache and build output are ignored by Git. Local checks build the documentation, verify language parity and internal links, and compare screenshots at the four shared reference viewports. The repository contains no GitHub Actions workflow or automatic publication.

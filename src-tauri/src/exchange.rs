@@ -56,6 +56,7 @@ pub struct Preview {
     pub filename: String,
     pub rows: Vec<PreviewRow>,
 }
+// @spec TECH-RUST-105
 pub fn read(path: &Path) -> Result<Workbook> {
     let bytes = import_limits::read_file(path)?;
     let ext = path
@@ -230,6 +231,7 @@ pub fn read(path: &Path) -> Result<Workbook> {
         sheets,
     })
 }
+// @spec TECH-RUST-105
 fn metric_name(s: &str) -> String {
     match s.trim().to_lowercase().as_str() {
         "poids" | "weight" => "weight",
@@ -264,6 +266,7 @@ fn metric_name(s: &str) -> String {
     }
     .to_string()
 }
+// @spec TECH-RUST-105
 fn parse_row(
     row: &[String],
     m: &Mapping,
@@ -381,6 +384,7 @@ fn parse_row(
     validate_observation(&o)?;
     Ok(o)
 }
+// @spec TECH-RUST-105
 pub fn preview(book: &Workbook, m: &Mapping, pid: &str, s: &Snapshot) -> Result<Preview> {
     if !s.profiles.iter().any(|p| p.id == pid) {
         return Err(invalid("Profil introuvable."));
@@ -445,6 +449,7 @@ pub fn preview(book: &Workbook, m: &Mapping, pid: &str, s: &Snapshot) -> Result<
         rows,
     })
 }
+// @spec TECH-RUST-106
 pub fn commit(s: &mut Snapshot, p: &Preview, policy: &str, skip_errors: bool) -> Result<usize> {
     if !["skip", "replace"].contains(&policy) {
         return Err(invalid("Politique de conflit invalide."));
@@ -510,6 +515,7 @@ pub fn commit(s: &mut Snapshot, p: &Preview, policy: &str, skip_errors: bool) ->
 mod scaling_regressions {
     use super::*;
 
+    // @spec TECH-RUST-113
     #[test]
     fn importing_a_wall_clock_event_preserves_precise_sessions_in_the_same_minute() {
         let mut s = Snapshot::default();
@@ -567,6 +573,7 @@ mod scaling_regressions {
         assert_eq!(s.observations.len(), 3);
     }
 
+    // @spec TECH-RUST-113
     #[test]
     fn repeated_import_rows_share_the_same_index_without_crossing_profiles() {
         let mut s = Snapshot::default();
@@ -609,6 +616,7 @@ mod scaling_regressions {
         );
     }
 
+    // @spec TECH-RUST-113
     #[test]
     fn fifty_thousand_csv_rows_commit_and_a_single_edit_has_constant_sql_write_count() {
         let dir = tempfile::tempdir().unwrap();
@@ -671,6 +679,7 @@ mod scaling_regressions {
     }
 }
 
+// @spec TECH-RUST-106
 fn cells(s: &Snapshot, pid: &str) -> Vec<Vec<String>> {
     let mut rows = vec![vec![
         "date".into(),
@@ -702,6 +711,7 @@ fn cells(s: &Snapshot, pid: &str) -> Vec<Vec<String>> {
     }
     rows
 }
+// @spec TECH-RUST-106
 pub fn export(path: &Path, format: &str, s: &Snapshot, pid: &str) -> Result<()> {
     let rows = cells(s, pid);
     match format {
@@ -752,6 +762,7 @@ pub fn export(path: &Path, format: &str, s: &Snapshot, pid: &str) -> Result<()> 
     }
     Ok(())
 }
+// @spec TECH-RUST-106
 pub fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
     let parent = path.parent().ok_or_else(|| invalid("Dossier invalide."))?;
     let mut tmp = tempfile::NamedTempFile::new_in(parent)?;
@@ -760,12 +771,14 @@ pub fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
     tmp.persist(path).map_err(|e| invalid(e.to_string()))?;
     Ok(())
 }
+// @spec TECH-RUST-106
 // Minimal BIFF8 writer: real .xls compound file; strings are never formulas.
 fn record(out: &mut Vec<u8>, kind: u16, data: &[u8]) {
     out.extend(kind.to_le_bytes());
     out.extend((data.len() as u16).to_le_bytes());
     out.extend(data)
 }
+// @spec TECH-RUST-106
 fn bof(kind: u16) -> Vec<u8> {
     let mut v = vec![];
     for n in [0x0600u16, kind, 0x0dbb, 0x07cc] {
@@ -775,6 +788,7 @@ fn bof(kind: u16) -> Vec<u8> {
     v.extend(6u32.to_le_bytes());
     v
 }
+// @spec TECH-RUST-106
 fn xls(rows: &[Vec<String>]) -> Result<Vec<u8>> {
     if rows.len() > 65_536 {
         return Err(invalid("XLS : 65 535 mesures maximum. Utilisez XLSX."));
@@ -835,6 +849,7 @@ fn xls(rows: &[Vec<String>]) -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn excel_and_csv_roundtrip() {
         let mut s = Snapshot::default();
@@ -866,6 +881,7 @@ mod tests {
             );
         }
     }
+    // @spec TECH-RUST-113
     #[test]
     fn mapping_errors_conflicts_units() {
         let mut s = Snapshot::default();
@@ -909,6 +925,7 @@ mod tests {
 #[cfg(test)]
 mod acceptance {
     use super::*;
+    // @spec TECH-RUST-113
     fn map() -> Mapping {
         Mapping {
             sheet: 0,
@@ -923,6 +940,7 @@ mod acceptance {
             date_format: "iso".into(),
         }
     }
+    // @spec TECH-RUST-113
     #[test]
     fn csv_french_json_and_empty_workbooks() {
         let dir = tempfile::tempdir().unwrap();
@@ -952,6 +970,7 @@ mod acceptance {
         export(&xls, "xls", &Snapshot::default(), "").unwrap();
         assert!(read(&xls).unwrap().sheets[0].rows.is_empty());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn multi_sheet_dates_formulas_and_malformed_excel() {
         let dir = tempfile::tempdir().unwrap();
@@ -986,6 +1005,7 @@ mod acceptance {
         std::fs::write(&path, b"invalid xlsx").unwrap();
         assert!(read(&path).is_err());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn failures_do_not_write_and_conflicts_require_policy() {
         let mut db =
@@ -1021,6 +1041,7 @@ mod acceptance {
         assert!(db.replace(&s).is_err());
         assert_eq!(old, serde_json::to_string(&db.load().unwrap()).unwrap());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn ambiguous_dates_require_explicit_order_and_foreign_ids_rejected() {
         let mut s = Snapshot::default();
@@ -1057,6 +1078,7 @@ mod acceptance {
 #[cfg(test)]
 mod temporal_regressions {
     use super::*;
+    // @spec TECH-RUST-113
     fn snapshot() -> Snapshot {
         let mut s = Snapshot::default();
         mutate(&mut s, Mutation::Demo).unwrap();
@@ -1064,6 +1086,7 @@ mod temporal_regressions {
         s.batches.clear();
         s
     }
+    // @spec TECH-RUST-113
     fn mapping() -> Mapping {
         Mapping {
             sheet: 0,
@@ -1078,6 +1101,7 @@ mod temporal_regressions {
             date_format: "dmy".into(),
         }
     }
+    // @spec TECH-RUST-113
     #[test]
     fn excel_native_dates_times_and_durations_are_normalized_by_mapping() {
         let dir = tempfile::tempdir().unwrap();
@@ -1126,6 +1150,7 @@ mod temporal_regressions {
             .get("temporal")
             .is_none());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn zero_duration_import_is_daily_and_invalid_duration_is_not_silently_ignored() {
         let dir = tempfile::tempdir().unwrap();
@@ -1144,6 +1169,7 @@ mod temporal_regressions {
         assert!(o.duration_minutes.is_none());
         assert_eq!(result.rows[1].status, "error");
     }
+    // @spec TECH-RUST-113
     #[test]
     fn tobacco_two_column_csv_uses_fixed_cigarette_unit() {
         let dir = tempfile::tempdir().unwrap();

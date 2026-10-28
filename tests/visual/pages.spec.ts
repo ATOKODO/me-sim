@@ -148,11 +148,13 @@ for (const theme of ["dark", "light"])
           },
         );
       }
+/** @spec TECH-TOOLING-TESTS */
 async function navigate(
   page: Page,
   route: (typeof routes)[number],
   language: string,
 ) {
+  /** @spec TECH-TOOLING-TESTS */
   const translated = (source: string) =>
     language === "en" ? (ENGLISH[source] ?? source) : source;
   if (route.name === "ghost")
@@ -177,6 +179,7 @@ async function navigate(
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => window.scrollTo(0, 0));
 }
+/** @spec TECH-TOOLING-TESTS */
 async function prepare(
   page: Page,
   theme: string,

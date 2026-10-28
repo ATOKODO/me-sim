@@ -51,9 +51,11 @@ pub struct RoutineBlock {
     #[serde(default)]
     pub tolerance_minutes: u32,
 }
+// @spec TECH-RUST-104
 fn label(s: &str) -> bool {
     !s.trim().is_empty() && s.len() <= 120
 }
+// @spec TECH-RUST-104
 fn event(metric: &str) -> bool {
     matches!(
         metric,
@@ -73,6 +75,7 @@ fn event(metric: &str) -> bool {
             | "sedentary"
     )
 }
+// @spec TECH-RUST-104
 fn link(p: &Profile, habit: &Option<String>, metric: &str) -> bool {
     habit.as_ref().is_none_or(|id| {
         p.habits
@@ -80,6 +83,7 @@ fn link(p: &Profile, habit: &Option<String>, metric: &str) -> bool {
             .any(|h| &h.id == id && h.metric.as_ref().is_none_or(|m| m == metric))
     })
 }
+// @spec TECH-RUST-104
 pub fn validate_profile(p: &Profile) -> Result<()> {
     let Some(state) = &p.ghost else { return Ok(()) };
     if state.plans.len() > 2000 {
@@ -132,6 +136,7 @@ pub fn validate_profile(p: &Profile) -> Result<()> {
     }
     Ok(())
 }
+// @spec TECH-RUST-104
 pub fn validate_context(o: &Observation) -> Result<()> {
     let Some(c) = &o.context else { return Ok(()) };
     if !event(&o.metric) || !label(&c.label) || c.time_zone.len() > 100 {
@@ -159,6 +164,7 @@ pub fn validate_context(o: &Observation) -> Result<()> {
     }
     Ok(())
 }
+// @spec TECH-RUST-104
 pub fn save_plan(s: &mut Snapshot, profile_id: &str, plan: RoutineVersion) -> Result<()> {
     let p = s
         .profiles
@@ -175,6 +181,7 @@ pub fn save_plan(s: &mut Snapshot, profile_id: &str, plan: RoutineVersion) -> Re
     g.plans.push(plan);
     Ok(())
 }
+// @spec TECH-RUST-104
 pub fn start(s: &mut Snapshot, profile_id: &str, session: ActivitySession) -> Result<()> {
     let p = s
         .profiles
@@ -193,6 +200,7 @@ pub fn start(s: &mut Snapshot, profile_id: &str, session: ActivitySession) -> Re
     g.active = Some(session);
     Ok(())
 }
+// @spec TECH-RUST-104
 pub fn finish(
     s: &mut Snapshot,
     profile_id: &str,
@@ -284,6 +292,7 @@ mod tests {
     use super::*;
     use crate::store::Store;
     use rusqlite::Connection;
+    // @spec TECH-RUST-113
     fn db() -> Store {
         let mut db = Store::init(Connection::open_in_memory().unwrap()).unwrap();
         let mut s = Snapshot::default();
@@ -291,6 +300,7 @@ mod tests {
         db.replace(&s).unwrap();
         db
     }
+    // @spec TECH-RUST-113
     fn plan() -> RoutineVersion {
         RoutineVersion {
             id: id(),
@@ -309,6 +319,7 @@ mod tests {
             }],
         }
     }
+    // @spec TECH-RUST-113
     #[test]
     fn sessions_roundtrip_restart_finish_and_link_without_validating_day() {
         let mut db = db();
@@ -406,6 +417,7 @@ mod tests {
             )
             .is_err());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn invalid_sessions_and_plans_do_not_change_the_database() {
         let mut db = db();
@@ -473,6 +485,7 @@ mod tests {
             1
         );
     }
+    // @spec TECH-RUST-113
     #[test]
     fn context_duration_checks_offsets_and_rejects_inconsistent_backup() {
         let mut db = db();
@@ -504,6 +517,7 @@ mod tests {
         assert!(db.replace(&s).is_err());
         assert_eq!(raw, serde_json::to_string(&db.load().unwrap()).unwrap());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn separate_sessions_in_one_display_minute_keep_their_absolute_identity() {
         use chrono::Timelike;
@@ -554,6 +568,7 @@ mod tests {
             serde_json::from_str(&serde_json::to_string(&loaded).unwrap()).unwrap();
         db.replace(&roundtrip).unwrap();
     }
+    // @spec TECH-RUST-113
     #[test]
     fn a_linked_negative_point_records_yes_without_validating_or_cross_linking() {
         let mut db = db();
@@ -604,6 +619,7 @@ mod tests {
             .is_err());
         assert_eq!(raw, serde_json::to_string(&db.load().unwrap()).unwrap());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn open_session_and_schedule_survive_a_real_database_reopen() {
         let dir = tempfile::tempdir().unwrap();
@@ -676,6 +692,7 @@ mod tests {
     }
 }
 
+// @spec TECH-RUST-104
 pub fn record_habit(s: &mut Snapshot, o: &Observation) -> Result<()> {
     let Some(hid) = o.context.as_ref().and_then(|c| c.habit_id.as_ref()) else {
         return Ok(());
@@ -713,6 +730,7 @@ pub fn record_habit(s: &mut Snapshot, o: &Observation) -> Result<()> {
     Ok(())
 }
 
+// @spec TECH-RUST-104
 pub fn validate_link(s: &Snapshot, o: &Observation) -> Result<()> {
     if let Some(hid) = o.context.as_ref().and_then(|c| c.habit_id.as_ref()) {
         if !s.profiles.iter().any(|p| {

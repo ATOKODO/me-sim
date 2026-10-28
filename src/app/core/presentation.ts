@@ -2,6 +2,7 @@ export type Language = "fr" | "en";
 export type Theme = "dark" | "light";
 const KEY = "me-sim.appearance.v1";
 /** Only presentation preferences are cached here; health data stays in the native database. */
+/** @spec TECH-FRONTEND-PRESENTATION-101 */
 export function readPresentation(): { language: Language; theme: Theme } {
   try {
     const value = JSON.parse(localStorage.getItem(KEY) ?? "{}");
@@ -13,6 +14,7 @@ export function readPresentation(): { language: Language; theme: Theme } {
     return { language: "fr", theme: "dark" };
   }
 }
+/** @spec TECH-FRONTEND-PRESENTATION-101 */
 export function applyPresentation(value: { language: Language; theme: Theme }) {
   document.documentElement.lang = value.language;
   document.documentElement.dataset["theme"] = value.theme;

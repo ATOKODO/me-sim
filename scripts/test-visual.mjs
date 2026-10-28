@@ -11,6 +11,7 @@ for (const signal of ["SIGINT", "SIGTERM"])
     for (const child of children) child.kill();
   });
 
+/** @spec TECH-TOOLING-VALIDATION */
 function spawnNode(file, params, options) {
   const child = spawn(process.execPath, [file, ...params], {
     windowsHide: true,
@@ -20,6 +21,7 @@ function spawnNode(file, params, options) {
   child.once("close", () => children.delete(child));
   return child;
 }
+/** @spec TECH-TOOLING-VALIDATION */
 async function run(file, params, env = {}) {
   if (interrupted) throw Error("Validation interrupted");
   const code = await new Promise((resolve, reject) => {
@@ -32,6 +34,7 @@ async function run(file, params, env = {}) {
   });
   if (code !== 0) throw Error(`${file} exited with code ${code}`);
 }
+/** @spec TECH-TOOLING-VALIDATION */
 async function startServer(file, marker, env = {}) {
   if (interrupted) throw Error("Validation interrupted");
   const child = spawnNode(file, [], {
@@ -62,6 +65,7 @@ async function startServer(file, marker, env = {}) {
     });
   });
 }
+/** @spec TECH-TOOLING-VALIDATION */
 async function stopChildren() {
   await Promise.all(
     [...children].map(

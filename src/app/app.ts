@@ -179,6 +179,7 @@ export class App {
     { path: "/donnees", label: "Mes données", icon: "data" },
     { path: "/profils", label: "Mes profils", icon: "profiles" },
   ];
+  /** @spec TECH-FRONTEND-APP-101 */
   constructor() {
     void this.store.init();
   }

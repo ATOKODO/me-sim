@@ -5,6 +5,7 @@ use super::{
 use serde::de::{DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use std::fmt;
 
+// @spec TECH-RUST-110
 pub fn csv(bytes: &[u8], delimiter: u8) -> Result<()> {
     let mut parser = csv_core::ReaderBuilder::new().delimiter(delimiter).build();
     let record_limit = 1024 * 1024;
@@ -57,15 +58,18 @@ struct JsonRow<'a>(&'a mut JsonBudget);
 struct JsonCell<'a>(&'a mut JsonBudget);
 impl<'de> DeserializeSeed<'de> for JsonRows<'_> {
     type Value = ();
+    // @spec TECH-RUST-110
     fn deserialize<D: serde::Deserializer<'de>>(self, d: D) -> std::result::Result<(), D::Error> {
         d.deserialize_seq(self)
     }
 }
 impl<'de> Visitor<'de> for JsonRows<'_> {
     type Value = ();
+    // @spec TECH-RUST-110
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("un tableau de mesures")
     }
+    // @spec TECH-RUST-110
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> std::result::Result<(), A::Error> {
         while seq.next_element_seed(JsonRow(self.0))?.is_some() {
             self.0.rows += 1;
@@ -78,15 +82,18 @@ impl<'de> Visitor<'de> for JsonRows<'_> {
 }
 impl<'de> DeserializeSeed<'de> for JsonRow<'_> {
     type Value = ();
+    // @spec TECH-RUST-110
     fn deserialize<D: serde::Deserializer<'de>>(self, d: D) -> std::result::Result<(), D::Error> {
         d.deserialize_map(self)
     }
 }
 impl<'de> Visitor<'de> for JsonRow<'_> {
     type Value = ();
+    // @spec TECH-RUST-110
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("un objet de valeurs scalaires")
     }
+    // @spec TECH-RUST-110
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> std::result::Result<(), A::Error> {
         let mut columns = 0;
         while let Some(key) = map.next_key::<String>()? {
@@ -108,40 +115,50 @@ impl<'de> Visitor<'de> for JsonRow<'_> {
 }
 impl<'de> DeserializeSeed<'de> for JsonCell<'_> {
     type Value = ();
+    // @spec TECH-RUST-110
     fn deserialize<D: serde::Deserializer<'de>>(self, d: D) -> std::result::Result<(), D::Error> {
         d.deserialize_any(self)
     }
 }
 impl<'de> Visitor<'de> for JsonCell<'_> {
     type Value = ();
+    // @spec TECH-RUST-110
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("une chaîne, un nombre, un booléen ou null")
     }
+    // @spec TECH-RUST-110
     fn visit_str<E: serde::de::Error>(self, s: &str) -> std::result::Result<(), E> {
         if s.len() > MAX_CELL_BYTES {
             return Err(E::custom(LIMIT));
         }
         add(&mut self.0.text, s.len(), MAX_TEXT_BYTES).map_err(|e| E::custom(e.message))
     }
+    // @spec TECH-RUST-110
     fn visit_string<E: serde::de::Error>(self, s: String) -> std::result::Result<(), E> {
         self.visit_str(&s)
     }
+    // @spec TECH-RUST-110
     fn visit_i64<E: serde::de::Error>(self, _: i64) -> std::result::Result<(), E> {
         Ok(())
     }
+    // @spec TECH-RUST-110
     fn visit_u64<E: serde::de::Error>(self, _: u64) -> std::result::Result<(), E> {
         Ok(())
     }
+    // @spec TECH-RUST-110
     fn visit_f64<E: serde::de::Error>(self, _: f64) -> std::result::Result<(), E> {
         Ok(())
     }
+    // @spec TECH-RUST-110
     fn visit_bool<E: serde::de::Error>(self, _: bool) -> std::result::Result<(), E> {
         Ok(())
     }
+    // @spec TECH-RUST-110
     fn visit_unit<E: serde::de::Error>(self) -> std::result::Result<(), E> {
         Ok(())
     }
 }
+// @spec TECH-RUST-110
 pub fn json(bytes: &[u8]) -> Result<()> {
     if bytes.iter().find(|b| !b.is_ascii_whitespace()) == Some(&b'{') {
         return Err(invalid("Pour une sauvegarde complète, utilisez Restaurer. L’import de mesures attend un tableau JSON."));

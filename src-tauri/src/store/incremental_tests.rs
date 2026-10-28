@@ -1,5 +1,6 @@
 use super::*;
 
+// @spec TECH-RUST-113
 fn seeded() -> (Store, VersionedSnapshot) {
     let mut db = Store::init(Connection::open_in_memory().unwrap()).unwrap();
     let first = db.mutate_at_revision(Mutation::Demo, 0).unwrap();
@@ -8,12 +9,14 @@ fn seeded() -> (Store, VersionedSnapshot) {
         .unwrap();
     (db, current)
 }
+// @spec TECH-RUST-113
 fn changes(db: &Store) -> i64 {
     db.conn
         .query_row("SELECT total_changes()", [], |r| r.get(0))
         .unwrap()
 }
 
+// @spec TECH-RUST-113
 #[test]
 fn ordinary_edits_do_not_rewrite_unrelated_rows_and_keep_snapshot_order() {
     let (mut db, seed) = seeded();
@@ -62,6 +65,7 @@ fn ordinary_edits_do_not_rewrite_unrelated_rows_and_keep_snapshot_order() {
     assert_eq!(db.load().unwrap(), saved.snapshot);
 }
 
+// @spec TECH-RUST-113
 #[test]
 fn arbitrary_snapshot_order_and_swapped_observation_keys_roundtrip() {
     let (mut db, seed) = seeded();
@@ -84,6 +88,7 @@ fn arbitrary_snapshot_order_and_swapped_observation_keys_roundtrip() {
     assert_eq!(db.load().unwrap(), next);
 }
 
+// @spec TECH-RUST-113
 #[test]
 fn deleting_a_profile_preserves_other_profiles_and_revokes_only_its_devices() {
     let (mut db, seed) = seeded();
@@ -119,6 +124,7 @@ fn deleting_a_profile_preserves_other_profiles_and_revokes_only_its_devices() {
     assert_eq!(count, 1);
 }
 
+// @spec TECH-RUST-113
 #[test]
 fn finishing_a_linked_session_rolls_back_every_side_effect_on_sql_failure() {
     let (mut db, seed) = seeded();

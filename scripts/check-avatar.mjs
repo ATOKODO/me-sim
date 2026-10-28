@@ -18,6 +18,7 @@ const source = ts.createSourceFile(
 );
 const modes = new Set(["idle"]);
 
+/** @spec TECH-TOOLING-VALIDATION */
 function property(object, name) {
   return object.properties.find(
     (entry) =>
@@ -25,6 +26,7 @@ function property(object, name) {
   );
 }
 
+/** @spec TECH-TOOLING-VALIDATION */
 function visit(node) {
   if (
     ts.isVariableDeclaration(node) &&

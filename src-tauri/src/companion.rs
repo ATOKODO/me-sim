@@ -64,6 +64,7 @@ pub struct Runtime {
 }
 
 impl Default for Runtime {
+    // @spec TECH-RUST-111
     fn default() -> Self {
         Self {
             stop: None,
@@ -77,10 +78,12 @@ impl Default for Runtime {
     }
 }
 
+// @spec TECH-RUST-111
 fn internal(e: impl ToString) -> AppError {
     AppError::new("COMPANION", e)
 }
 
+// @spec TECH-RUST-111
 fn lan_ip() -> Result<Ipv4Addr> {
     let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?;
     socket.connect((Ipv4Addr::new(192, 0, 2, 1), 9))?;
@@ -93,10 +96,12 @@ fn lan_ip() -> Result<Ipv4Addr> {
     Ok(ip)
 }
 
+// @spec TECH-RUST-111
 fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
+// @spec TECH-RUST-111
 fn ca_and_server(
     directory: &Path,
     ip: Ipv4Addr,
@@ -153,12 +158,14 @@ fn ca_and_server(
     ))
 }
 
+// @spec TECH-RUST-111
 fn code() -> String {
     let bytes = uuid::Uuid::new_v4().into_bytes();
     let number = u32::from_le_bytes(bytes[..4].try_into().unwrap()) % 1_000_000;
     format!("{number:06}")
 }
 
+// @spec TECH-RUST-111
 fn new_pairing(runtime: &Runtime) -> Result<()> {
     *lock(&runtime.pairing)? = Some(Pairing {
         code: code(),
@@ -169,6 +176,7 @@ fn new_pairing(runtime: &Runtime) -> Result<()> {
     Ok(())
 }
 
+// @spec TECH-RUST-111
 pub fn status(state: &AppState) -> Result<CompanionStatus> {
     let runtime = lock(&state.companion)?;
     let running = runtime.stop.is_some();
@@ -200,6 +208,7 @@ pub fn status(state: &AppState) -> Result<CompanionStatus> {
     })
 }
 
+// @spec TECH-RUST-111
 pub fn start(app: tauri::AppHandle, profile_id: String) -> Result<CompanionStatus> {
     let state = app.state::<AppState>();
     {
@@ -284,6 +293,7 @@ pub fn start(app: tauri::AppHandle, profile_id: String) -> Result<CompanionStatu
     status(&state)
 }
 
+// @spec TECH-RUST-111
 pub fn stop(state: &AppState) -> Result<CompanionStatus> {
     let mut runtime = lock(&state.companion)?;
     if let Some(flag) = runtime.stop.take() {
@@ -301,6 +311,7 @@ pub fn stop(state: &AppState) -> Result<CompanionStatus> {
     status(state)
 }
 
+// @spec TECH-RUST-111
 pub fn refresh_pairing(state: &AppState) -> Result<CompanionStatus> {
     let runtime = lock(&state.companion)?;
     if runtime.stop.is_none() {
@@ -311,6 +322,7 @@ pub fn refresh_pairing(state: &AppState) -> Result<CompanionStatus> {
     status(state)
 }
 
+// @spec TECH-RUST-111
 pub fn revoke(state: &AppState, device_id: &str) -> Result<CompanionStatus> {
     let db = lock(&state.store)?;
     db.conn.execute(
@@ -370,6 +382,7 @@ struct SyncResponse {
     rejected: Vec<Issue>,
 }
 
+// @spec TECH-RUST-111
 fn authenticated(state: &AppState, bearer: &str, profile_id: &str) -> Result<Option<String>> {
     if bearer.len() < 32 || bearer.len() > 256 {
         return Ok(None);
@@ -393,6 +406,7 @@ fn authenticated(state: &AppState, bearer: &str, profile_id: &str) -> Result<Opt
     Ok(Some(device))
 }
 
+// @spec TECH-RUST-111
 fn sync(
     state: &AppState,
     request: SyncRequest,
@@ -550,6 +564,7 @@ struct Request {
     body: Vec<u8>,
 }
 
+// @spec TECH-RUST-111
 fn read_request(stream: &mut impl Read) -> std::io::Result<Request> {
     let mut data = Vec::new();
     let deadline = Instant::now() + StdDuration::from_secs(8);
@@ -633,6 +648,7 @@ fn read_request(stream: &mut impl Read) -> std::io::Result<Request> {
     })
 }
 
+// @spec TECH-RUST-111
 fn response(
     stream: &mut impl Write,
     status: &str,
@@ -645,6 +661,7 @@ fn response(
     stream.flush()
 }
 
+// @spec TECH-RUST-111
 fn json_response(
     stream: &mut impl Write,
     status: &str,
@@ -659,6 +676,7 @@ fn json_response(
     )
 }
 
+// @spec TECH-RUST-111
 fn configure_connection(stream: &TcpStream) -> std::io::Result<()> {
     // Winsock inherits the listener's nonblocking mode on accepted sockets.
     // Each worker uses blocking TLS reads bounded by these timeouts.
@@ -667,6 +685,7 @@ fn configure_connection(stream: &TcpStream) -> std::io::Result<()> {
     stream.set_write_timeout(Some(StdDuration::from_secs(5)))
 }
 
+// @spec TECH-RUST-111
 fn serve(
     stream: TcpStream,
     tls: Arc<ServerConfig>,
@@ -966,6 +985,7 @@ mod tests {
     use std::collections::HashMap;
     use std::path::PathBuf;
 
+    // @spec TECH-RUST-113
     #[test]
     fn https_worker_accepts_a_request_split_across_network_packets() {
         use rustls::pki_types::pem::PemObject;
@@ -1036,6 +1056,7 @@ mod tests {
         worker.join().unwrap();
     }
 
+    // @spec TECH-RUST-113
     fn fixture() -> (AppState, String, String, String) {
         let mut db = crate::store::Store::init(Connection::open_in_memory().unwrap()).unwrap();
         let mut snapshot = Snapshot::default();
@@ -1066,6 +1087,7 @@ mod tests {
         (state, profile_id, habit_id, date)
     }
 
+    // @spec TECH-RUST-113
     fn op(kind: &str, profile_id: &str, payload: serde_json::Value) -> MobileOperation {
         MobileOperation {
             id: uuid::Uuid::new_v4().to_string(),
@@ -1076,6 +1098,7 @@ mod tests {
         }
     }
 
+    // @spec TECH-RUST-113
     #[test]
     fn sync_is_scoped_idempotent_and_does_not_trust_import_metadata() {
         let (state, profile, _, _) = fixture();
@@ -1157,6 +1180,7 @@ mod tests {
         assert_eq!(result.rejected.len(), 1);
     }
 
+    // @spec TECH-RUST-113
     #[test]
     fn a_mobile_answer_reopens_a_validated_day_and_restore_revokes_devices() {
         let (state, profile, habit, date) = fixture();

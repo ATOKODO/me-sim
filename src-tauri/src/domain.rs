@@ -8,6 +8,7 @@ pub struct AppError {
     pub message: String,
 }
 impl AppError {
+    // @spec TECH-RUST-101
     pub fn new(code: &str, message: impl ToString) -> Self {
         Self {
             code: code.into(),
@@ -16,6 +17,7 @@ impl AppError {
     }
 }
 impl<E: std::error::Error> From<E> for AppError {
+    // @spec TECH-RUST-101
     fn from(e: E) -> Self {
         Self::new("IO", e)
     }
@@ -38,6 +40,7 @@ pub struct TargetDay {
     pub sedentary_minutes: f64,
 }
 impl Default for TargetDay {
+    // @spec TECH-RUST-101
     fn default() -> Self {
         Self {
             sleep_hours: 8.,
@@ -181,6 +184,7 @@ struct SettingsInput {
     theme: Theme,
 }
 impl From<SettingsInput> for Settings {
+    // @spec TECH-RUST-101
     fn from(value: SettingsInput) -> Self {
         Self {
             animations: value.animations,
@@ -191,6 +195,7 @@ impl From<SettingsInput> for Settings {
     }
 }
 impl Default for Settings {
+    // @spec TECH-RUST-101
     fn default() -> Self {
         Self {
             animations: true,
@@ -214,6 +219,7 @@ pub struct Snapshot {
     pub settings: Settings,
 }
 impl Default for Snapshot {
+    // @spec TECH-RUST-101
     fn default() -> Self {
         Self {
             version: 1,
@@ -227,12 +233,15 @@ impl Default for Snapshot {
         }
     }
 }
+// @spec TECH-RUST-101
 pub fn id() -> String {
     uuid::Uuid::new_v4().to_string()
 }
+// @spec TECH-RUST-101
 pub fn invalid(s: impl ToString) -> AppError {
     AppError::new("INVALID_DATA", s)
 }
+// @spec TECH-RUST-101
 fn validate_target(t: &TargetDay) -> Result<()> {
     let values = [
         t.sleep_hours,
@@ -269,6 +278,7 @@ fn validate_target(t: &TargetDay) -> Result<()> {
     }
     Ok(())
 }
+// @spec TECH-RUST-101
 pub fn unit(metric: &str) -> Option<&'static str> {
     match metric {
         "weight" => Some("kg"),
@@ -285,12 +295,14 @@ pub fn unit(metric: &str) -> Option<&'static str> {
         _ => None,
     }
 }
+// @spec TECH-RUST-101
 pub fn observation_key(o: &Observation) -> &str {
     o.context
         .as_ref()
         .and_then(|c| c.start.as_deref())
         .unwrap_or(o.at.as_deref().unwrap_or(""))
 }
+// @spec TECH-RUST-101
 pub fn validate_observation(o: &Observation) -> Result<()> {
     crate::ghost::validate_context(o)?;
     if o.id.is_empty()
@@ -342,6 +354,7 @@ pub fn validate_observation(o: &Observation) -> Result<()> {
     }
     Ok(())
 }
+// @spec TECH-RUST-101
 pub fn validate(s: &Snapshot) -> Result<()> {
     if s.version != 1 {
         return Err(AppError::new(
@@ -544,6 +557,7 @@ pub enum Mutation {
     Settings(Settings),
     Demo,
 }
+// @spec TECH-RUST-101
 pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
     match m {
         Mutation::SaveGhostPlan { profile_id, plan } => {
@@ -745,6 +759,7 @@ pub fn mutate(s: &mut Snapshot, m: Mutation) -> Result<()> {
 #[cfg(test)]
 mod journal_regressions {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn declared_zero_is_valid_without_a_timeline_event_but_counts_are_integers() {
         let mut o = Observation {
@@ -773,6 +788,7 @@ mod journal_regressions {
         o.value = 1.;
         validate_observation(&o).unwrap();
     }
+    // @spec TECH-RUST-113
     #[test]
     fn retired_habits_do_not_consume_the_active_limit_and_history_remains_valid() {
         let mut s = Snapshot::default();

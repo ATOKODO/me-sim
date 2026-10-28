@@ -13,6 +13,7 @@ struct Changes<'a, T> {
     removed: Vec<&'a T>,
     writes: Vec<Change<'a, T>>,
 }
+// @spec TECH-RUST-103
 fn changes<'a, T: PartialEq, K: Eq + Hash>(
     before: &'a [T],
     after: &'a [T],
@@ -57,7 +58,9 @@ fn changes<'a, T: PartialEq, K: Eq + Hash>(
     }
 }
 
+// @spec TECH-RUST-103
 pub(super) fn read(conn: &Connection) -> Result<Snapshot> {
+    // @spec TECH-RUST-103
     fn rows<T: serde::de::DeserializeOwned>(conn: &Connection, table: &str) -> Result<Vec<T>> {
         let mut statement = conn.prepare(&format!("SELECT data FROM {table} ORDER BY rowid"))?;
         let rows = statement.query_map([], |r| r.get::<_, String>(0))?;
@@ -78,6 +81,7 @@ pub(super) fn read(conn: &Connection) -> Result<Snapshot> {
     })
 }
 
+// @spec TECH-RUST-103
 // Table names are internal constants, never imported data or IPC arguments.
 fn owned_rows<T: PartialEq + Serialize>(
     tx: &Transaction<'_>,
@@ -104,6 +108,7 @@ fn owned_rows<T: PartialEq + Serialize>(
     Ok(())
 }
 
+// @spec TECH-RUST-103
 pub(super) fn write(tx: &Transaction<'_>, before: &Snapshot, after: &Snapshot) -> Result<()> {
     let profiles = changes(&before.profiles, &after.profiles, |p| p.id.clone());
     {
@@ -211,6 +216,7 @@ pub(super) fn write(tx: &Transaction<'_>, before: &Snapshot, after: &Snapshot) -
     Ok(())
 }
 
+// @spec TECH-RUST-103
 pub(super) fn replace_all(tx: &Transaction<'_>, s: &Snapshot) -> Result<()> {
     tx.execute_batch("DELETE FROM observations; DELETE FROM habit_days; DELETE FROM batches; DELETE FROM scenarios; DELETE FROM runs; DELETE FROM profiles; DELETE FROM settings;")?;
     write(tx, &Snapshot::default(), s)

@@ -1,5 +1,6 @@
 import { expect, Page, test } from "@playwright/test";
 import type { Snapshot } from "../src/app/core/models";
+/** @spec TECH-TOOLING-TESTS */
 function snapshot(): Snapshot {
   return {
     version: 1,
@@ -29,6 +30,7 @@ function snapshot(): Snapshot {
     },
   };
 }
+/** @spec TECH-TOOLING-TESTS */
 async function native(page: Page, data = snapshot(), conflict = false) {
   await page.addInitScript(
     ({ data, conflict }) => {

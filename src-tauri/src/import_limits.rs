@@ -22,6 +22,7 @@ const MAX_ENTRIES: usize = 512;
 const MAX_EVENTS: usize = 1_000_000;
 const LIMIT: &str = "Import trop volumineux : limite de ressources dépassée. Divisez le fichier en plusieurs imports.";
 
+// @spec TECH-RUST-107
 pub fn read_file(path: &Path) -> Result<Vec<u8>> {
     let file = std::fs::File::open(path)?;
     if file.metadata()?.len() > MAX_FILE_BYTES as u64 {
@@ -36,6 +37,7 @@ pub fn read_file(path: &Path) -> Result<Vec<u8>> {
     }
     Ok(bytes)
 }
+// @spec TECH-RUST-107
 fn add(total: &mut usize, amount: usize, limit: usize) -> Result<()> {
     *total = total.checked_add(amount).ok_or_else(|| invalid(LIMIT))?;
     if *total > limit {
@@ -43,6 +45,7 @@ fn add(total: &mut usize, amount: usize, limit: usize) -> Result<()> {
     }
     Ok(())
 }
+// @spec TECH-RUST-107
 fn rect(rows: usize, columns: usize) -> Result<usize> {
     let cells = rows.checked_mul(columns).ok_or_else(|| invalid(LIMIT))?;
     if rows > MAX_ROWS || columns > MAX_COLUMNS || cells > MAX_SHEET_CELLS {
@@ -56,6 +59,7 @@ struct Extent {
     last: (usize, usize),
 }
 impl Extent {
+    // @spec TECH-RUST-107
     fn include(&mut self, row: usize, col: usize) -> Result<()> {
         self.first = Some(match self.first {
             Some((r, c)) => (r.min(row), c.min(col)),
@@ -64,6 +68,7 @@ impl Extent {
         self.last = (self.last.0.max(row), self.last.1.max(col));
         self.cells().map(|_| ())
     }
+    // @spec TECH-RUST-107
     fn cells(&self) -> Result<usize> {
         match self.first {
             Some((row, col)) => rect(self.last.0 - row + 1, self.last.1 - col + 1),
@@ -71,12 +76,14 @@ impl Extent {
         }
     }
 }
+// @spec TECH-RUST-107
 fn u16_at(bytes: &[u8], offset: usize) -> Result<usize> {
     let b = bytes
         .get(offset..offset + 2)
         .ok_or_else(|| invalid("Fichier tronqué."))?;
     Ok(u16::from_le_bytes([b[0], b[1]]) as usize)
 }
+// @spec TECH-RUST-107
 fn u32_at(bytes: &[u8], offset: usize) -> Result<usize> {
     let b = bytes
         .get(offset..offset + 4)

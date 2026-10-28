@@ -291,12 +291,14 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
     canZoomIn: true,
     canZoomOut: true,
   });
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   zoomPercent = () => Math.round(this.cameraState().zoom * 100);
   private room?: Room;
   private destroyed = false;
   private ready = signal(false);
   private creating = false;
   private roomTask?: Promise<void>;
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   constructor() {
     effect(() => {
       const options = {
@@ -320,9 +322,11 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
       } else if (!this.creating) this.roomTask = this.createRoom();
     });
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   ngAfterViewInit() {
     this.ready.set(true);
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   private async createRoom() {
     this.creating = true;
     try {
@@ -351,20 +355,25 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
       this.creating = false;
     }
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   retry() {
     if (this.destroyed || this.creating) return;
     this.unavailable.set(false);
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   focusCamera() {
     if (this.cameraReady() && !this.unavailable())
       this.host.nativeElement.focus({ preventScroll: true });
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   zoomCamera(direction: number) {
     this.room?.zoomCamera(direction);
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   resetCamera() {
     this.room?.resetCamera();
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   cameraKey(event: KeyboardEvent) {
     if (!this.room || event.altKey || event.ctrlKey || event.metaKey) return;
     switch (event.key) {
@@ -397,11 +406,13 @@ export class AvatarScene implements AfterViewInit, OnDestroy {
     }
     event.preventDefault();
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   async prepareModes(modes: string[]) {
     if (this.destroyed || this.unavailable()) return;
     if (this.roomTask) await this.roomTask;
     await this.room?.preloadModes(modes);
   }
+  /** @spec TECH-FRONTEND-AVATAR-101 */
   ngOnDestroy() {
     this.destroyed = true;
     this.room?.dispose();

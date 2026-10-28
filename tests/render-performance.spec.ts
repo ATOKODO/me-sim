@@ -19,8 +19,10 @@ test.beforeEach(async ({ page }) => {
     }
   });
 });
+/** @spec TECH-TOOLING-TESTS */
 const draws = (page: Page) =>
   page.evaluate(() => (window as any).__drawCalls as number);
+/** @spec TECH-TOOLING-TESTS */
 async function expectStopped(page: Page) {
   await page.waitForTimeout(200);
   const before = await draws(page);

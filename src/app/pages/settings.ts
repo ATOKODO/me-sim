@@ -255,11 +255,13 @@ export class SettingsPage implements OnInit {
   companionProfileId = signal("");
   companionBusy = signal(false);
   companionError = signal("");
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   async ngOnInit() {
     if (!this.store.desktop) return;
     this.companionProfileId.set(this.store.activeId());
     await this.companionCommand("companion_status");
   }
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   private async companionCommand(
     command: string,
     args?: Record<string, string>,
@@ -282,20 +284,25 @@ export class SettingsPage implements OnInit {
       this.companionBusy.set(false);
     }
   }
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   startCompanion() {
     void this.companionCommand("companion_start", {
       profileId: this.companionProfileId(),
     });
   }
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   newPairingCode() {
     void this.companionCommand("companion_new_pairing_code");
   }
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   stopCompanion() {
     void this.companionCommand("companion_stop");
   }
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   revokeCompanion(deviceId: string) {
     void this.companionCommand("companion_revoke", { deviceId });
   }
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   profileName(id: string) {
     return this.store.profiles().find((profile) => profile.id === id)?.name ?? id;
   }
@@ -315,8 +322,10 @@ export class SettingsPage implements OnInit {
       description: "Un léger mouvement de la scène, inspiré de la PS1.",
     },
   ];
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   value = (key: keyof Pick<Settings, "animations" | "jitter">) =>
     this.store.data().settings[key];
+  /** @spec TECH-FRONTEND-SETTINGS-101 */
   toggle(key: keyof Pick<Settings, "animations" | "jitter">, v: boolean) {
     void this.store.mutate({
       type: "settings",

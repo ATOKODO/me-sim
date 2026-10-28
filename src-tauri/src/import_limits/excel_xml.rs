@@ -9,6 +9,7 @@ use std::{
     io::{Cursor, Read},
 };
 
+// @spec TECH-RUST-109
 // Validate the central directory before ZipArchive allocates entry metadata. ZIP64
 // is unnecessary for this 25 MiB input budget and is deliberately unsupported.
 fn zip_directory(bytes: &[u8]) -> Result<()> {
@@ -95,6 +96,7 @@ struct XmlBudget {
     strings: Vec<usize>,
     refs: HashMap<usize, usize>,
 }
+// @spec TECH-RUST-109
 fn coordinate(value: &[u8]) -> Result<(usize, usize)> {
     let mut column = 0usize;
     let mut index = 0;
@@ -117,12 +119,14 @@ fn coordinate(value: &[u8]) -> Result<(usize, usize)> {
     }
     Ok((row - 1, column - 1))
 }
+// @spec TECH-RUST-109
 fn decimal(value: &[u8]) -> Result<usize> {
     std::str::from_utf8(value)
         .ok()
         .and_then(|s| s.parse().ok())
         .ok_or_else(|| invalid("Entier XML invalide."))
 }
+// @spec TECH-RUST-109
 fn xml(bytes: &[u8], budget: &mut XmlBudget, collect_strings: bool) -> Result<()> {
     let mut reader = Reader::from_reader(bytes);
     let (mut depth, mut worksheet, mut row, mut col) = (0usize, false, 0usize, 0usize);
@@ -357,6 +361,7 @@ fn xml(bytes: &[u8], budget: &mut XmlBudget, collect_strings: bool) -> Result<()
     }
     Ok(())
 }
+// @spec TECH-RUST-109
 pub fn xlsx(bytes: &[u8]) -> Result<()> {
     zip_directory(bytes)?;
     let mut archive =

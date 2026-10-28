@@ -21,6 +21,7 @@ export class I18n {
   readonly locale = computed(() =>
     this.language() === "en" ? "en-US" : "fr-FR",
   );
+  /** @spec TECH-FRONTEND-I18N-101 */
   constructor() {
     effect(() => {
       applyPresentation({ language: this.language(), theme: this.theme() });
@@ -30,6 +31,7 @@ export class I18n {
           : "Me-Sim · Tes futurs possibles";
     });
   }
+  /** @spec TECH-FRONTEND-I18N-101 */
   t = (source: string | null | undefined): string => {
     if (source == null) return "";
     if (this.language() === "fr") return source;
@@ -48,20 +50,24 @@ export class I18n {
     }
     return source.replace(/\S[\s\S]*\S|\S/, translated);
   };
+  /** @spec TECH-FRONTEND-I18N-101 */
   async setLanguage(language: string) {
     if (language !== "fr" && language !== "en") return;
     return this.save({ language });
   }
+  /** @spec TECH-FRONTEND-I18N-101 */
   async setTheme(theme: string) {
     if (theme !== "dark" && theme !== "light") return;
     return this.save({ theme });
   }
+  /** @spec TECH-FRONTEND-I18N-101 */
   private save(value: { language?: Language; theme?: Theme }) {
     return this.store.mutate({
       type: "settings",
       value: { ...this.store.data().settings, ...value },
     });
   }
+  /** @spec TECH-FRONTEND-I18N-101 */
   color(source: string): string {
     if (this.theme() === "dark" || !/^#[0-9a-f]{6}$/i.test(source))
       return source;
@@ -76,6 +82,7 @@ export class I18n {
 @Pipe({ name: "t", pure: false })
 export class TranslatePipe implements PipeTransform {
   private readonly i18n = inject(I18n);
+  /** @spec TECH-FRONTEND-I18N-101 */
   transform(value: string | null | undefined) {
     return this.i18n.t(value);
   }
@@ -83,6 +90,7 @@ export class TranslatePipe implements PipeTransform {
 @Pipe({ name: "localDate", pure: false })
 export class LocalDatePipe implements PipeTransform {
   private readonly i18n = inject(I18n);
+  /** @spec TECH-FRONTEND-I18N-101 */
   transform(
     value: string | number | Date | null | undefined,
     format = "mediumDate",
@@ -94,6 +102,7 @@ export class LocalDatePipe implements PipeTransform {
 @Pipe({ name: "localNumber", pure: false })
 export class LocalNumberPipe implements PipeTransform {
   private readonly i18n = inject(I18n);
+  /** @spec TECH-FRONTEND-I18N-101 */
   transform(value: number | string | null | undefined, digits = "1.0-3") {
     if (value == null || value === "") return null;
     return formatNumber(Number(value), this.i18n.locale(), digits);

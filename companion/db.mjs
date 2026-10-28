@@ -1,6 +1,7 @@
 const NAME = "me-sim-companion";
 const VERSION = 1;
 
+/** @spec TECH-COMPANION-STORAGE */
 function request(request) {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
@@ -8,6 +9,7 @@ function request(request) {
   });
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 function open() {
   return new Promise((resolve, reject) => {
     const opening = indexedDB.open(NAME, VERSION);
@@ -21,6 +23,7 @@ function open() {
   });
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 async function withStore(name, mode, task) {
   const db = await open();
   try {
@@ -42,6 +45,7 @@ async function withStore(name, mode, task) {
   }
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export async function getSetting(key) {
   const db = await open();
   try {
@@ -53,14 +57,17 @@ export async function getSetting(key) {
   }
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export function putSetting(key, value) {
   return withStore("settings", "readwrite", (store) => store.put(value, key));
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export function addOperation(operation) {
   return withStore("operations", "readwrite", (store) => store.add(operation));
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export function replaceOperation(previousId, operation) {
   return withStore("operations", "readwrite", (store) => {
     store.delete(previousId);
@@ -68,10 +75,12 @@ export function replaceOperation(previousId, operation) {
   });
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export function deleteOperation(id) {
   return withStore("operations", "readwrite", (store) => store.delete(id));
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export async function allOperations() {
   const db = await open();
   try {
@@ -86,6 +95,7 @@ export async function allOperations() {
   }
 }
 
+/** @spec TECH-COMPANION-STORAGE */
 export function updateOperations(operations, acceptedIds) {
   return withStore("operations", "readwrite", (store) => {
     for (const id of acceptedIds) store.delete(id);

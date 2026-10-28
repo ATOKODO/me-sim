@@ -14,6 +14,7 @@ export class FocusDialog implements AfterViewInit, OnDestroy {
   private previous = document.activeElement as HTMLElement | null;
   private timer?: ReturnType<typeof setTimeout>;
   @Output() dismissed = new EventEmitter<void>();
+  /** @spec TECH-FRONTEND-DIALOG-101 */
   private elements() {
     return [
       ...this.host.nativeElement.querySelectorAll<HTMLElement>(
@@ -21,9 +22,11 @@ export class FocusDialog implements AfterViewInit, OnDestroy {
       ),
     ];
   }
+  /** @spec TECH-FRONTEND-DIALOG-101 */
   ngAfterViewInit() {
     this.timer = setTimeout(() => this.elements()[0]?.focus());
   }
+  /** @spec TECH-FRONTEND-DIALOG-101 */
   @HostListener("keydown", ["$event"]) onKey(e: KeyboardEvent) {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -42,6 +45,7 @@ export class FocusDialog implements AfterViewInit, OnDestroy {
       }
     }
   }
+  /** @spec TECH-FRONTEND-DIALOG-101 */
   ngOnDestroy() {
     clearTimeout(this.timer);
     this.previous?.focus();

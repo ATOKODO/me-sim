@@ -265,6 +265,7 @@ export class GhostPage {
   );
   time = timeLabel;
   private timer?: ReturnType<typeof setInterval>;
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   constructor() {
     const initialDate =
       inject(ActivatedRoute).snapshot.queryParamMap.get("date");
@@ -307,6 +308,7 @@ export class GhostPage {
     });
     inject(DestroyRef).onDestroy(() => this.stop());
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   slotStatus(status: string) {
     return this.tr(
       (
@@ -320,18 +322,22 @@ export class GhostPage {
       )[status],
     );
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   mode(events: GhostEvent[]) {
     if (events.length !== 1) return "idle";
     return events[0].metric;
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   stateLabel(events: GhostEvent[]) {
     return events.length
       ? events.map((e) => this.tr(e.label)).join(" + ")
       : this.tr("Inconnu / non prévu");
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   frequencyAt(minute: number) {
     return frequency(this.dayEvents(), minute, this.focus());
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   changeDate(value: string) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value > this.today()) return;
     this.cursor.set(this.minute());
@@ -341,27 +347,32 @@ export class GhostPage {
     this.pastDate.set(shiftDate(value, -1));
     this.selected.set(null);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   goLive() {
     this.stop();
     this.date.set(this.today());
     this.live.set(true);
     this.selected.set(null);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   scrub(minute: number) {
     this.stop();
     this.live.set(false);
     this.cursor.set(minute);
     this.selected.set(null);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   selectEvent(event: GhostEvent) {
     this.scrub(Math.floor(event.start));
     this.selected.set(event);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   stop() {
     clearInterval(this.timer);
     this.timer = undefined;
     this.playing.set(false);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   togglePlayback() {
     if (this.playing()) {
       this.stop();
@@ -375,6 +386,7 @@ export class GhostPage {
       if (this.cursor() >= 1439) this.stop();
     }, 300);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   linkSession(id: string) {
     this.sessionHabit = id;
     const habit = this.store.habits().find((h) => h.id === id);
@@ -384,6 +396,7 @@ export class GhostPage {
         this.sessionMetric = habit.metric!;
     }
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   linkBlock(id: string) {
     this.blockHabit = id;
     const habit = this.store.habits().find((h) => h.id === id);
@@ -393,6 +406,7 @@ export class GhostPage {
         this.blockMetric = habit.metric!;
     }
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   async start() {
     const now = new Date();
     await this.store.mutate({
@@ -415,6 +429,7 @@ export class GhostPage {
     this.endTime = "";
     this.goLive();
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   async finish() {
     const session = this.active();
     if (!session) return;
@@ -434,6 +449,7 @@ export class GhostPage {
       this.discarding.set(false);
     }
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   async cancel() {
     const session = this.active();
     if (
@@ -445,6 +461,7 @@ export class GhostPage {
     )
       this.discarding.set(false);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   async recordPoint() {
     const at = this.pointTime ? new Date(this.pointTime) : new Date();
     const metric = this.store.metric(this.pointMetric);
@@ -490,6 +507,7 @@ export class GhostPage {
     )
       this.pointTime = "";
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   prepareChange(event: GhostEvent) {
     this.blockTime = timeLabel(event.start);
     this.blockDuration = Math.max(1, Math.round(event.end - event.start));
@@ -501,6 +519,7 @@ export class GhostPage {
       .getElementById("ghost-target-editor")
       ?.scrollIntoView({ behavior: "instant", block: "start" });
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   newRoutine() {
     this.routineId = "";
     this.routineName = "";
@@ -510,6 +529,7 @@ export class GhostPage {
     this.blockHabit = "";
     this.blockLabel = "";
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   loadRoutine(id: string) {
     const p = this.latestPlans().find((p) => p.routineId === id);
     if (!p) {
@@ -523,11 +543,13 @@ export class GhostPage {
     this.routineDays = [...p.weekdays];
     this.blocks.set(structuredClone(p.blocks));
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   toggleDay(day: number, on: boolean) {
     this.routineDays = on
       ? [...this.routineDays, day]
       : this.routineDays.filter((d) => d !== day);
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   addBlock() {
     const [h, m] = this.blockTime.split(":").map(Number),
       start = h * 60 + m;
@@ -562,9 +584,11 @@ export class GhostPage {
       ].sort((a, b) => a.startMinute - b.startMinute),
     );
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   removeBlock(id: string) {
     this.blocks.update((blocks) => blocks.filter((b) => b.id !== id));
   }
+  /** @spec TECH-FRONTEND-GHOSTVIEW-101 */
   async saveRoutine() {
     if (this.effectiveFrom < this.today()) {
       this.store.error.set(

@@ -491,6 +491,7 @@ export class Habits {
       .join(" ");
   });
 
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   constructor() {
     let previousProfile = this.store.activeId();
     let previousDay = this.todayKey();
@@ -511,24 +512,29 @@ export class Habits {
     });
   }
 
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   x(index: number) {
     return 32 + index * 40;
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   y(score: number) {
     return 160 - score * 1.4;
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   icon(habit: HabitDefinition) {
     return (
       this.store.metric(habit.metric ?? "")?.icon ??
       (habit.kind === "good" ? "check" : "info")
     );
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   answerFor(habit: HabitDefinition): boolean | null {
     const answers = this.selectedDay()?.answers;
     return answers && Object.prototype.hasOwnProperty.call(answers, habit.id)
       ? answers[habit.id]
       : null;
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   calendarLabel(date: string, status: string) {
     const name = new Date(`${date}T12:00:00`).toLocaleDateString(
       this.i18n.locale(),
@@ -540,10 +546,12 @@ export class Habits {
     );
     return `${name} · ${this.tr(status === "validated" ? "validée" : status === "partial" ? "en cours" : "non renseignée")}`;
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   moveMonth(delta: number) {
     const [year, month] = this.month().split("-").map(Number);
     this.month.set(localDate(new Date(year, month - 1 + delta, 1, 12)));
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   choosePreset(metric: string) {
     this.preset.set(metric);
     const match = HABIT_METRICS.find((item) => item.id === metric);
@@ -552,6 +560,7 @@ export class Habits {
       this.newKind.set(match.positive ? "good" : "bad");
     }
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   async addHabit() {
     const profile = this.store.profile();
     const label = this.newLabel().trim();
@@ -575,6 +584,7 @@ export class Habits {
       this.newKind.set("good");
     }
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   async archive(habit: HabitDefinition) {
     const profile = this.store.profile();
     if (!profile) return;
@@ -590,6 +600,7 @@ export class Habits {
       },
     });
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   async setAnswer(habit: HabitDefinition, value: boolean | null) {
     const profile = this.store.profile();
     if (!profile || !this.selectedHabits().some((item) => item.id === habit.id))
@@ -605,6 +616,7 @@ export class Habits {
     };
     await this.store.mutate({ type: "saveHabitDay", value: day });
   }
+  /** @spec TECH-FRONTEND-HABITSVIEW-101 */
   async validateDay() {
     const profile = this.store.profile();
     const status = this.selectedStatus();

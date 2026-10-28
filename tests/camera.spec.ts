@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 
+/** @spec TECH-TOOLING-TESTS */
 async function freezeAvatar(page: Page) {
   await page.goto("/#/parametres");
   await page.getByRole("switch", { name: /Donner vie à l’avatar/ }).uncheck();
@@ -8,6 +9,7 @@ async function freezeAvatar(page: Page) {
   await page.waitForTimeout(150);
 }
 
+/** @spec TECH-TOOLING-TESTS */
 async function orbit(page: Page, canvas: Locator) {
   const box = await canvas.boundingBox();
   if (!box) throw Error("Scène 3D absente");
@@ -27,6 +29,7 @@ test("mouse orbit and wheel zoom change the rendered camera; reset restores the 
   const scene = page.locator(".scene").first();
   const canvas = scene.locator("canvas");
   // The toolbar overlays the canvas: exclude hover/zoom text from camera image comparisons.
+  /** @spec TECH-TOOLING-TESTS */
   const captureCamera = () =>
     canvas.screenshot({ mask: [scene.locator(".camera-controls")] });
   const initial = await captureCamera();
@@ -62,6 +65,7 @@ test("camera buttons, keyboard and resize retain bounded zoom and a working rese
   await freezeAvatar(page);
   const scene = page.locator(".scene").first();
   const canvas = scene.locator("canvas");
+  /** @spec TECH-TOOLING-TESTS */
   const captureCamera = () =>
     canvas.screenshot({ mask: [scene.locator(".camera-controls")] });
   const zoomIn = scene.getByRole("button", {

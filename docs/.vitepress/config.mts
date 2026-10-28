@@ -1,8 +1,11 @@
 import { defineConfig, type DefaultTheme } from "vitepress";
 
+/** @spec TECH-TOOLING-DOCS */
 function navigation(language: "fr" | "en"): DefaultTheme.Config {
   const en = language === "en";
+  /** @spec TECH-TOOLING-DOCS */
   const t = (fr: string, english: string) => (en ? english : fr);
+  /** @spec TECH-TOOLING-DOCS */
   const path = (page: string) => (en ? "/en/" : "/") + page;
   return {
     logo: "/favicon.svg",

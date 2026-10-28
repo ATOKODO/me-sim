@@ -15,9 +15,11 @@ pub struct ModelDefinition {
     pub source: &'static str,
     pub horizons: Vec<u32>,
 }
+// @spec TECH-RUST-112
 pub fn definition() -> ModelDefinition {
     ModelDefinition{id:"hall-2011",version:"0.1.0-research",name:"Hall · NIDDK (2011)",status:"validation_pending",enabled:false,reasons:vec!["Le module de recherche couvre seulement la phase linéarisée tardive ; glycogène et fluides restent à implémenter.","La licence de redistribution du modèle complet et son domaine d’utilisation doivent être confirmés.","Les courbes de référence publiées ne sont pas encore reproduites : aucun horizon n’est activé."],source:"https://www.niddk.nih.gov/research-funding/at-niddk/labs-branches/laboratory-biological-modeling/integrative-physiology-section/research/body-weight-planner",horizons:vec![]}
 }
+// @spec TECH-RUST-112
 pub fn run(profile: &Profile, s: &Scenario) -> Result<SimulationRun> {
     if profile.birth_date.is_none() || profile.sex.is_none() || profile.height_cm.is_none() {
         return Err(AppError::new(
@@ -54,6 +56,7 @@ pub struct LinearInputs {
     pub intake_delta_kj_day: f64,
     pub activity_delta_kj_kg_day: f64,
 }
+// @spec TECH-RUST-112
 #[allow(dead_code)]
 pub fn research_late_phase(p: &LinearInputs, days: u32) -> Result<Vec<f64>> {
     if days > 365
@@ -85,6 +88,7 @@ pub fn research_late_phase(p: &LinearInputs, days: u32) -> Result<Vec<f64>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // @spec TECH-RUST-113
     #[test]
     fn equilibrium_and_direction_are_deterministic() {
         let mut p = LinearInputs {
@@ -105,6 +109,7 @@ mod tests {
         assert!(!definition().enabled);
         assert!(definition().horizons.is_empty());
     }
+    // @spec TECH-RUST-113
     #[test]
     fn endpoint_never_leaks_research_results() {
         let mut s = Snapshot::default();

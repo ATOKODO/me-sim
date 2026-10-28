@@ -4,6 +4,7 @@ const browser = await chromium.connectOverCDP(
 );
 try {
   const page = browser.contexts()[0].pages()[0];
+  /** @spec TECH-TOOLING-VALIDATION */
   const read = () =>
     page.evaluate(() => window.__TAURI_INTERNALS__.invoke("initial_state"));
   const initial = await read();

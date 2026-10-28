@@ -21,9 +21,11 @@ interface LoadedAnimation {
   action: T.AnimationAction;
 }
 
+/** @spec TECH-FRONTEND-ANIMATION-101 */
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+/** @spec TECH-FRONTEND-ANIMATION-101 */
 function materialsIn(root: T.Object3D) {
   const materials = new Set<T.Material>();
   root.traverse((object) => {
@@ -37,6 +39,7 @@ function materialsIn(root: T.Object3D) {
 }
 
 /** Releases a GLB that finished loading after its room was destroyed. */
+/** @spec TECH-FRONTEND-ANIMATION-101 */
 function disposeModel(root: T.Object3D) {
   const geometries = new Set<T.BufferGeometry>();
   const skeletons = new Set<T.Skeleton>();
@@ -92,6 +95,7 @@ export class ArtistAnimations {
   private color = "#bde883";
   private disposed = false;
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   constructor(
     root: T.Group,
     private readonly onSourceChange: (source: AvatarSource) => void,
@@ -104,6 +108,7 @@ export class ArtistAnimations {
     this.ready = this.readManifest();
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   async preload(modes: string[]) {
     await this.ready;
     if (this.disposed) return;
@@ -111,17 +116,20 @@ export class ArtistAnimations {
     await Promise.all(modes.map((mode) => this.load(mode, variant)));
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   setVariant(variant: AvatarVariant) {
     if (this.variant === variant) return;
     this.variant = variant;
     this.play(this.mode, this.replayKey, this.animate);
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   setColor(color: string) {
     this.color = color;
     for (const asset of this.models.values()) this.colorShirt(asset.scene);
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   play(mode: string, replayKey: number, animate: boolean) {
     if (this.disposed) return;
     const changed = mode !== this.mode || replayKey !== this.replayKey;
@@ -158,12 +166,14 @@ export class ArtistAnimations {
     });
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   tick(seconds: number) {
     if (!this.active) return;
     this.active.action.paused = !this.animate;
     if (this.animate) this.active.mixer.update(seconds);
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   dispose() {
     this.disposed = true;
     for (const asset of this.models.values()) {
@@ -178,6 +188,7 @@ export class ArtistAnimations {
     this.anchor.removeFromParent();
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private async readManifest() {
     try {
       const response = await fetch(this.manifestUrl);
@@ -227,10 +238,12 @@ export class ArtistAnimations {
     }
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private key(mode: string, variant: AvatarVariant) {
     return `${variant}:${mode}`;
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private load(mode: string, variant: AvatarVariant): Promise<void> {
     const key = this.key(mode, variant);
     const spec = this.specs[variant][mode];
@@ -265,6 +278,7 @@ export class ArtistAnimations {
     return task;
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private loadModel(file: string): Promise<LoadedModel | null> {
     if (this.disposed) return Promise.resolve(null);
     const loaded = this.models.get(file);
@@ -323,6 +337,7 @@ export class ArtistAnimations {
     return task;
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private activate(asset: LoadedAnimation, restart: boolean) {
     if (this.active && this.active !== asset) {
       this.active.scene.visible = false;
@@ -339,6 +354,7 @@ export class ArtistAnimations {
     this.onSourceChange("artist");
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private clearActive(source: "loading" | "procedural") {
     if (this.active) {
       this.active.scene.visible = false;
@@ -348,6 +364,7 @@ export class ArtistAnimations {
     this.onSourceChange(source);
   }
 
+  /** @spec TECH-FRONTEND-ANIMATION-101 */
   private colorShirt(scene: T.Object3D) {
     for (const material of materialsIn(scene))
       if (

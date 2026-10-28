@@ -1,6 +1,7 @@
 import { test, expect, Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 test.use({ timezoneId: "UTC" });
+/** @spec TECH-TOOLING-TESTS */
 async function profile(page: Page) {
   await page.clock.install({ time: new Date("2026-10-21T18:40:00Z") });
   await page.goto("/#/profils");

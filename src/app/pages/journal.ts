@@ -333,6 +333,7 @@ export class Journal {
     time: [""],
     label: ["", Validators.maxLength(100)],
   });
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   constructor() {
     effect(() => {
       this.store.activeId();
@@ -368,6 +369,7 @@ export class Journal {
       previousDay = day;
     });
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   private updateTimeValidators() {
     this.form.controls.time.setValidators(
       this.currentMetric().event && (this.form.controls.value.value ?? 0) > 0
@@ -379,13 +381,18 @@ export class Journal {
     );
     this.form.controls.time.updateValueAndValidity({ emitEvent: false });
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   currentMetric = () => METRICS.find((m) => m.id === this.selectedMetric())!;
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   filtered = () =>
     this.store
       .observations()
       .filter((o) => !this.filter() || o.metric === this.filter());
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   pages = () => Math.max(1, Math.ceil(this.filtered().length / 15));
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   paged = () => this.filtered().slice(this.page() * 15, this.page() * 15 + 15);
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   reset() {
     this.editing.set(null);
     this.form.reset({
@@ -396,15 +403,18 @@ export class Journal {
       label: "",
     });
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   nowTime() {
     const d = new Date();
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   choose(metric: Metric) {
     this.form.controls.metric.setValue(metric);
     this.form.controls.time.setValue(this.nowTime());
     this.form.controls.value.setValue(null);
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   edit(o: Observation) {
     this.editing.set(o);
     this.form.setValue({
@@ -415,6 +425,7 @@ export class Journal {
       label: o.context?.label ?? "",
     });
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   async save() {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
@@ -456,6 +467,7 @@ export class Journal {
     if (await this.store.mutate({ type: "saveObservation", value: o }))
       this.reset();
   }
+  /** @spec TECH-FRONTEND-JOURNAL-101 */
   async remove(o: Observation) {
     if (
       await this.store.mutate({

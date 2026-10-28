@@ -16,6 +16,7 @@ export class Room {
   private scene = new T.Scene();
   private camera = new T.OrthographicCamera(-5.3, 5.3, 4, -4, 0.1, 80);
   private controls: OrbitControls;
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private readonly emitCameraState = () => {
     this.onCameraState?.({
       zoom: this.camera.zoom,
@@ -30,6 +31,7 @@ export class Room {
   private inViewport = true;
   private dirty = true;
   private contextLost = false;
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private requestFrame = () => {
     if (
       this.dead ||
@@ -41,14 +43,17 @@ export class Room {
       return;
     this.frame = requestAnimationFrame(this.tick);
   };
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private invalidate = () => {
     this.dirty = true;
     this.requestFrame();
   };
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private cancelFrame = () => {
     cancelAnimationFrame(this.frame);
     this.frame = 0;
   };
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private onVisibility = () => {
     if (document.hidden) this.cancelFrame();
     else this.invalidate();
@@ -79,12 +84,14 @@ export class Room {
   private last = 0;
   private modeStartedAt = 0;
   private dead = false;
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private onLost = (e: Event) => {
     e.preventDefault();
     this.contextLost = true;
     this.cancelFrame();
     this.onUnavailable();
   };
+  /** @spec TECH-FRONTEND-ROOM-101 */
   constructor(
     private host: HTMLElement,
     private onUnavailable: () => void,
@@ -146,6 +153,7 @@ export class Room {
     this.invalidate();
     this.emitCameraState();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private box(
     w: number,
     h: number,
@@ -164,6 +172,7 @@ export class Room {
     parent.add(m);
     return m;
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private buildRoom() {
     this.box(7, 0.28, 5.7, 0x554c3c, 0, -0.18, 0);
     for (let x = 0; x < 14; x++)
@@ -251,6 +260,7 @@ export class Room {
     art.position.set(2, 2.49, -2.52);
     this.root.add(art);
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private buildPerson() {
     this.root.add(this.person);
     this.person.position.set(-0.45, 0.1, 0.75);
@@ -299,6 +309,7 @@ export class Room {
     shadow.position.set(-0.45, 0.11, 0.75);
     this.root.add(shadow);
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private buildActivityProps() {
     const laptop = new T.Group();
     this.box(0.62, 0.04, 0.38, 0x3f5960, 0, 0, 0, laptop);
@@ -430,6 +441,7 @@ export class Room {
 
     this.setActivityProps("idle");
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private addVapor(parent: T.Group, color: number, height: number) {
     for (let i = 0; i < 3; i++) {
       const puff = new T.Mesh(
@@ -447,11 +459,13 @@ export class Room {
       this.vaporPuffs.push(puff);
     }
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private setActivityProps(mode: string) {
     Object.values(this.activityProps).forEach((prop) => (prop.visible = false));
     const prop = this.activityProps[mode];
     if (prop) prop.visible = true;
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   update(o: typeof this.options) {
     if (o.mode !== this.options.mode || o.replayKey !== this.options.replayKey)
       this.modeStartedAt = performance.now();
@@ -465,6 +479,7 @@ export class Room {
     this.artist.play(o.mode, o.replayKey, o.animations);
     this.invalidate();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   setGhost(mode: string | null, variant: AvatarVariant, animations: boolean) {
     if (!mode) {
       if (this.ghostRoot) this.ghostRoot.visible = false;
@@ -490,9 +505,11 @@ export class Room {
     this.ghostArtist.play(mode, this.options.replayKey, animations);
     this.invalidate();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   async preloadModes(modes: string[]) {
     await this.artist.preload(modes);
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   zoomCamera(direction: number) {
     if (this.dead) return;
     this.camera.zoom = T.MathUtils.clamp(
@@ -504,6 +521,7 @@ export class Room {
     this.controls.update();
     this.emitCameraState();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   rotateCamera(horizontal: number, vertical: number) {
     if (this.dead) return;
     const offset = this.camera.position.clone().sub(this.controls.target);
@@ -519,11 +537,13 @@ export class Room {
       .add(offset.setFromSpherical(spherical));
     this.controls.update();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   resetCamera() {
     if (this.dead) return;
     this.controls.reset();
     this.emitCameraState();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private resize() {
     const w = this.host.clientWidth,
       h = this.host.clientHeight;
@@ -537,6 +557,7 @@ export class Room {
     this.camera.updateProjectionMatrix();
     this.invalidate();
   }
+  /** @spec TECH-FRONTEND-ROOM-101 */
   private tick = (ms: number) => {
     this.frame = 0;
     if (this.dead || this.contextLost || document.hidden || !this.inViewport)
@@ -555,8 +576,11 @@ export class Room {
     let bodyY = 0.1 + Math.sin(t * 2) * 0.018;
     let bodyZ = 0;
     let bodyRotY = 0.15;
+    /** @spec TECH-FRONTEND-ROOM-101 */
     let armPose = (i: number) => 0.02 * Math.sin(t * 2 + i);
+    /** @spec TECH-FRONTEND-ROOM-101 */
     let armZPose = (_i: number) => 0;
+    /** @spec TECH-FRONTEND-ROOM-101 */
     let legPose = (_i: number) => 0;
     switch (mode) {
       case "walk":
@@ -674,6 +698,7 @@ export class Room {
     this.dirty = false;
     if (this.options.animations) this.requestFrame();
   };
+  /** @spec TECH-FRONTEND-ROOM-101 */
   dispose() {
     this.dead = true;
     this.artist.dispose();
