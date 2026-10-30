@@ -173,21 +173,24 @@ import { AvatarScene } from "../scene/avatar";
               <span class="eyebrow">{{ "LES PETITS PAS COMPTENT" | t }}</span>
               <h2>{{ "Ton activité au fil du temps" | t }}</h2>
             </div>
-            <span class="pill muted">{{ "28 MESURES" | t }}</span>
+            <span class="pill muted"
+              >{{ stepHistory().length | localNumber: "1.0-0" }}
+              {{
+                (stepHistory().length === 1 ? "MESURE" : "MESURES") | t
+              }}</span
+            >
           </div>
           <div class="chart-legend">
             <span class="legend-dot"></span> {{ "Pas enregistrés" | t }}
             <span>{{ "· observations" | t }}</span>
           </div>
           <mini-chart
-            [values]="values('steps')"
+            [values]="stepValues()"
             [label]="'Pas enregistrés, jusqu’aux 28 dernières mesures' | t"
           />
           <div class="chart-range">
-            <span>{{
-              store.series("steps")[0]?.date | localDate: "d MMM"
-            }}</span
-            ><span>{{ store.latest("steps")?.date | localDate: "d MMM" }}</span>
+            <span>{{ stepHistory()[0]?.date | localDate: "d MMM" }}</span
+            ><span>{{ stepHistory().at(-1)?.date | localDate: "d MMM" }}</span>
           </div>
           <div class="info-footnote">
             <ui-icon name="info" />{{
@@ -604,6 +607,8 @@ export class Dashboard implements OnDestroy {
     ),
   );
   essentials = METRICS.slice(0, 3);
+  stepHistory = computed(() => this.store.series("steps"));
+  stepValues = computed(() => this.stepHistory().map((row) => row.value));
   mode = signal("idle");
   replayKey = signal(0);
   selectedEvent = signal<Observation | null>(null);

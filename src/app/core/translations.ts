@@ -301,7 +301,8 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Pas enregistrés, jusqu’aux 28 dernières mesures":
     "Recorded steps, up to the last 28 measurements",
   "Pas enregistrés": "Recorded steps",
-  "28 MESURES": "28 MEASUREMENTS",
+  MESURE: "MEASUREMENT",
+  MESURES: "MEASUREMENTS",
   "LES 24 DERNIÈRES HEURES": "THE LAST 24 HOURS",
   "Rejouer la journée": "Replay the day",
   "Fais défiler les activités et regarde ton avatar les rejouer dans l’ordre. Chaque moment est résumé en une courte séquence.":

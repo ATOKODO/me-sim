@@ -186,6 +186,8 @@ Implements REQ-FRONTEND-HABITS-101. Source: `src/app/pages/dashboard.ts`.
 
 Methods prepare measurements, visual heights and event selection, save a target only if its form is valid, and control sequential activity playback. Playback timers stop on destruction. Mutations and errors go through the state service.
 
+The step chart, date range and counter share the active profile's latest observations, capped at 28 measurements. The counter displays their actual number (including a declared zero) with a translated singular or plural label; an empty history shows zero measurements.
+
 | Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `Dashboard.values` | `metric: string` | `number[]` |

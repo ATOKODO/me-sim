@@ -184,6 +184,8 @@ Implémente REQ-FRONTEND-HABITS-101. Source : `src/app/pages/dashboard.ts`.
 
 Les méthodes préparent les mesures, les hauteurs visuelles et la sélection d’événements, enregistrent un objectif uniquement si son formulaire est valide et contrôlent la lecture séquentielle des activités. Les minuteries de lecture sont arrêtées lors de la destruction. Les mutations et erreurs passent par le service d’état.
 
+La courbe de pas, ses dates et son compteur partagent les mêmes observations du profil actif, limitées aux 28 dernières mesures. Le compteur affiche leur nombre réel (y compris une mesure déclarée à zéro), avec un libellé singulier ou pluriel traduit ; un historique vide affiche zéro mesure.
+
 | Déclaration | Entrées déclarées | Sortie TypeScript |
 | --- | --- | --- |
 | `Dashboard.values` | `metric: string` | `number[]` |

@@ -86,6 +86,7 @@ async function native(page: Page, data = snapshot(), conflict = false) {
             if (args.expectedRevision !== fixture.revision)
               throw { code: "CONCURRENT_CHANGE", message: "Changed elsewhere" };
             const o = args.operation;
+            if (o.type === "settings") fixture.snapshot.settings = o.value;
             if (o.type === "saveProfile")
               fixture.snapshot.profiles = [
                 ...fixture.snapshot.profiles.filter((p) => p.id !== o.value.id),
@@ -176,6 +177,73 @@ async function native(page: Page, data = snapshot(), conflict = false) {
   );
 }
 test.use({ timezoneId: "Europe/Paris" });
+test("step history counter follows the plotted profile, sample limit and language", async ({
+  page,
+}) => {
+  const data = snapshot();
+  data.profiles.push(
+    { ...data.profiles[0], id: "q", name: "Une mesure" },
+    { ...data.profiles[0], id: "r", name: "Sans pas" },
+  );
+  data.observations = Array.from({ length: 35 }, (_, index) => ({
+    id: `step-${index}`,
+    profileId: "p",
+    date: new Date(Date.UTC(2026, 9, 29 - index)).toISOString().slice(0, 10),
+    metric: "steps",
+    value: index + 1,
+    unit: "pas",
+    source: "test",
+    batchId: null,
+    at: null,
+    durationMinutes: null,
+  }));
+  data.observations.push(
+    { ...data.observations[0], id: "zero", profileId: "q", value: 0 },
+    {
+      ...data.observations[0],
+      id: "weight",
+      profileId: "r",
+      metric: "weight",
+      value: 70,
+      unit: "kg",
+    },
+  );
+  await native(page, data);
+  await page.goto("/#/");
+  const count = page.locator(".trend-card .pill");
+  await expect(count).toHaveText("28 MESURES");
+  await page
+    .getByLabel("Profil actif", { exact: true })
+    .selectOption({ label: "Une mesure" });
+  await expect(count).toHaveText("1 MESURE");
+  await page.getByLabel("Langue", { exact: true }).selectOption("en");
+  await expect(count).toHaveText("1 MEASUREMENT");
+  await page.getByLabel("Language", { exact: true }).selectOption("fr");
+  await page.getByRole("link", { name: "Mon journal", exact: true }).click();
+  await page.locator('select[formControlName="metric"]').selectOption("steps");
+  await page.locator('input[formControlName="date"]').fill("2026-10-30");
+  await page.locator('input[formControlName="value"]').fill("2500");
+  await page
+    .getByRole("button", { name: "Ajouter au journal", exact: true })
+    .click();
+  await expect(page.getByRole("cell", { name: /2\s*500 pas/ })).toBeVisible();
+  await page.getByRole("link", { name: "Mon aperçu", exact: true }).click();
+  await expect(count).toHaveText("2 MESURES");
+  await page
+    .getByLabel("Profil actif", { exact: true })
+    .selectOption({ label: "Sans pas" });
+  await expect(count).toHaveText("0 MESURES");
+  await page.getByLabel("Langue", { exact: true }).selectOption("en");
+  await expect(count).toHaveText("0 MEASUREMENTS");
+  await page
+    .getByLabel("Active profile", { exact: true })
+    .selectOption({ label: "Une mesure" });
+  await expect(count).toHaveText("2 MEASUREMENTS");
+  await page
+    .getByLabel("Active profile", { exact: true })
+    .selectOption({ label: "Review test" });
+  await expect(count).toHaveText("28 MEASUREMENTS");
+});
 test("midnight opens the new day and advances the calendar across a month boundary", async ({
   page,
 }) => {
