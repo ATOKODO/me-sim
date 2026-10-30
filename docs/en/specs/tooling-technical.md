@@ -37,3 +37,7 @@ These Python functions are used during asset generation and require the scriptâ€
 - `quadratic(start, control, end, steps)` yields points on a quadratic BÃ©zier curve, including both endpoints, to draw installable icons.
 - `add_prop`, `solid`, `bind`, `box` and `sphere` respectively add an accessory bone, a material, an armature binding, and box or sphere geometry. They use the objects and Blender scene prepared by the script.
 - `rotate`, `translate` and `visible` set bone transforms or accessory visibility; `sit`, `hands_forward`, `aim_bone`, `reach` and `pose` compose animation poses from the skeleton and targets supplied or prepared by the script.
+
+## License inventory
+
+`scripts/license-inventory.mjs` reads both lockfiles, installed npm manifests and the Windows Cargo graph resolved offline. It writes `licenses/dependencies.json`, or checks exact equality with `--check`. It rejects installed versions differing from lock entries, missing declarations and stale output; local npm links are resolved within the lockfile. `hash(file)` reads a lockfile path and returns the bytes' SHA-256 digest, propagating read errors. No personal Cargo path is recorded. This inventory is not a compatibility proof or a complete binary notice bundle. The canonical identifier is defined in the French specification.

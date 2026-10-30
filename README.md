@@ -4,6 +4,14 @@ Application Windows locale : Angular 22, Tauri 2, SQLite et Three.js. Interface 
 
 ![Application Windows](docs/native-dashboard.png)
 
+## Licence et contributions
+
+Le code et la documentation propres à Me-Sim sont sous **AGPL-3.0-only** : [texte de la licence](LICENSE). Les dépendances et ressources tierces conservent leurs conditions ; les personnages et textures sont de **Vinrax**, crédité ici et dans les ressources embarquées : [crédits et sources](CREDITS.md), [revue de compatibilité](docs/licenses.md).
+
+**Les contributions externes ne sont pas acceptées pour le moment.** Chacun est libre de cloner, étudier, exécuter, forker, modifier et redistribuer le code en respectant sa licence. Merci de ne pas envoyer de pull request ou de correctif spontané : [politique de contribution](CONTRIBUTING.md).
+
+Original code and documentation: **AGPL-3.0-only**. Third-party assets retain their own terms. External contributions and pull requests are currently not accepted; cloning, forking and modifying the code remain welcome under its license.
+
 ## Paquets Windows
 
 Les artefacts de cette livraison sont dans `release/` :

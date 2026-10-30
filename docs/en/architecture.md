@@ -51,6 +51,8 @@ The research weight engine remains inaccessible to user projections. See the [mo
 
 ## Documentation and catalogue {#documentation-et-catalogue}
 
+The [license and credits review](./licenses.md) describes AGPL-3.0-only, Vinrax asset terms and local dependency checks. External contributions are currently not accepted; cloning and forking remain permitted under the license.
+
 The [functional and technical specifications](./specifications.md) describe the contracts associated with code declarations and their limits.
 
 VitePress 1.6.4 turns the guides in `docs/` and `docs/en/` into a static site, with localized navigation and local search indexes. Storybook exposes application styles and components. These are development dependencies and are not part of the Tauri package.

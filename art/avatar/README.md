@@ -1,5 +1,7 @@
 # Sources de l’avatar
 
+Personnages et textures originaux par **Vinrax** : [PSX Female Secretary Character](https://vinrax.itch.io/psx-secretary-character) et [PSX Casual Male Character](https://vinrax.itch.io/psx-casual-male-character). Les deux pages autorisent l’utilisation dans des projets avec crédit à l’auteur. Les ajouts Me-Sim comprennent animations, accessoires et conversions Blender/GLB. Ces modèles et textures ne sont pas replacés sous AGPL ; voir les [crédits et limites de la permission publiée](../../CREDITS.md).
+
 - `male_casual.fbx` : modèle original et squelette de 25 os, sans clips d’animation.
 - `character-texture.png` : texture fournie, préservée à l’identique.
 - `male-casual-animated.blend` : version éditable, texture intégrée et quinze actions (attente + habitudes). Les accessoires sont liés aux os `prop_*`.

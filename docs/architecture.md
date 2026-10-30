@@ -51,6 +51,8 @@ Le moteur de recherche du poids reste inaccessible aux projections utilisateur. 
 
 ## Documentation et catalogue
 
+La [revue des licences et crédits](./licenses.md) décrit la licence AGPL-3.0-only, les conditions des personnages de Vinrax et le contrôle local des dépendances. Les contributions externes ne sont pas acceptées pour le moment ; cloner et forker restent autorisés selon la licence.
+
 Les [spécifications fonctionnelles et techniques](./specifications.md) détaillent les contrats associés aux déclarations du code et leurs limites.
 
 VitePress 1.6.4 transforme les guides de `docs/` et `docs/en/` en site statique, avec navigation traduite et index de recherche locaux. Storybook expose les styles et composants de l’application. Ces outils sont des dépendances de développement et ne font pas partie du paquet Tauri.

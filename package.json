@@ -1,8 +1,11 @@
 {
   "name": "me-sim",
   "version": "0.1.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "scripts": {
+    "licenses:inventory": "node scripts/license-inventory.mjs",
+    "licenses:check": "node scripts/license-inventory.mjs --check",
     "start": "ng serve --host 127.0.0.1 --port 1420",
     "build": "ng build",
     "tauri": "tauri",
@@ -13,7 +16,7 @@
     "test": "node scripts/test.mjs",
     "test:companion": "node --test companion/*.test.mjs",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
-    "validate:local": "npm run test:dependencies && npm run check:avatar && npm run test:companion && npm run docs:build && npm run test:local-preview && npm run build && npm run build:storybook && npm test && cargo test --locked --offline --manifest-path src-tauri/Cargo.toml && npm run test:visual -- --skip-build",
+    "validate:local": "npm run test:dependencies && npm run licenses:check && npm run check:avatar && npm run test:companion && npm run docs:build && npm run test:local-preview && npm run build && npm run build:storybook && npm test && cargo test --locked --offline --manifest-path src-tauri/Cargo.toml && npm run test:visual -- --skip-build",
     "preview": "node scripts/serve.mjs",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.css\"",
     "storybook": "node scripts/storybook.mjs dev",

@@ -1,5 +1,7 @@
 # Préparation de la publication open source — 9 octobre 2026 {#open-source-publication-2026-10-09}
 
+**Suivi du 30 octobre :** le code est désormais sous AGPL-3.0-only ; les sources et crédits Vinrax sont identifiés. La [revue des licences](./licenses.md) remplace les constats historiques correspondants ci-dessous et distingue usage autorisé et redistribution des originaux encore à clarifier. Les contributions externes ne sont pas acceptées pour le moment.
+
 **Suivi du 9 octobre :** les points npm, parseur XML et contrôles avant chargement sont traités dans les [correctifs de dépendances et d’import](./dependency-import-hardening.md). Les constats ci-dessous décrivent l’état du commit audité.
 
 **Suivi du 27 octobre :** le workflow GitHub Actions a été retiré ; les vérifications et la construction des paquets se font localement. Les mentions de CI ci-dessous décrivent la configuration historique.

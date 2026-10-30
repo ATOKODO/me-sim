@@ -1,5 +1,7 @@
 # Open source publication readiness — 9 October 2026 {#open-source-publication-2026-10-09}
 
+**30 October update:** the code is now AGPL-3.0-only; Vinrax sources and credits are identified. The [license review](./licenses.md) supersedes the historical licensing findings below and distinguishes permitted use from editable-original redistribution that still needs clarification. External contributions are currently not accepted.
+
 **9 October follow-up:** npm, XML parser and preallocation checks are addressed in [dependency and import hardening](./dependency-import-hardening.md). Findings below describe the audited commit.
 
 **27 October follow-up:** the GitHub Actions workflow has been removed; checks and package builds run locally. CI references below describe the historical configuration.
