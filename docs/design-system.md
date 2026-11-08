@@ -1,51 +1,53 @@
-# Design système et régression visuelle
+# Design system and visual regression {#design-systeme-et-regression-visuelle}
 
-Storybook utilise les styles de l’application et ses composants Angular réels. Les stories ne sont pas empaquetées dans Tauri. Les dépendances sont verrouillées ; la télémétrie Storybook et les rapports de crash sont désactivés. Aucun compte Chromatic n’est requis. Les tests utilisent des données fictives et leurs rapports restent sur le poste.
+Storybook uses the application's styles and real Angular components. Stories are not included in Tauri. Dependencies are locked; Storybook telemetry and crash reports are disabled. No Chromatic account is required. Tests use fictional data and reports stay on the local computer.
 
-## Utiliser le catalogue
+## Use the catalogue {#utiliser-le-catalogue}
 
-- `npm run storybook` : serveur local sur http://127.0.0.1:6006, sans ouverture automatique du navigateur.
-- `npm run build:storybook` : catalogue statique dans `storybook-static/` (ignoré par Git).
-- Barres d’outils : thèmes sombre/clair, français/anglais et résolutions de référence. Les contrôles permettent de modifier les arguments des composants. Onglet Docs pour le contrat et les exemples ; onglet Accessibility pour l’audit local.
+- `npm run storybook`: local server at http://127.0.0.1:6006, without automatically opening a browser.
+- `npm run build:storybook`: static catalogue in `storybook-static/` (ignored by Git).
+- Toolbars: dark/light themes, French/English and reference resolutions. Controls edit component arguments. Docs explains contracts/examples; Accessibility provides the local audit.
 
-La palette est dans `src/design-system/tokens.css`, importée une seule fois par `src/styles.css`. Les valeurs existantes ont été conservées. Les alias sémantiques `--ds-background`, `--ds-text`, `--ds-surface` et les espacements évitent de recopier des valeurs dans les exemples. Les styles globaux servent au catalogue comme à l’application.
+The palette is in `src/design-system/tokens.css`, imported once by `src/styles.css`. Existing values have been preserved. Semantic aliases `--ds-background`, `--ds-text`, `--ds-surface` and spacing tokens avoid copying values into examples. Global styles serve both catalogue and app.
 
-`UiButton` habille les boutons et liens natifs ; il est utilisé par le tableau de bord. `MetricCard` est le composant de dernière mesure du tableau de bord. Les icônes et courbes réutilisent les composants du dossier core. Les formulaires, messages et états vides illustrent les mêmes classes CSS que les pages.
+`UiButton` styles native buttons and links and is used by the dashboard. `MetricCard` is the dashboard's latest-measurement component. Icons and curves reuse core components. Forms, notices and empty states illustrate the same CSS classes as pages.
 
-Les stories ne chargent pas le Store réel : seul un fournisseur de préférences en mémoire alimente les traductions. Les valeurs, dates et historiques sont fictifs, et aucun appel Tauri n’est exécuté. Ne pas ajouter de sauvegarde personnelle aux fixtures ou aux captures.
+Stories do not load the real Store: an in-memory preferences provider supplies translations. Values, dates and histories are fictional and no Tauri call is executed. Do not add personal backups to fixtures or screenshots.
 
-## Résolutions de référence
+## Reference resolutions {#resolutions-de-reference}
 
-Le sélecteur de viewport de Storybook propose les formats suivants pour les aperçus des composants. Les dimensions sont exprimées en pixels CSS, largeur × hauteur, et partagées avec Playwright dans `config/viewports.ts`.
+Storybook's viewport selector offers these component preview sizes. Dimensions are CSS pixels, width × height, shared with Playwright in `config/viewports.ts`.
 
-| Format          | Largeur | Hauteur |
+| Format          |   Width |  Height |
 | --------------- | ------: | ------: |
 | iPhone 16 Pro   |  402 px |  874 px |
 | iPad Pro 11″    |  834 px | 1194 px |
 | MacBook Pro 14″ | 1512 px |  982 px |
 | Desktop         | 1920 px | 1080 px |
 
-Choisir un format dans la barre d’outils de l’onglet Canvas ; « Reset viewport » revient à la taille disponible. Agrandir la fenêtre ou masquer le panneau des contrôles si le Canvas disponible limite la hauteur. Playwright applique ces dimensions de viewport indépendamment de la fenêtre Storybook. Les PNG de page entière peuvent être plus hauts que le viewport car ils comprennent le contenu sous la ligne de flottaison.
+Choose a format in the Canvas toolbar; Reset viewport returns to the available size. Enlarge the window or hide controls if the available Canvas limits height. Playwright applies the exact viewport dimensions independently of the Storybook window. Full-page PNGs may be taller than the viewport because they include content below the fold.
 
-## Vérifier les images
+## Check images {#verifier-les-images}
 
-Installer le navigateur une fois : `npx playwright install chromium`. Puis lancer `npm run test:visual` : compilation de la documentation, de l’application et de Storybook, serveurs statiques sur l’interface locale aux ports 4175, 1423, 6107 et 6108, comparaison des PNG. Le compagnon est servi avec une API fictive isolée ; l’application et les données personnelles ne sont pas utilisées. Le script arrête les serveurs après le test, y compris en cas d’échec. `--skip-build` permet de réutiliser les trois builds après une modification de test uniquement.
+Install the browser once: `npx playwright install chromium`. Then run `npm run test:visual`: documentation, application and Storybook builds, loopback static servers on 4175, 1423 and 6107, then PNG comparison. The script stops these servers after the test, including on failure. `--skip-build` reuses all three builds after test-only edits.
 
-Les stories portant le tag `visual` sont découvertes depuis l’index construit : chaque nouvelle story est couverte automatiquement, dans les deux thèmes. La matrice couvre les huit routes en français/anglais, clair/sombre et aux quatre résolutions de référence : 128 combinaisons. Les références françaises à 960 et 1440 px, trois routes anglaises supplémentaires à 1440 px et le focus clavier restent conservés. L’accueil et le démarrage de la documentation ajoutent 32 combinaisons ; navigation, changement de langue et recherche locale sont vérifiés dans les deux langues. L’application est lancée en démonstration navigateur, avec une date fixe, animations arrêtées et canvas GPU masqué uniquement dans les captures ; aucune base native n’est ouverte. Les commandes de caméra et les légendes restent visibles dans les références. Le rendu 3D, ses clips, la perte de contexte et le réessai sont vérifiés par les tests fonctionnels sans masquage. Les tests des quatre formats refusent tout débordement horizontal global ; les tableaux peuvent défiler dans leur propre conteneur.
+Stories tagged `visual` are discovered from the built index, automatically covering new stories in both themes. The device matrix covers all eight application routes in French/English, light/dark and the four reference viewports: 128 combinations. French 960/1440 px references, three additional English routes at 1440 px and keyboard focus checks are retained. Documentation home and getting-started pages are checked in English across the reference formats and themes, together with navigation and local search.
 
-Les captures sont classées par OS, puis par catégorie, viewport, langue et thème : `application/<viewport>/<langue>/<thème>/<page>.png`, `storybook/<viewport>/<langue>/<thème>/<story>.png`, `documentation/<viewport>/<langue>/<thème>/<page>.png` et `companion/<viewport>/fr/dark/<écran>.png`. Le compagnon couvre l’association, une mesure et une saisie d’habitude hors ligne sur iPhone 16 Pro et iPad Pro 11″. Les viewports gardent leur nom et leurs dimensions, par exemple `ipadpro11-834x1194` ou `desktop-1920x1080`; les captures historiques utilisent `960x1000` et `1440x1000`. Chromium provient de la version Playwright verrouillée, avec une échelle de 1, le fuseau Europe/Paris et des dimensions fixes. Les références sont propres à l’OS ; Linux ou macOS demandent leurs propres captures. Une différence de police ou de rendu système doit être examinée, pas masquée en augmentant la tolérance.
+The application runs as a browser demo with a fixed date, animations stopped and only GPU canvas pixels hidden in snapshots; no native database is opened. Camera controls and captions remain visible. Functional tests independently check actual 3D rendering, clips, context loss and retry without hiding the canvas. Global horizontal overflow fails device tests; tables can still scroll inside their own containers.
 
-Une capture autorise au plus 100 pixels différents avec un seuil de couleur de 0,15. Les données et animations sont stabilisées ; les cartes, formulaires et graphiques ne sont pas masqués. Les requêtes vers un serveur externe sont bloquées et font échouer le test. Les erreurs JavaScript font également échouer le test.
+References are grouped by OS, then category, viewport, language and theme: `application/<viewport>/<language>/<theme>/<page>.png`, `storybook/<viewport>/<language>/<theme>/<story>.png`, `documentation/<viewport>/<language>/<theme>/<page>.png` and `companion/<viewport>/fr/dark/<screen>.png`. Companion covers pairing, a measurement and an offline habit entry on iPhone 16 Pro and iPad Pro 11″. Reference viewports keep their names and dimensions, for example `ipadpro11-834x1194` or `desktop-1920x1080`. Historical captures use `960x1000` and `1440x1000`. Chromium comes from locked Playwright, with scale 1, Europe/Paris timezone and fixed dimensions. References depend on the OS; Linux/macOS need their own. Investigate font/system differences instead of hiding them with higher tolerance.
 
-## Accepter un changement volontaire
+A screenshot permits at most 100 differing pixels with a color threshold of 0.15. Data/animations are stabilized; cards, forms and charts are not hidden. External requests are blocked and fail the test, as do JavaScript errors.
 
-1. Exécuter les tests et ouvrir `npm run test:visual:report` pour comparer attendu, obtenu et différence.
-2. Corriger les défauts involontaires.
-3. Sur le système qui exécute la régression, lancer `npm run test:visual:update` uniquement pour le changement voulu ; ajouter un filtre `-- --grep ...` pour limiter les captures concernées. Pour les nouvelles références des quatre formats : `-- --grep "devices /" --update-snapshots=missing` ; pour la documentation : `-- --grep "docs /" --update-snapshots=missing`.
-4. Inspecter les PNG modifiés, relancer `npm run test:visual`, puis commiter code et références ensemble.
+## Accept an intentional change {#accepter-un-changement-volontaire}
 
-Avec Playwright 1.58, la création d’une référence absente via `--update-snapshots=missing` écrit le PNG mais signale un échec lors de ce premier passage. Inspecter le fichier créé puis relancer la comparaison sans mise à jour ; la création seule ne valide pas la régression.
+1. Run tests and open `npm run test:visual:report` to compare expected, actual and diff.
+2. Fix unintended defects.
+3. On the OS running visual regression, run `npm run test:visual:update` only for the intended change; add `-- --grep ...` to restrict captures. For new device references use `-- --grep 'devices /' --update-snapshots=missing`; for documentation use `-- --grep 'docs /' --update-snapshots=missing`.
+4. Inspect changed PNGs, rerun `npm run test:visual`, then commit code and references together.
 
-La comparaison locale ne met pas à jour les références. En cas d’échec, le rapport HTML se trouve dans `playwright-report/visual/`, les captures et traces dans `test-results/visual/` ; ces dossiers sont ignorés par Git. Ne pas augmenter la tolérance pour faire passer un changement non inspecté.
+With Playwright 1.58, creating a missing reference with `--update-snapshots=missing` writes the PNG but reports a failure on that first run. Inspect the generated file, then rerun comparison without updates; creating a reference alone does not validate the regression.
 
-Sources de configuration : [Storybook Angular](https://storybook.js.org/docs/get-started/frameworks/angular) et [comparaisons visuelles Playwright](https://playwright.dev/docs/test-snapshots).
+Local comparison does not update baselines. On failure, the HTML report is in `playwright-report/visual/` and screenshots and traces are in `test-results/visual/`; Git ignores both folders. Do not raise tolerance to pass an uninspected change.
+
+Configuration sources: [Storybook Angular](https://storybook.js.org/docs/get-started/frameworks/angular) and [Playwright visual comparisons](https://playwright.dev/docs/test-snapshots).

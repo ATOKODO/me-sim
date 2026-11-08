@@ -2,32 +2,32 @@
 layout: home
 hero:
   name: Me-Sim
-  text: Tes habitudes, ton petit monde.
-  tagline: Le guide d’une application de bureau Windows et Linux avec un avatar rétro, un suivi quotidien et des données conservées sur ton ordinateur.
+  text: Your habits, your little world.
+  tagline: A guide to a Windows and Linux desktop app with a retro avatar, daily tracking and data kept on your computer.
   actions:
     - theme: brand
-      text: Démarrer
-      link: /getting-started
+      text: Get started
+      link: /en/getting-started
     - theme: alt
-      text: Utiliser le journal
-      link: /data-guide
+      text: Use the journal
+      link: /en/data-guide
 features:
-  - title: Un suivi personnel
-    details: Configurer les habitudes, renseigner les journées et comparer les observations à un profil Target.
-  - title: Des données locales
-    details: Profils séparés, base SQLite locale et sauvegardes JSON. Aucun compte distant nécessaire.
-  - title: Un avatar rétro éditable
-    details: Une animation par activité, des clips GLB remplaçables et un guide pour les artistes.
-  - title: Un projet documenté
-    details: Architecture Angular et Tauri, catalogue Storybook, tests et état de validation.
+  - title: Personal tracking
+    details: Configure habits, fill in your days and compare observations with a Target profile.
+  - title: Local data
+    details: Separate profiles, local SQLite storage and JSON backups. No remote account required.
+  - title: An editable retro avatar
+    details: One animation per activity, replaceable GLB clips and a guide for artists.
+  - title: A documented project
+    details: Angular and Tauri architecture, a Storybook catalogue, tests and validation status.
 ---
 
-## Trouver le bon guide
+## Find the right guide {#trouver-le-bon-guide}
 
-- **Utiliser l’application** : [démarrage Windows et Linux](./getting-started.md), [journal, calendrier et échanges](./data-guide.md), [confidentialité](./privacy.md).
-- **Modifier le projet** : [architecture](./architecture.md), [design système et régression visuelle](./design-system.md), [personnage et animations](./artist-animation-guide.md).
-- **Comprendre ses limites** : [fiche scientifique](./model-card.md), [validation et livraison](./validation.md), [revue de préparation à la livraison](./review-2026-10-01.md), [refactorings proposés](./refactoring-review-2026-10-07.md).
+- **Use the application**: [Windows and Linux setup](./getting-started.md), [journal, calendar and file exchange](./data-guide.md), [privacy](./privacy.md).
+- **Modify the project**: [architecture](./architecture.md), [design system and visual regression](./design-system.md), [character and animations](./artist-animation-guide.md).
+- **Understand its limits**: [scientific model card](./model-card.md), [validation and delivery](./validation.md), [release readiness review](./review-2026-10-01.md), [proposed refactoring](./refactoring-review-2026-10-07.md).
 
-::: info Statut de l’application
-Me-Sim est en version alpha. Le suivi et les animations illustrent les données déclarées. Les projections scientifiques de poids restent désactivées tant que le modèle complet n’est pas validé. Le profil Target exprime un cap personnel, pas une recommandation médicale.
+::: info Application status
+Me-Sim is an alpha. Tracking and animations illustrate self-reported data. Scientific weight projections remain disabled until the complete model is validated. The Target profile expresses a personal goal, not a medical recommendation.
 :::

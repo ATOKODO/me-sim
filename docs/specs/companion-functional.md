@@ -1,13 +1,14 @@
 ---
 kind: functional
-title: Compagnon mobile — besoins
+title: Mobile companion — functional requirements
 ---
-# Compagnon mobile
+# Mobile companion
 
-## REQ-COMPANION-CAPTURE — Saisir sans connexion
 
-Une personne peut choisir un profil associé au PC et enregistrer depuis son téléphone une mesure ou une réponse d’habitude. Une date est requise, ainsi qu’une heure pour une activité positive. Les saisies restent sur le téléphone en attendant leur transmission. Le compagnon met à disposition uniquement les métriques prévues par son catalogue ; les quantités restent dans le journal.
+## REQ-COMPANION-CAPTURE — Capture without a connection
 
-## REQ-COMPANION-SYNC — Synchroniser sur le réseau local
+A person can select a profile paired with the PC and record a measurement or a habit answer on their phone. A date is required, as well as a time for an activity with a positive value. Entries remain on the phone until they are sent. The companion offers only the metrics in its catalogue; quantities remain in the journal.
 
-Après association au PC, les opérations en attente sont envoyées au service du compagnon. Les opérations acceptées sont retirées de la file locale ; celles refusées ou en conflit restent visibles avec leur motif. En cas de perte de connexion ou d’accès révoqué, les saisies non envoyées sont conservées. L’accès aux API exige un contexte sécurisé ; l’installation hors ligne dépend de la prise en charge du service worker et du stockage par le navigateur.
+## REQ-COMPANION-SYNC — Synchronize over the local network
+
+Once the phone is paired with the PC, pending operations are sent to the companion service. Accepted operations are removed from the local queue; rejected or conflicting operations remain visible with their reason. If the connection is lost or access is revoked, unsent entries are retained. API access requires a secure context; offline installation depends on browser support for service workers and storage.

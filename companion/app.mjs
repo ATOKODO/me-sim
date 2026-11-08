@@ -25,6 +25,7 @@ const state = {
   activeProfileId: null,
   pending: [],
   syncing: false,
+  reconnecting: false,
 };
 
 /** @spec TECH-COMPANION-UI */
@@ -215,7 +216,7 @@ async function queue(operation, previousId = null) {
   // Storage persistence is a browser request, not a guarantee. Never discard unsent records.
   navigator.storage?.persist?.().catch(() => {});
   notice("Enregistré sur ce téléphone. La synchronisation attend le PC.");
-  if (state.token && navigator.onLine) void sync(true);
+  if (state.token) void sync(true);
 }
 
 /** @spec TECH-COMPANION-UI */
@@ -302,6 +303,22 @@ async function refreshBootstrap() {
   await putSetting("profiles", state.profiles);
   renderProfiles();
   connection(true);
+}
+
+/** @spec TECH-COMPANION-UI */
+async function reconnect() {
+  if (!state.token || state.syncing || state.reconnecting) return;
+  state.reconnecting = true;
+  try {
+    // navigator.onLine can be false on a LAN that has no internet access.
+    await refreshBootstrap();
+  } catch {
+    connection(false);
+    return;
+  } finally {
+    state.reconnecting = false;
+  }
+  if (state.pending.some((operation) => !operation.status)) void sync(true);
 }
 
 /** @spec TECH-COMPANION-UI */
@@ -428,11 +445,7 @@ async function start() {
   }
   renderMetric();
   renderProfiles();
-  if (state.token && navigator.onLine) {
-    refreshBootstrap()
-      .then(() => sync(true))
-      .catch(() => connection(false));
-  }
+  if (state.token) void reconnect();
 }
 
 $("pair-form").addEventListener("submit", async (event) => {
@@ -498,25 +511,13 @@ $("tab-habit").addEventListener("click", () => setTab(true));
 $("tab-observation").addEventListener("click", () => setTab(false));
 $("sync-button").addEventListener("click", () => sync());
 window.addEventListener("online", () => {
-  connection();
-  sync(true);
+  void reconnect();
 });
-window.addEventListener("offline", () => connection(false));
+window.addEventListener("offline", () => void reconnect());
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden && navigator.onLine && state.token) {
-    refreshBootstrap()
-      .then(() => sync(true))
-      .catch(() => connection(false));
-  }
+  if (!document.hidden) void reconnect();
 });
 setInterval(() => {
-  if (
-    !document.hidden &&
-    navigator.onLine &&
-    state.token &&
-    state.pending.some((operation) => !operation.status)
-  ) {
-    void sync(true);
-  }
-}, 30000);
+  if (!document.hidden && state.token) void reconnect();
+}, 15000);
 start();

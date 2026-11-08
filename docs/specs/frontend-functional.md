@@ -1,34 +1,35 @@
 ---
 kind: functional
-title: Spécifications fonctionnelles du frontal
+title: Frontend functional specifications
 ---
 
-# Parcours utilisateur
+# User journeys
 
-## REQ-FRONTEND-PROFILE-101 — Profils et présentation
 
-L'utilisateur sélectionne, crée, modifie et supprime des profils. L'interface utilise la langue et le thème choisis localement. L'aperçu navigateur utilise uniquement des données de démonstration en mémoire ; les données personnelles persistantes sont gérées par l'application native.
+## REQ-FRONTEND-PROFILE-101 — Profiles and presentation
 
-## REQ-FRONTEND-JOURNAL-101 — Journal et données
+The user selects, creates, edits and deletes profiles. The interface uses the locally selected language and theme. The browser preview uses only in-memory demonstration data; persistent personal data is managed by the native application.
 
-L'utilisateur renseigne et corrige des observations. Il peut préparer un import, examiner son aperçu et confirmer son application, exporter les mesures et prévisualiser puis confirmer une restauration. Les échanges de fichiers nécessitent l'application native. Une donnée absente est présentée comme inconnue.
+## REQ-FRONTEND-JOURNAL-101 — Journal and data
 
-## REQ-FRONTEND-HABITS-101 — Habitudes et journée cible
+The user records and corrects observations. They can prepare an import, inspect its preview and confirm its application, export measurements, and preview and then confirm a restore. File exchanges require the native application. Missing data is shown as unknown.
 
-L'utilisateur configure des habitudes à cultiver ou à réduire, répond jour par jour et valide une journée complète. Il peut comparer les mesures présentes à une journée cible. Le score et l'écart décrivent les données saisies et ne constituent pas une évaluation médicale.
+## REQ-FRONTEND-HABITS-101 — Habits and target day
 
-## REQ-FRONTEND-GHOST-101 — Comparaison horaire
+The user configures habits to cultivate or reduce, answers day by day and validates a complete day. They can compare available measurements with a target day. The score and deviation describe the entered data and do not constitute a medical assessment.
 
-L'utilisateur consulte une journée, une référence historique ou un planning ; il peut naviguer dans le temps, lancer ou terminer une session et configurer ses routines. Une absence d'observation n'est pas interprétée comme une activité inexistante.
+## REQ-FRONTEND-GHOST-101 — Hourly comparison
 
-## REQ-FRONTEND-SCENE-101 — Scène et animation
+The user views a day, a historical reference or a schedule; they can navigate through time, start or finish a session and configure routines. A missing observation is not interpreted as an absent activity.
 
-La scène permet de regarder un avatar et des activités dans une pièce, de modifier la caméra et de désactiver les animations selon les préférences. Les représentations sont illustratives et ne prédisent pas une apparence future.
+## REQ-FRONTEND-SCENE-101 — Scene and animation
 
-## REQ-FRONTEND-FUTURES-101 — Scénarios et limites
+The scene lets the user view an avatar and activities in a room, adjust the camera and disable animations according to their preferences. These representations are illustrative and do not predict future appearance.
 
-L'utilisateur peut préparer et gérer des scénarios. Les projections scientifiques ne sont activées que lorsque le modèle et ses conditions ont été validés ; la création d'un scénario ne constitue pas une prédiction.
+## REQ-FRONTEND-FUTURES-101 — Scenarios and limits
 
-## REQ-FRONTEND-COMPANION-101 — Compagnon local
+The user can prepare and manage scenarios. Scientific projections are enabled only once the model and its conditions have been validated; creating a scenario is not a prediction.
 
-L'utilisateur commande le service compagnon, l'appairage et la révocation depuis les préférences. Le service est local au réseau prévu ; l'interface présente son état et ses erreurs.
+## REQ-FRONTEND-COMPANION-101 — Local companion
+
+The user controls the companion service, pairing and revocation from preferences. The service is local to the intended network; the interface shows its status and errors.

@@ -1,34 +1,35 @@
 ---
 kind: functional
-title: Contrats fonctionnels du moteur local
+title: Local engine functional contracts
 ---
 
-# Contrats fonctionnels du moteur local
+# Local engine functional contracts
 
-## REQ-RUST-101 — Données personnelles et profils
 
-Les données de chaque profil, ses mesures, ses habitudes, ses scénarios et ses sessions sont conservés localement. Une suppression de profil retire ses données associées. Les modifications concurrentes ne doivent pas écraser silencieusement une version plus récente.
+## REQ-RUST-101 — Personal data and profiles
 
-## REQ-RUST-102 — Échange et sauvegarde
+Each profile's data, measurements, habits, scenarios and sessions are stored locally. Deleting a profile removes its associated data. Concurrent changes must not silently overwrite a newer version.
 
-L'utilisateur peut préparer un import, en examiner les erreurs et conflits puis le confirmer. Les mesures peuvent être exportées et l'espace local sauvegardé en JSON versionné. Une restauration n'est appliquée qu'après validation et création d'une sauvegarde préalable.
+## REQ-RUST-102 — Data exchange and backups
 
-## REQ-RUST-103 — Activités et planning
+Users can prepare an import, review errors and conflicts, and then confirm it. Measurements can be exported, and the local workspace can be backed up as versioned JSON. A restore is applied only after validation and creation of a prior backup.
 
-Un profil peut conserver les versions de son planning et une session en cours. Terminer une session crée une observation horodatée ; annuler une session ne crée pas d'observation. Les habitudes liées peuvent être renseignées sans valider automatiquement la journée.
+## REQ-RUST-103 — Activities and schedules
+
+A profile can retain versions of its schedule and an active session. Completing a session creates a timestamped observation; canceling a session does not create an observation. Linked habits can be recorded without automatically validating the day.
 
 ## REQ-RUST-104 — Simulation
 
-Les scénarios sont conservés, mais aucune projection scientifique n'est proposée tant que le modèle n'est pas validé. Les données manquantes et les profils hors domaine sont signalés distinctement.
+Scenarios are retained, but no scientific projection is offered until the model is validated. Missing data and profiles outside the supported domain are reported separately.
 
-## REQ-RUST-105 — Compagnon local
+## REQ-RUST-105 — Local companion
 
-Le propriétaire peut activer un serveur local pour un profil, apparier un téléphone, synchroniser ses saisies et révoquer l'accès. L'appariement et les données restent sous le contrôle du PC ; aucun service distant n'est requis.
+The owner can activate a local server for a profile, pair a phone, synchronize its entries and revoke access. Pairing and data remain under the PC's control; no remote service is required.
 
-## REQ-RUST-106 — Robustesse des fichiers
+## REQ-RUST-106 — File robustness
 
-Un fichier importé doit respecter des limites de taille et de complexité avant son traitement. Les structures malformées ou trop volumineuses sont refusées sans importer partiellement leurs données.
+An imported file must meet size and complexity limits before processing. Malformed or oversized structures are rejected without partially importing their data.
 
-## REQ-RUST-107 — Régression
+## REQ-RUST-107 — Regression
 
-Les tests automatisés vérifient notamment l'isolation des profils, les transactions, les formats d'échange, les sessions et la synchronisation du compagnon.
+Automated tests verify, among other things, profile isolation, transactions, exchange formats, sessions and companion synchronization.

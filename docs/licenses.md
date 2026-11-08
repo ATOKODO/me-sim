@@ -1,42 +1,42 @@
-# Licences et crédits {#licences}
+# Licenses and credits {#licences}
 
-## Projet et contributions {#projet}
+## Project and contributions {#projet}
 
-Le code et la documentation propres à Me-Sim sont sous **AGPL-3.0-only**. Voir `LICENSE` et `CREDITS.md` à la racine. Les dépendances et ressources tierces conservent leurs conditions. La licence ne porte pas sur les données personnelles des utilisateurs.
+Me-Sim's original code and documentation are under **AGPL-3.0-only**. See root `LICENSE` and `CREDITS.md`. Dependencies and third-party assets retain their own terms. This license does not apply to users' personal data.
 
-Les contributions externes et pull requests ne sont pas acceptées pour le moment. Les droits de cloner, forker, modifier et redistribuer le code restent accordés selon sa licence. Voir `CONTRIBUTING.md` à la racine.
+External contributions and pull requests are currently not accepted. Cloning, forking, modifying and redistributing the code remain permitted under its license. See root `CONTRIBUTING.md`.
 
-## Personnages de Vinrax {#modeles}
+## Vinrax characters {#modeles}
 
-Les pages [PSX Female Secretary Character](https://vinrax.itch.io/psx-secretary-character) et [PSX Casual Male Character](https://vinrax.itch.io/psx-casual-male-character), vérifiées le 30 octobre 2026, autorisent l’utilisation dans des projets avec crédit. `CREDITS.md` conserve la formulation publiée et identifie les FBX, textures, dérivés Blender/GLB et rendus. Les animations, accessoires et conversions sont des ajouts Me-Sim. Ces modèles ne sont pas replacés sous AGPL. Le build embarque licence, crédits et inventaire dans `legal/`.
+[PSX Female Secretary Character](https://vinrax.itch.io/psx-secretary-character) and [PSX Casual Male Character](https://vinrax.itch.io/psx-casual-male-character), checked on 30 October 2026, permit use in projects with credit. `CREDITS.md` records the published wording and identifies FBX files, textures, Blender/GLB derivatives and renders. Me-Sim adds animations, accessories and conversions. The models are not relicensed under AGPL. Builds bundle the license, credits and inventory in `legal/`.
 
-La permission publiée ne précise pas explicitement la redistribution des originaux éditables dans un dépôt public ni leur sous-licence. La provenance et l’usage avec crédit sont établis ; demander une clarification à Vinrax avant de considérer ces autres droits comme confirmés. Aucun contact ni changement d’historique n’a été effectué.
+The published permission does not explicitly address redistribution of editable originals in a public source repository or sublicensing. Provenance and use with credit are established; obtain clarification from Vinrax before treating those additional rights as confirmed. No contact or Git history changes were made.
 
-## Compatibilité des dépendances {#dependances}
+## Dependency compatibility {#dependances}
 
-Revue du 30 octobre 2026 : **1 187 entrées npm** du lockfile (développement et plateformes optionnelles compris) et **318 paquets Cargo du graphe Windows x64**, construction comprise. Aucune déclaration de licence absente n’a été trouvée. Les manifestes installés sont utilisés quand disponibles ; les plateformes npm absentes reposent sur les métadonnées du lockfile. Ce périmètre n’est pas la composition exacte d’un binaire. Inventaire versionné : `licenses/dependencies.json`, sans chemin personnel du poste.
+Review dated 30 October 2026: **1,187 npm lock entries** (including development and optional platforms) and **318 Windows x64 Cargo packages**, including build dependencies. No missing license declarations were found. Installed manifests are used where available; absent npm platforms rely on lockfile metadata. This scope is not exact binary composition. The versioned inventory is `licenses/dependencies.json`, without personal workstation paths.
 
-| Groupe | Conclusion et conditions |
+| Group | Conclusion and conditions |
 | --- | --- |
-| MIT, ISC, BSD, Apache-2.0, 0BSD, Zlib, BSL-1.0, BlueOak-1.0.0 | Pas d’incompatibilité identifiée avec AGPLv3 dans les déclarations examinées. Conserver les licences, copyrights, attributions et NOTICE applicables. OR permet une branche compatible ; AND impose toutes les conditions. |
-| MPL-2.0 | 14 entrées npm, notamment axe-core et Lightning CSS (outillage), et 5 crates : cssparser 0.36.0, cssparser-macros 0.6.1, dtoa-short 0.3.5, option-ext 0.2.0, selectors 0.36.1. Les sources Rust examinées ne portent pas le marqueur d’exclusion des licences secondaires. La section 3.3 permet l’association avec AGPLv3 sous ses conditions : préserver les notices, fournir les sources avec les droits MPL et les droits secondaires lorsqu’applicables. Ne pas supprimer la MPL des composants tiers. |
-| CC-BY-4.0 | caniuse-lite, données de l’outillage : conserver l’attribution et les indications de modification si ces données sont redistribuées. |
-| Python-2.0 | argparse 2.0.1, outil de développement : le texte PSF fourni distingue les anciennes versions Python incompatibles. Ne pas confondre l’identifiant SPDX avec la version de Python. |
-| Unicode-3.0, CC0-1.0, Unlicense | Préserver les notices et permissions selon leurs textes ; aucune incompatibilité identifiée dans ce périmètre. |
+| MIT, ISC, BSD, Apache-2.0, 0BSD, Zlib, BSL-1.0, BlueOak-1.0.0 | No incompatibility with AGPLv3 identified in reviewed declarations. Preserve applicable licenses, copyrights, attributions and NOTICE files. OR allows a compatible alternative; AND requires every condition. |
+| MPL-2.0 | 14 npm entries, notably axe-core and Lightning CSS tools, and 5 crates: cssparser 0.36.0, cssparser-macros 0.6.1, dtoa-short 0.3.5, option-ext 0.2.0, selectors 0.36.1. Inspected Rust sources do not carry the secondary-license exclusion marker. Section 3.3 allows combination with AGPLv3 under its conditions: preserve notices and provide sources with MPL rights, and secondary-license rights where applicable. Do not strip MPL from third-party components. |
+| CC-BY-4.0 | caniuse-lite toolchain data: retain attribution and change indications when redistributing these data. |
+| Python-2.0 | argparse 2.0.1 development tool: its supplied PSF text distinguishes historical incompatible Python versions. Do not confuse the SPDX identifier with a Python version. |
+| Unicode-3.0, CC0-1.0, Unlicense | Preserve notices and permissions according to their texts; no incompatibility identified in this scope. |
 
-Références primaires : [MPL, sections 1.12 et 3.3](https://www.mozilla.org/en-US/MPL/2.0/), [FAQ Mozilla](https://www.mozilla.org/en-US/MPL/2.0/FAQ/), [liste des licences GNU](https://www.gnu.org/licenses/license-list.html), [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html).
+Primary sources: [MPL sections 1.12 and 3.3](https://www.mozilla.org/en-US/MPL/2.0/), [Mozilla FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/), [GNU license list](https://www.gnu.org/licenses/license-list.html), [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html).
 
-**Aucune incompatibilité de licence identifiée pour les dépendances examinées, sous réserve de leurs obligations.** Ce contrôle des déclarations et cas particuliers n’est pas une certification juridique ni un audit de chaque fichier amont. Certains paquets Cargo n’incluent pas de licence à leur racine : retrouver leurs notices amont avant une distribution binaire. L’inventaire n’est pas un recueil complet de notices pour installateur. Les autres plateformes Cargo restent à examiner.
+**No license incompatibility identified for reviewed dependencies, provided their obligations are met.** This declaration and special-case review is not a legal certification or an audit of every upstream source file. Some Cargo packages lack a root license file: retrieve upstream notices before binary distribution. This inventory is not a complete installer notice bundle. Other Cargo platforms still need review.
 
-## Contrôle local et distribution {#controle}
+## Local checks and distribution {#controle}
 
-Après installation des dépendances verrouillées et mise en cache des crates :
+After installing locked dependencies and caching crates:
 
 ```powershell
 npm run licenses:inventory
 npm run licenses:check
 ```
 
-La génération utilise les manifestes locaux et `cargo metadata --locked --offline` pour Windows ; elle ne téléverse pas le graphe. Le contrôle refuse une déclaration absente, une version installée différente du lockfile ou un inventaire périmé. Les empreintes des deux lockfiles sont conservées. L’état des plateformes optionnelles installées peut varier entre postes. Revoir les différences après toute mise à jour : le script ne démontre pas automatiquement la compatibilité.
+Generation uses local manifests and Windows `cargo metadata --locked --offline`; it does not upload the graph. The check rejects missing declarations, installed versions differing from the lockfile or a stale inventory. Both lockfile hashes are recorded. Installed optional-platform state can vary between workstations. Review changes after every update: the script does not automatically prove compatibility.
 
-Avant un installateur public, fournir les textes et notices applicables et un accès aux sources correspondant exactement au build. Pour le compagnon et les versions modifiées accessibles par réseau, prévoir une offre du code source conforme à l’AGPL ; elle peut être servie localement. Voir les [instructions GNU](https://www.gnu.org/licenses/gpl-howto.en.html).
+Before publishing an installer, provide applicable texts and notices and access to the exact build's corresponding sources. For the companion and modified versions accessed over a network, provide an AGPL-compliant source offer; it can be served locally. See [GNU's instructions](https://www.gnu.org/licenses/gpl-howto.en.html).

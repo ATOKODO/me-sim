@@ -5,7 +5,7 @@ title: Rust engine technical contracts
 
 # Rust engine technical contracts
 
-Canonical technical and requirement identifiers are defined in the [French technical specification](../../specs/rust-technique.md) and [French functional specification](../../specs/rust-fonctionnelle.md).
+Canonical technical and requirement identifiers are defined in the [canonical technical specification](../../specs/rust-technique.md) and [canonical functional specification](../../specs/rust-fonctionnelle.md).
 
 This document describes the behavior currently implemented; it does not certify execution or test success. Errors returned in `Result` contain an application, SQLite, input/output or deserialization error, depending on the operation. Mutations of an in-memory snapshot must be validated and saved by the store before they are persisted.
 

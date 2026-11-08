@@ -4,7 +4,7 @@ title: Mobile companion — technical contracts
 ---
 # Mobile companion
 
-The canonical technical identifiers are defined in the [French specification](../../specs/companion-technical.md).
+The canonical technical identifiers are defined in the [canonical specification](../../specs/companion-technical.md).
 
 ## Operations and validation
 
@@ -31,7 +31,7 @@ This implements the capture and synchronization requirements. The interface keep
 
 - `$` retrieves an element by its identifier; `notice` displays a message and its error state; `connection` reports the PC and network status.
 - `selectedProfile` finds the active profile; `profileName` returns its name or a fallback label. `renderProfiles` updates the selector and panels; `activeHabits` filters habits by date and archive status; `renderHabits` displays pending answers. `renderQueue` shows at most the latest 30 operations and allows their removal; `renderMetric` updates bounds and time visibility according to the metric.
-- `queue` adds or replaces an operation in storage and updates the queue. The queue is limited to 2,000 additions, and synchronization may be attempted when the network is available. Storage errors remain propagated. `saveHabit` builds an answer and displays an error if it cannot be saved.
+- `queue` adds or replaces an operation in storage and updates the queue. The queue is limited to 2,000 additions. If paired, synchronization may be attempted without relying on `navigator.onLine`, since the PC may be reachable on a local network without Internet access. Storage errors remain propagated. `saveHabit` builds an answer and displays an error if it cannot be saved.
 - `api` requires a secure context, sends a JSON request without cookies and with a token when present, aborts after 10 seconds and propagates HTTP and network errors. A 401 response outside pairing clears the local token without deleting entries.
-- `refreshBootstrap` fetches profiles, checks that the response is an array and persists the result. `sync` ignores concurrent calls and sends operations without a status in batches of 50; it checks that received identifiers are unique and belong to the batch before updating the queue. Conflicts and rejections remain in the queue; interruption retains unacknowledged operations and indicates disconnection.
-- `setTab` displays the selected capture panel. `start` registers the service worker when possible, reloads settings and the queue, initializes dates and metrics, and attempts an update if paired and online. An IndexedDB error stops initialization and displays a message.
+- `refreshBootstrap` fetches profiles, checks that the response is an array and persists the result. `reconnect` checks the PC at startup, on network changes, on returning to the foreground, and every 15 seconds while the PWA is visible; after a valid response it starts `sync` when operations are pending. These checks contact the PC directly without relying on `navigator.onLine`. `sync` ignores concurrent calls and sends operations without a status in batches of 50; it checks that received identifiers are unique and belong to the batch before updating the queue. Conflicts and rejections remain in the queue; interruption retains unacknowledged operations and indicates disconnection.
+- `setTab` displays the selected capture panel. `start` registers the service worker when possible, reloads settings and the queue, initializes dates and metrics, and attempts reconnection if paired. An IndexedDB error stops initialization and displays a message.

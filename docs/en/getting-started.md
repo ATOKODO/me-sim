@@ -66,7 +66,7 @@ Open [local Storybook](http://127.0.0.1:6006/). Components, themes, controls and
 npm run docs:dev
 ```
 
-Open the [local documentation](http://127.0.0.1:5174/). French guides are at `/`, English guides at `/en/`; the language menu opens the corresponding page. The server listens only on the local interface and fails if its port is already in use.
+Open the [local documentation](http://127.0.0.1:5174/). English guides are available at `/`; legacy `/en/` paths remain available. The server listens only on the local interface and fails if its port is already in use.
 
 To build and preview the static site:
 
@@ -75,7 +75,7 @@ npm run docs:build
 npm run docs:preview
 ```
 
-The preview is at [127.0.0.1:4174](http://127.0.0.1:4174/). Output is in `docs/.vitepress/dist/` and must be served over HTTP. Markdown files are the sources of the guides. Update both versions together: French in `docs/`, English in `docs/en/`. Keep the explicit English heading IDs aligned with the French headings so section links survive language changes. Add each new page to both locales and to the navigation in `docs/.vitepress/config.mts`.
+The preview is at [127.0.0.1:4174](http://127.0.0.1:4174/). Output is in `docs/.vitepress/dist/` and must be served over HTTP. Markdown files are the sources of the guides. Update the English pages in `docs/` and their legacy counterparts in `docs/en/` together, preserving heading IDs. Add each new page to both paths and to the navigation in `docs/.vitepress/config.mts`.
 
 The local build checks page/section parity and rejects broken internal links. Search uses a local index built from the pages in each language. Fonts, styles and scripts are bundled; no remote search or analytics service is configured.
 

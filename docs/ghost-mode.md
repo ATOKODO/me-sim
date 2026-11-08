@@ -1,43 +1,43 @@
-# Mode fantôme {#ghost-mode}
+# Ghost mode {#ghost-mode}
 
-Depuis **Mes habitudes → Mon fantôme**, ou **Comparer avec mon fantôme** sur l’aperçu, suivre une journée à la minute face à une référence. Ce mode décrit des activités déclarées, sans projection de santé, score médical ni collecte automatique d’Instagram ou du téléphone.
+Open **My habits → My ghost**, or **Compare with my ghost** on the overview, to follow a day minute by minute against a reference. This mode describes declared activities, without health projections, medical scores or automatic Instagram/phone tracking.
 
-## Choisir une référence {#references}
+## Choose a reference {#references}
 
-- **Journée passée** : sélectionner une date antérieure au jour suivi. Les créneaux rejouent les observations horodatées ; les trous restent inconnus.
-- **Période** : les 7, 14 ou 30 jours précédant le jour suivi, avec filtre tous les jours, lundi–vendredi ou week-ends. Ce filtre décrit le calendrier, pas les horaires réels de travail. Comparer une catégorie ou un nom personnalisé, par exemple Instagram.
-- **Target** : les journées types applicables au jour suivi, avec leurs créneaux prévus. Le planning horaire complète les objectifs quantitatifs du tableau de bord ; il ne les remplace pas et ne les déduit pas automatiquement.
+- **Past day**: choose a date before the tracked day. Time slots replay timestamped observations; gaps remain unknown.
+- **Period**: the 7, 14 or 30 days before the tracked day, filtered to every day, Monday–Friday or weekends. These are calendar filters, not inferred working schedules. Compare a category or a custom name such as Instagram.
+- **Target**: day templates applicable to the tracked date, with their planned time slots. The hourly schedule complements the overview's numeric goals; it neither replaces nor derives them automatically.
 
-La fréquence à l’heure sélectionnée indique le nombre de jours portant cette activité parmi les jours renseignés à cette heure, ainsi que la couverture sur la période entière. Une absence de données n’est pas un zéro. La moyenne porte seulement sur les quantités enregistrées les jours disposant d’activités jusqu’à l’heure choisie ; elle ne prétend pas mesurer une journée entière. Une référence sans données reste `?`.
+Frequency at the selected time gives the days with this activity among days recorded at that time, alongside coverage across the whole period. Missing data is not zero. Averages use only recorded amounts on days with activities up to the chosen time; they do not claim to measure complete days. A reference without data stays `?`.
 
-## Direct, relecture et personnages {#live-and-replay}
+## Live view, replay and characters {#live-and-replay}
 
-Le direct suit l’horloge locale à la minute et se rafraîchit au retour sur l’application. Déplacer le curseur passe en relecture ; **Lire la journée** avance de cinq minutes toutes les 300 ms et s’arrête en fin de journée. **Revenir au direct** revient à aujourd’hui.
+Live mode follows the local clock at minute precision and refreshes when returning to the app. Moving the cursor enters replay; **Play the day** advances five minutes every 300 ms and stops at day end. **Return to live** returns to today.
 
-Le personnage illustre l’activité enregistrée à l’heure choisie ; un personnage transparent illustre la référence dans la même pièce. Les animations utilisent les mêmes assets remplaçables que la timeline existante, y compris le modèle féminin. Une référence inconnue masque le fantôme. Des activités simultanées ou une égalité dans la référence statistique ne choisissent pas arbitrairement une activité. Désactiver les animations dans les préférences conserve les informations et poses ; l’indisponibilité de WebGL n’empêche pas la saisie ni la comparaison.
+The character illustrates the recorded activity at the chosen time; a transparent character illustrates the reference in the same room. Animations use the same replaceable assets as the existing timeline, including the female model. An unknown reference hides the ghost. Simultaneous activities or statistical ties do not arbitrarily select an activity. Disabling animations in preferences keeps information and poses available; unavailable WebGL does not prevent recording or comparison.
 
-Les timelines partagent l’axe 00:00–24:00. Cliquer un créneau affiche ses détails. Les événements ponctuels, dont tabac et alcool, gardent leur quantité ; ils ne deviennent pas artificiellement des minutes. Les durées simultanées d’une même catégorie sont réunies pour éviter les doubles comptes. Les zones hachurées indiquent les zones inconnues ou non planifiées.
+Timelines share the 00:00–24:00 axis. Selecting a slot reveals details. Point events, including tobacco and alcohol, retain their quantities rather than becoming artificial minutes. Overlapping durations in the same category are united to avoid double counting. Hatched areas mark unknown or unplanned time.
 
-## Déclarer une activité {#sessions}
+## Declare an activity {#sessions}
 
-Choisir une catégorie, éventuellement une habitude liée et un nom personnalisé. **Je commence maintenant** ouvre une session locale. **Terminer et enregistrer** crée une observation dans le journal ; **Pause** enregistre le segment, puis une nouvelle session peut être démarrée. Si une habitude est liée, sa réponse est mise à Oui pour le jour de début et sa journée doit être validée à nouveau. Une réalisation d’habitude à réduire reste une réponse Oui, sans inversion silencieuse.
+Choose a category, optionally a linked habit, and a custom name. **Start now** opens a local session. **Finish and save** creates a journal observation; **Pause** saves the segment, after which a new session can begin. A linked habit receives a Yes answer on the start date, and its day needs validation again. Performing a habit to reduce remains a Yes answer, without silently reversing its meaning.
 
-Une seule session peut être ouverte par profil. Dans l’application de bureau, elle reste enregistrée après navigation et fermeture, avec son instant initial. Elle n’est pas fermée automatiquement : corriger la fin si nécessaire. Une session doit durer au plus 24 heures et ne peut finir dans le futur. L’abandon demande confirmation et ne crée aucune observation. Les conflits de révision ou de créneau sont refusés sans perdre la session.
+Only one session can be open per profile. In the desktop app it survives navigation and closing, retaining its initial instant. It is not ended automatically: correct the end if necessary. A session may last at most 24 hours and cannot end in the future. Discarding requires confirmation and creates no observation. Revision or time-slot conflicts are rejected without losing the session.
 
-Le journal permet de corriger date, heure, quantité et nom ; une correction manuelle retire les instants absolus de la session et conserve une déclaration locale. Les anciennes observations restent utilisables. Les sessions conservent leurs instants avec décalage UTC et leur fuseau déclaré : les durées écoulées sont calculées entre instants, y compris au changement d’heure. La comparaison affiche les heures dans le fuseau actuel du poste ; une heure répétée peut porter plusieurs créneaux. Le nom du fuseau est une métadonnée, sans service distant.
+The journal can correct the date, time, quantity and name; a manual correction removes absolute session instants and preserves a local declaration. Existing observations remain usable. Sessions retain instants with UTC offsets and their declared time zone: elapsed durations use absolute instants, including daylight-saving changes. Comparison displays hours in the computer's current time zone; a repeated hour may contain several slots. The time-zone name is metadata, without any remote service.
 
-## Planifier un changement {#target-planning}
+## Plan a change {#target-planning}
 
-Créer plusieurs journées types, choisir leurs jours de semaine et ajouter des activités avec nom, heure et durée. Un créneau doit tenir dans la journée ; pour traverser minuit, créer un créneau de chaque côté. Les chevauchements restent visibles et sont signalés.
+Create multiple day templates, select weekdays and add named activities with start times and durations. Slots must fit within one day; split an overnight plan into a slot on each side of midnight. Overlaps remain visible and are flagged.
 
-Chaque sauvegarde ajoute une version. La date d’application est aujourd’hui ou une date future ; les jours précédents ne changent pas. À date égale, la dernière version enregistrée prévaut pour cette journée type. Une version vide suspend ses créneaux à partir de sa date. L’historique est conservé dans le profil. Depuis un créneau sélectionné, **Préparer un changement sur ce créneau** prépare une nouvelle activité sur le même horaire pour le lendemain ; vérifier puis enregistrer explicitement.
+Each save appends a version. Its effective date is today or a future date; previous days do not change. At equal effective dates, the last saved version wins for that template. An empty version suspends its slots from its effective date. History stays in the profile. **Prepare a change for this time slot** prepares a new activity at the selected time for tomorrow; review and explicitly save it.
 
-## Stockage et limites {#storage-and-limits}
+## Storage and limits {#storage-and-limits}
 
-Profils, sessions et plannings restent dans la base locale et la sauvegarde JSON complète, avec contrôle transactionnel des révisions. Les anciennes bases et sauvegardes sans mode fantôme restent lisibles. Les exports CSV/XLS/XLSX restent des mesures tabulaires : ils ne remplacent pas le JSON pour les noms, liens d’habitudes, instants absolus, sessions ouvertes et versions de planning. L’aperçu navigateur est temporaire en mémoire et ne survit pas au rechargement, comme le reste de l’aperçu.
+Profiles, sessions and schedules stay in the local database and full JSON backups, with transactional revision checks. Older databases and backups without ghost mode remain readable. CSV/XLS/XLSX exports remain tabular measurements: they do not replace JSON for names, habit links, absolute instants, open sessions or schedule versions. Browser preview is temporary in memory and does not survive reload, like the rest of the preview.
 
-Les créneaux statistiques sont affichés sur une grille de 15 minutes ; le détail à l’heure choisie utilise la minute sélectionnée. Limites par profil : 2 000 versions et 128 créneaux par version. Aucune surveillance automatique des usages, aucun cloud, notification ou connexion mobile n’est ajouté par ce mode. Les autres limites de confidentialité sont décrites dans le [guide dédié](./privacy.md).
+Statistical slots display on a 15-minute grid; details use the selected minute. Per-profile limits: 2,000 versions and 128 slots per version. This mode adds no automatic usage surveillance, cloud, notification or mobile connection. Other privacy limits are described in the [privacy guide](./privacy.md).
 
-Les créneaux Target peuvent définir une marge de début de 0 à 180 minutes. Le détail prévu/réalisé rapproche les sessions par habitude ou catégorie puis horaire le plus proche ; les noms personnalisés d’écran doivent correspondre. Il affiche décalage du début, différence de durée, créneaux à venir et absences non renseignées. Ce rapprochement est une aide de lecture, pas une preuve de réalisation.
+Target slots can define a start-time margin from 0 to 180 minutes. Planned/recorded details match sessions by habit or category and then nearest start time; custom screen names must match. They show start differences, duration differences, upcoming slots and unknown gaps. Matching is a reading aid rather than proof of completion.
 
-Les segments de session conservent leurs instants distincts même lorsqu’ils commencent dans la même minute affichée. Le journal garde la date de début ; les récapitulatifs et la déviation quantitative répartissent les sessions nocturnes entre les jours concernés. Les événements ponctuels peuvent être liés à une habitude de même catégorie. Corriger ou supprimer ensuite une observation ne retire pas automatiquement une réponse du calendrier : vérifier cette déclaration et la validation de sa journée.
+Session segments keep distinct absolute instants even when they start within the same displayed minute. The journal retains the start date; daily summaries and numeric deviation split overnight sessions between the relevant days. Point events can link to a habit of the same category. Later editing or deleting an observation does not automatically remove a calendar answer: review that declaration and its day validation.

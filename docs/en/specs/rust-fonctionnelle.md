@@ -5,7 +5,7 @@ title: Local engine functional contracts
 
 # Local engine functional contracts
 
-The canonical requirement identifiers are defined in the [French specification](../../specs/rust-fonctionnelle.md).
+The canonical requirement identifiers are defined in the [canonical specification](../../specs/rust-fonctionnelle.md).
 
 ## Personal data and profiles
 

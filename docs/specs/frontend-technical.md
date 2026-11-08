@@ -1,43 +1,44 @@
 ---
 kind: technical
-title: Contrats techniques du frontal
+title: Frontend technical contracts
 ---
 
-# Contrats du frontal
+# Frontend contracts
 
-Les paramètres et types de retour ci-dessous reflètent les déclarations TypeScript ou leur type inféré. Les dépendances appelées peuvent échouer : sauf traitement indiqué, leurs erreurs suivent leur contrat propre. Les fonctions locales listées sont des détails d’implémentation, pas des API publiques. Les données affichées proviennent du profil actif ; l’application native reste responsable des validations et de la persistance.
 
-## TECH-FRONTEND-CHART-101 — Courbes SVG
+The parameters and return types below reflect TypeScript declarations or their inferred types. Called dependencies can fail: unless handling is specified, their errors follow their own contracts. Listed local functions are implementation details, not public APIs. Displayed data comes from the active profile; the native application remains responsible for validation and persistence.
 
-Implémente REQ-FRONTEND-HABITS-101. Source : `src/app/core/chart-path.ts`.
+## TECH-FRONTEND-CHART-101 — SVG charts
 
-Entrée : un tableau de nombres et un indicateur de lissage. La sortie est un chemin SVG dans une grille 400 × 100 ; une liste vide produit une chaîne vide. Le lissage conserve les points et ne dépasse pas les valeurs voisines. Aucun stockage ni appel réseau ; les nombres doivent être utilisables par le calcul numérique.
+Implements REQ-FRONTEND-HABITS-101. Source: `src/app/core/chart-path.ts`.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+Input: an array of numbers and a smoothing flag. Output: an SVG path on a 400 × 100 grid; an empty list produces an empty string. Smoothing preserves points and does not overshoot neighboring values. No storage or network calls; numbers must be usable in numeric calculations.
+
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `chartPath` | `values: readonly number[], smooth = false` | `string` |
 | `chartPath.coordinate` | `value: number` | `number` |
 
-## TECH-FRONTEND-CLOCK-101 — Horloge locale
+## TECH-FRONTEND-CLOCK-101 — Local clock
 
-Implémente REQ-FRONTEND-GHOST-101. Source : `src/app/core/clock.ts`.
+Implements REQ-FRONTEND-GHOST-101. Source: `src/app/core/clock.ts`.
 
-Les rappels internes lisent l’heure système, mettent à jour le signal et programment le prochain rafraîchissement à la minute. La visibilité, le focus et pageshow forcent un rafraîchissement ; la destruction annule la minuterie et retire les écouteurs. Aucun retour métier ni persistance.
+Internal callbacks read the system time, update the signal and schedule the next refresh on the minute. Visibility, focus and pageshow force a refresh; destruction cancels the timer and removes listeners. No business return value or persistence.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `LocalClock.refresh` | `aucune` | `void` |
-| `LocalClock.visible` | `aucune` | `void` |
+| `LocalClock.refresh` | `none` | `void` |
+| `LocalClock.visible` | `none` | `void` |
 
-**Constructeur LocalClock** — Entrées : `aucun`. Le constructeur installe l’horloge, ses écouteurs et leur nettoyage à la destruction.
+**LocalClock constructor** — Inputs: `none`. Installs the clock, its listeners and their cleanup on destruction.
 
-## TECH-FRONTEND-SUMMARY-101 — Résumé et trajectoire cible
+## TECH-FRONTEND-SUMMARY-101 — Daily summary and target trajectory
 
-Implémente REQ-FRONTEND-HABITS-101. Source : `src/app/core/daily-summary.ts`.
+Implements REQ-FRONTEND-HABITS-101. Source: `src/app/core/daily-summary.ts`.
 
-Entrées : observations, date locale, instant et objectifs selon la fonction. Les sessions traversant minuit sont réparties par jour ; les événements de la chronologie sont limités aux dernières 24 heures. Les résumés retournent null pour une mesure absente et évitent de compter deux fois le total d’activité. La trajectoire retourne sept écarts moyens et leur couverture ; elle ne produit pas de diagnostic. Aucun effet de stockage.
+Inputs: observations, local date, instant and targets, depending on the function. Sessions crossing midnight are split by day; timeline events are limited to the past 24 hours. Summaries return null for missing measurements and avoid double-counting total activity. The trajectory returns seven average deviations and their coverage; it is not a diagnosis. No storage effects.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `rowsOnDay` | `observations: Observation[], date: string, now: number` | `Observation[]` |
 | `timelineEvents` | `observations: Observation[], now: number` | `{ observation: Observation; time: Date; }[]` |
@@ -47,26 +48,26 @@ Entrées : observations, date locale, instant et objectifs selon la fonction. Le
 | `targetTrajectory.latest` | `metric: string` | `number \| undefined` |
 | `targetTrajectory.sum` | `metric: string` | `number \| undefined` |
 
-## TECH-FRONTEND-DIALOG-101 — Focus et fermeture des dialogues
+## TECH-FRONTEND-DIALOG-101 — Dialog focus and dismissal
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/core/focus-dialog.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/core/focus-dialog.ts`.
 
-Entrées : élément hôte et événement clavier. Le focus initial est différé ; Tab et Maj-Tab restent entre les premiers et derniers contrôles disponibles, Échap émet dismissed. À la destruction, la minuterie est annulée et le focus précédent restauré. Ces fonctions manipulent le DOM et ne retournent pas de données métier.
+Inputs: host element and keyboard event. Initial focus is deferred; Tab and Shift-Tab stay between the first and last available controls, while Escape emits dismissed. On destruction, the timer is canceled and previous focus restored. These functions manipulate the DOM and return no business data.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `FocusDialog.elements` | `aucune` | `HTMLElement[]` |
-| `FocusDialog.ngAfterViewInit` | `aucune` | `void` |
+| `FocusDialog.elements` | `none` | `HTMLElement[]` |
+| `FocusDialog.ngAfterViewInit` | `none` | `void` |
 | `FocusDialog.onKey` | `e: KeyboardEvent` | `void` |
-| `FocusDialog.ngOnDestroy` | `aucune` | `void` |
+| `FocusDialog.ngOnDestroy` | `none` | `void` |
 
-## TECH-FRONTEND-GHOST-101 — Événements et comparaisons horaires
+## TECH-FRONTEND-GHOST-101 — Events and hourly comparisons
 
-Implémente REQ-FRONTEND-GHOST-101. Source : `src/app/core/ghost.ts`.
+Implements REQ-FRONTEND-GHOST-101. Source: `src/app/core/ghost.ts`.
 
-Les fonctions convertissent heures et dates locales, découpent les sessions par journée et discontinuité horaire, sélectionnent les versions de routine effectives et comparent observations et planning. Les fréquences distinguent données connues, correspondances et jours totaux ; une égalité ne choisit aucun événement dominant. recorded fusionne les intervalles pour éviter un double comptage. Les mutations de l’aperçu modifient le snapshot en mémoire et signalent notamment les profils introuvables, conflits de session, dates futures et doublons par exception ; la validation native reste autoritaire.
+Functions convert local times and dates, split sessions by day and clock discontinuity, select effective routine versions and compare observations with schedules. Frequencies distinguish known data, matches and total days; ties select no dominant event. recorded merges intervals to prevent double-counting. Preview mutations modify the in-memory snapshot and raise exceptions for missing profiles, session conflicts, future dates and duplicates, among others; native validation remains authoritative.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `minuteOf` | `date: Date` | `number` |
 | `timeLabel` | `minute: number` | `string` |
@@ -90,26 +91,26 @@ Les fonctions convertissent heures et dates locales, découpent les sessions par
 | `applyGhostMutation` | `s: Snapshot, op: Mutation` | `boolean` |
 | `observationKey` | `o: Observation` | `string` |
 
-## TECH-FRONTEND-TRACKING-101 — Dates et état des habitudes
+## TECH-FRONTEND-TRACKING-101 — Habit dates and status
 
-Implémente REQ-FRONTEND-HABITS-101. Source : `src/app/core/habit-tracking.ts`.
+Implements REQ-FRONTEND-HABITS-101. Source: `src/app/core/habit-tracking.ts`.
 
-Les entrées sont des dates locales, définitions et réponses. Les fonctions calculent les habitudes actives et un aperçu sur les seules réponses fournies. Le score est null tant que la journée n’est pas complète et validée ; aucune réponse n’est assimilée à non. Les fonctions retournent de nouvelles valeurs sans enregistrer de données.
+Inputs are local dates, definitions and answers. Functions calculate active habits and a preview based only on supplied answers. The score is null until the day is complete and validated; no answer is treated as no. Functions return new values without recording data.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `localDate` | `date: Date` | `string` |
 | `shiftDate` | `key: string, days: number` | `string` |
 | `activeHabits` | `habits: HabitDefinition[], date: string` | `HabitDefinition[]` |
 | `evaluateHabitDay` | `habits: HabitDefinition[], day: HabitDay \| undefined, date: string` | `{ total: number; answered: number; matched: number; preview: number \| null; validated: boolean; score: number \| null; }` |
 
-## TECH-FRONTEND-I18N-101 — Langue, thème et formatage
+## TECH-FRONTEND-I18N-101 — Language, theme and formatting
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/core/i18n.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/core/i18n.ts`.
 
-Entrées : texte, langue, thème ou valeur à formater. La traduction conserve le texte source sans traduction connue, les valeurs nulles sont traitées explicitement, et les pipes utilisent la locale active. Les changements valides demandent une mutation des paramètres ; les autres valeurs sont ignorées. Les fonctions de formatage Angular peuvent signaler une valeur invalide.
+Inputs: text, language, theme or value to format. Translation keeps the source text when no translation is known, null values are handled explicitly, and pipes use the active locale. Valid changes request a settings mutation; other values are ignored. Angular formatting functions can report invalid values.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `I18n.t` | `source: string \| null \| undefined` | `string` |
 | `I18n.setLanguage` | `language: string` | `Promise<boolean \| undefined>` |
@@ -120,53 +121,53 @@ Entrées : texte, langue, thème ou valeur à formater. La traduction conserve l
 | `LocalDatePipe.transform` | `value: string \| number \| Date \| null \| undefined, format = "mediumDate"` | `string \| null` |
 | `LocalNumberPipe.transform` | `value: number \| string \| null \| undefined, digits = "1.0-3"` | `string \| null` |
 
-**Constructeur I18n** — Entrées : `aucun`. Le constructeur synchronise la présentation et le titre du document avec les signaux.
+**I18n constructor** — Inputs: `none`. Synchronizes presentation and the document title with the signals.
 
-## TECH-FRONTEND-ICON-101 — Chemins des icônes
+## TECH-FRONTEND-ICON-101 — Icon paths
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/core/icon.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/core/icon.ts`.
 
-Entrée : identifiant d’icône ; sortie : chemin destiné au rendu SVG ou valeur de repli définie par le code. Aucun effet sur les données personnelles.
+Input: icon identifier; output: a path for SVG rendering or the fallback defined in code. No effect on personal data.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `Icon.path` | `aucune` | `string` |
+| `Icon.path` | `none` | `string` |
 
-## TECH-FRONTEND-MODELS-101 — Instantané et données de démonstration
+## TECH-FRONTEND-MODELS-101 — Snapshot and demonstration data
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/core/models.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/core/models.ts`.
 
-Les fabriques construisent dates, identifiants et snapshot initial ; addDemo ajoute des données fictives à l’instantané fourni. La génération dépend de l’horloge et des API disponibles. La démonstration ne lit pas de données personnelles.
+Factories build dates, identifiers and the initial snapshot; addDemo adds fictitious data to the supplied snapshot. Generation depends on the clock and available APIs. The demonstration does not read personal data.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `today` | `aucune` | `string` |
-| `uid` | `aucune` | `'${string}-${string}-${string}-${string}-${string}'` |
-| `emptySnapshot` | `aucune` | `Snapshot` |
+| `today` | `none` | `string` |
+| `uid` | `none` | `'${string}-${string}-${string}-${string}-${string}'` |
+| `emptySnapshot` | `none` | `Snapshot` |
 | `addDemo` | `s: Snapshot` | `Profile` |
 
-## TECH-FRONTEND-PRESENTATION-101 — Préférences de présentation
+## TECH-FRONTEND-PRESENTATION-101 — Presentation preferences
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/core/presentation.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/core/presentation.ts`.
 
-readPresentation lit uniquement langue et thème depuis le stockage navigateur, avec français et sombre comme repli en cas d’absence ou de JSON invalide. applyPresentation met à jour langue, thème et color-scheme du document puis tente leur mise en cache ; une erreur de stockage est ignorée, les paramètres natifs restant autoritaires.
+readPresentation reads only language and theme from browser storage, falling back to French and dark on missing or invalid JSON. applyPresentation updates document language, theme and color-scheme, then attempts to cache them; storage errors are ignored and native settings remain authoritative.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `readPresentation` | `aucune` | `{ language: Language; theme: Theme; }` |
+| `readPresentation` | `none` | `{ language: Language; theme: Theme; }` |
 | `applyPresentation` | `value: { language: Language; theme: Theme }` | `void` |
 
-## TECH-FRONTEND-STORE-101 — État et mutations du frontal
+## TECH-FRONTEND-STORE-101 — Frontend state and mutations
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/core/store.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/core/store.ts`.
 
-Le service expose des signaux filtrés sur le profil actif. init charge l’état natif ou crée l’aperçu fictif ; les rafraîchissements externes sont sérialisés et appliqués uniquement aux révisions plus récentes. task et mutate gèrent l’état occupé et les erreurs, et délèguent les écritures natives aux commandes Tauri ; previewMutation adapte uniquement l’aperçu mémoire. Les séries et dernières mesures retournent les observations disponibles sans inventer de valeur.
+The service exposes signals filtered to the active profile. init loads native state or creates the fictitious preview; external refreshes are serialized and applied only for newer revisions. task and mutate manage busy state and errors and delegate native writes to Tauri commands; previewMutation adapts only the in-memory preview. Series and latest measurements return available observations without inventing values.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `Store.init` | `aucune` | `Promise<void>` |
-| `Store.refreshFromDisk` | `aucune` | `Promise<void>` |
-| `Store.drainRefreshes` | `aucune` | `Promise<void>` |
+| `Store.init` | `none` | `Promise<void>` |
+| `Store.refreshFromDisk` | `none` | `Promise<void>` |
+| `Store.drainRefreshes` | `none` | `Promise<void>` |
 | `Store.select` | `id: string` | `void` |
 | `Store.fail` | `e: unknown` | `void` |
 | `Store.task` | `fn: () => Promise<T>` | `Promise<T \| undefined>` |
@@ -178,108 +179,108 @@ Le service expose des signaux filtrés sur le profil actif. init charge l’éta
 | `Store.metric` | `id: string` | `{ id: Metric; label: string; unit: string; icon: string; color: string; max: number; event?: boolean \| undefined; positive?: boolean \| undefined; valueLabel?: string \| undefined; integer?: boolean \| undefined; }` |
 | `Store.previewMutation` | `op: Mutation` | `Snapshot` |
 
-## TECH-FRONTEND-DASHBOARD-101 — Tableau de bord
+## TECH-FRONTEND-DASHBOARD-101 — Dashboard
 
-Implémente REQ-FRONTEND-HABITS-101. Source : `src/app/pages/dashboard.ts`.
+Implements REQ-FRONTEND-HABITS-101. Source: `src/app/pages/dashboard.ts`.
 
-Les méthodes préparent les mesures, les hauteurs visuelles et la sélection d’événements, enregistrent un objectif uniquement si son formulaire est valide et contrôlent la lecture séquentielle des activités. Les minuteries de lecture sont arrêtées lors de la destruction. Les mutations et erreurs passent par le service d’état.
+Methods prepare measurements, visual heights and event selection, save a target only if its form is valid, and control sequential activity playback. Playback timers stop on destruction. Mutations and errors go through the state service.
 
-La courbe de pas, ses dates et son compteur partagent les mêmes observations du profil actif, limitées aux 28 dernières mesures. Le compteur affiche leur nombre réel (y compris une mesure déclarée à zéro), avec un libellé singulier ou pluriel traduit ; un historique vide affiche zéro mesure.
+The step chart, date range and counter share the active profile's latest observations, capped at 28 measurements. The counter displays their actual number (including a declared zero) with a translated singular or plural label; an empty history shows zero measurements.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `Dashboard.values` | `metric: string` | `number[]` |
 | `Dashboard.barHeight` | `value: number \| null` | `number` |
-| `Dashboard.saveTarget` | `aucune` | `Promise<void>` |
+| `Dashboard.saveTarget` | `none` | `Promise<void>` |
 | `Dashboard.selectEvent` | `o: Observation` | `void` |
 | `Dashboard.showEvent` | `o: Observation` | `void` |
 | `Dashboard.previewMode` | `mode: string` | `void` |
-| `Dashboard.replay` | `aucune` | `Promise<void>` |
-| `Dashboard.next` | `aucune` | `void` |
-| `Dashboard.stopReplay` | `aucune` | `void` |
-| `Dashboard.ngOnDestroy` | `aucune` | `void` |
+| `Dashboard.replay` | `none` | `Promise<void>` |
+| `Dashboard.next` | `none` | `void` |
+| `Dashboard.stopReplay` | `none` | `void` |
+| `Dashboard.ngOnDestroy` | `none` | `void` |
 
-**Constructeur Dashboard** — Entrées : `aucun`. Le constructeur synchronise l’objectif lorsque le profil change sans écraser un formulaire modifié, et arrête la lecture lors d’un changement de profil.
+**Dashboard constructor** — Inputs: `none`. Synchronizes the target when the profile changes without overwriting a modified form, and stops playback when the profile changes.
 
-## TECH-FRONTEND-DATA-101 — Assistant d’échange de données
+## TECH-FRONTEND-DATA-101 — Data exchange assistant
 
-Implémente REQ-FRONTEND-JOURNAL-101. Source : `src/app/pages/data.ts`.
+Implements REQ-FRONTEND-JOURNAL-101. Source: `src/app/pages/data.ts`.
 
-Les méthodes exposent colonnes, échantillons et pagination de l’aperçu, puis choisissent, prévisualisent et confirment un import natif. L’export accepte le format demandé et le profil actif ; la restauration exige d’abord un aperçu puis une confirmation. Les commandes et leurs erreurs passent par Store.task ; une sélection annulée ne déclenche pas d’écriture.
+Methods expose preview columns, samples and pagination, then choose, preview and confirm a native import. Export accepts the requested format and active profile; restore first requires a preview and then confirmation. Commands and their errors go through Store.task; canceling selection triggers no write.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `DataPage.headers` | `aucune` | `string[]` |
-| `DataPage.sample` | `aucune` | `string[][]` |
+| `DataPage.headers` | `none` | `string[]` |
+| `DataPage.sample` | `none` | `string[][]` |
 | `DataPage.count` | `status: string` | `number` |
-| `DataPage.previewRows` | `aucune` | `{ row: number; observation: Observation \| null; status: string; message: string; }[]` |
-| `DataPage.previewPages` | `aucune` | `number` |
-| `DataPage.cancelImport` | `aucune` | `void` |
-| `DataPage.choose` | `aucune` | `Promise<void>` |
-| `DataPage.preview` | `aucune` | `Promise<void>` |
-| `DataPage.commit` | `aucune` | `Promise<void>` |
+| `DataPage.previewRows` | `none` | `{ row: number; observation: Observation \| null; status: string; message: string; }[]` |
+| `DataPage.previewPages` | `none` | `number` |
+| `DataPage.cancelImport` | `none` | `void` |
+| `DataPage.choose` | `none` | `Promise<void>` |
+| `DataPage.preview` | `none` | `Promise<void>` |
+| `DataPage.commit` | `none` | `Promise<void>` |
 | `DataPage.export` | `format: string` | `Promise<void>` |
-| `DataPage.restorePreview` | `aucune` | `Promise<void>` |
-| `DataPage.restoreCommit` | `aucune` | `Promise<void>` |
+| `DataPage.restorePreview` | `none` | `Promise<void>` |
+| `DataPage.restoreCommit` | `none` | `Promise<void>` |
 
-**Constructeur DataPage** — Entrées : `aucun`. Le constructeur réinitialise l’import quand le profil actif change.
+**DataPage constructor** — Inputs: `none`. Resets the import when the active profile changes.
 
-## TECH-FRONTEND-FUTURES-101 — Gestion des scénarios
+## TECH-FRONTEND-FUTURES-101 — Scenario management
 
-Implémente REQ-FRONTEND-FUTURES-101. Source : `src/app/pages/futures.ts`.
+Implements REQ-FRONTEND-FUTURES-101. Source: `src/app/pages/futures.ts`.
 
-reset et edit préparent le formulaire ; save refuse un formulaire invalide et demande une mutation, remove demande la suppression du scénario. Les changements sont appliqués via le service d’état ; ces fonctions ne valident ni ne calculent elles-mêmes un modèle scientifique.
+reset and edit prepare the form; save rejects an invalid form and requests a mutation, and remove requests scenario deletion. Changes are applied through the state service; these functions do not themselves validate or calculate a scientific model.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `Futures.reset` | `aucune` | `void` |
+| `Futures.reset` | `none` | `void` |
 | `Futures.edit` | `s: Scenario` | `void` |
-| `Futures.save` | `aucune` | `Promise<void>` |
+| `Futures.save` | `none` | `Promise<void>` |
 | `Futures.remove` | `s: Scenario` | `Promise<void>` |
 
-**Constructeur Futures** — Entrées : `aucun`. Le constructeur réinitialise le formulaire au changement de profil.
+**Futures constructor** — Inputs: `none`. Resets the form when the profile changes.
 
-## TECH-FRONTEND-GHOSTVIEW-101 — Écran de comparaison horaire
+## TECH-FRONTEND-GHOSTVIEW-101 — Hourly comparison screen
 
-Implémente REQ-FRONTEND-GHOST-101. Source : `src/app/pages/ghost.ts`.
+Implements REQ-FRONTEND-GHOST-101. Source: `src/app/pages/ghost.ts`.
 
-Les entrées sont les dates, minutes, sélections et champs de routine fournis par l’utilisateur. Les méthodes contrôlent navigation, lecture, session active, liaison à une habitude et édition de blocs ; une sauvegarde de routine dans le passé est refusée. Les mutations passent par le service d’état et les erreurs remontent dans son signal. La lecture et les calculs restent séparés des écritures.
+Inputs are user-supplied dates, minutes, selections and routine fields. Methods control navigation, playback, active sessions, habit links and block editing; saving a routine in the past is rejected. Mutations go through the state service and errors are exposed in its signal. Playback and calculations remain separate from writes.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `GhostPage.slotStatus` | `status: string` | `string` |
 | `GhostPage.mode` | `events: GhostEvent[]` | `Metric \| "idle"` |
 | `GhostPage.stateLabel` | `events: GhostEvent[]` | `string` |
 | `GhostPage.frequencyAt` | `minute: number` | `{ known: number; matched: number; total: number; }` |
 | `GhostPage.changeDate` | `value: string` | `void` |
-| `GhostPage.goLive` | `aucune` | `void` |
+| `GhostPage.goLive` | `none` | `void` |
 | `GhostPage.scrub` | `minute: number` | `void` |
 | `GhostPage.selectEvent` | `event: GhostEvent` | `void` |
-| `GhostPage.stop` | `aucune` | `void` |
-| `GhostPage.togglePlayback` | `aucune` | `void` |
+| `GhostPage.stop` | `none` | `void` |
+| `GhostPage.togglePlayback` | `none` | `void` |
 | `GhostPage.linkSession` | `id: string` | `void` |
 | `GhostPage.linkBlock` | `id: string` | `void` |
-| `GhostPage.start` | `aucune` | `Promise<void>` |
-| `GhostPage.finish` | `aucune` | `Promise<void>` |
-| `GhostPage.cancel` | `aucune` | `Promise<void>` |
-| `GhostPage.recordPoint` | `aucune` | `Promise<void>` |
+| `GhostPage.start` | `none` | `Promise<void>` |
+| `GhostPage.finish` | `none` | `Promise<void>` |
+| `GhostPage.cancel` | `none` | `Promise<void>` |
+| `GhostPage.recordPoint` | `none` | `Promise<void>` |
 | `GhostPage.prepareChange` | `event: GhostEvent` | `void` |
-| `GhostPage.newRoutine` | `aucune` | `void` |
+| `GhostPage.newRoutine` | `none` | `void` |
 | `GhostPage.loadRoutine` | `id: string` | `void` |
 | `GhostPage.toggleDay` | `day: number, on: boolean` | `void` |
-| `GhostPage.addBlock` | `aucune` | `void` |
+| `GhostPage.addBlock` | `none` | `void` |
 | `GhostPage.removeBlock` | `id: string` | `void` |
-| `GhostPage.saveRoutine` | `aucune` | `Promise<void>` |
+| `GhostPage.saveRoutine` | `none` | `Promise<void>` |
 
-**Constructeur GhostPage** — Entrées : `aucun`. Le constructeur lit la date initiale dans la route et initialise les effets et le nettoyage de la lecture.
+**GhostPage constructor** — Inputs: `none`. Reads the initial date from the route and sets up effects and playback cleanup.
 
-## TECH-FRONTEND-HABITSVIEW-101 — Calendrier et réponses
+## TECH-FRONTEND-HABITSVIEW-101 — Calendar and answers
 
-Implémente REQ-FRONTEND-HABITS-101. Source : `src/app/pages/habits.ts`.
+Implements REQ-FRONTEND-HABITS-101. Source: `src/app/pages/habits.ts`.
 
-Les méthodes construisent l’affichage du calendrier et de la courbe, naviguent entre les mois et gèrent sélection, ajout, archivage, réponse et validation d’habitudes. Les mutations passent par le service d’état ; une journée ne reçoit un score validé que selon les règles du suivi.
+Methods build the calendar and chart display, navigate between months, and manage habit selection, addition, archiving, answers and validation. Mutations go through the state service; a day receives a validated score only according to tracking rules.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `Habits.x` | `index: number` | `number` |
 | `Habits.y` | `score: number` | `number` |
@@ -288,74 +289,74 @@ Les méthodes construisent l’affichage du calendrier et de la courbe, naviguen
 | `Habits.calendarLabel` | `date: string, status: string` | `string` |
 | `Habits.moveMonth` | `delta: number` | `void` |
 | `Habits.choosePreset` | `metric: string` | `void` |
-| `Habits.addHabit` | `aucune` | `Promise<void>` |
+| `Habits.addHabit` | `none` | `Promise<void>` |
 | `Habits.archive` | `habit: HabitDefinition` | `Promise<void>` |
 | `Habits.setAnswer` | `habit: HabitDefinition, value: boolean \| null` | `Promise<void>` |
-| `Habits.validateDay` | `aucune` | `Promise<void>` |
+| `Habits.validateDay` | `none` | `Promise<void>` |
 
-**Constructeur Habits** — Entrées : `aucun`. Le constructeur suit la date et le profil pour maintenir la sélection du calendrier.
+**Habits constructor** — Inputs: `none`. Tracks the date and profile to maintain the calendar selection.
 
-## TECH-FRONTEND-JOURNAL-101 — Saisie et correction des observations
+## TECH-FRONTEND-JOURNAL-101 — Entering and correcting observations
 
-Implémente REQ-FRONTEND-JOURNAL-101. Source : `src/app/pages/journal.ts`.
+Implements REQ-FRONTEND-JOURNAL-101. Source: `src/app/pages/journal.ts`.
 
-Les méthodes filtrent et paginent les observations du profil actif, configurent les validateurs temporels et préparent une saisie ou correction. save n’envoie une mutation que lorsque le formulaire est valide ; remove délègue la suppression au service. Les valeurs et erreurs de validation restent visibles dans le formulaire.
+Methods filter and paginate observations for the active profile, configure time validators and prepare an entry or correction. save sends a mutation only when the form is valid; remove delegates deletion to the service. Values and validation errors remain visible in the form.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `Journal.updateTimeValidators` | `aucune` | `void` |
-| `Journal.currentMetric` | `aucune` | `{ id: Metric; label: string; unit: string; icon: string; color: string; max: number; event?: boolean \| undefined; positive?: boolean \| undefined; valueLabel?: string \| undefined; integer?: boolean \| undefined; }` |
-| `Journal.filtered` | `aucune` | `Observation[]` |
-| `Journal.pages` | `aucune` | `number` |
-| `Journal.paged` | `aucune` | `Observation[]` |
-| `Journal.reset` | `aucune` | `void` |
-| `Journal.nowTime` | `aucune` | `string` |
+| `Journal.updateTimeValidators` | `none` | `void` |
+| `Journal.currentMetric` | `none` | `{ id: Metric; label: string; unit: string; icon: string; color: string; max: number; event?: boolean \| undefined; positive?: boolean \| undefined; valueLabel?: string \| undefined; integer?: boolean \| undefined; }` |
+| `Journal.filtered` | `none` | `Observation[]` |
+| `Journal.pages` | `none` | `number` |
+| `Journal.paged` | `none` | `Observation[]` |
+| `Journal.reset` | `none` | `void` |
+| `Journal.nowTime` | `none` | `string` |
 | `Journal.choose` | `metric: Metric` | `void` |
 | `Journal.edit` | `o: Observation` | `void` |
-| `Journal.save` | `aucune` | `Promise<void>` |
+| `Journal.save` | `none` | `Promise<void>` |
 | `Journal.remove` | `o: Observation` | `Promise<void>` |
 
-**Constructeur Journal** — Entrées : `aucun`. Le constructeur réinitialise la saisie et synchronise les validateurs quand le profil ou la mesure change.
+**Journal constructor** — Inputs: `none`. Resets entry and synchronizes validators when the profile or metric changes.
 
-## TECH-FRONTEND-PROFILES-101 — Gestion des profils
+## TECH-FRONTEND-PROFILES-101 — Profile management
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/pages/profiles.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/pages/profiles.ts`.
 
-Les méthodes comptent les données, initialisent ou remplissent le formulaire et demandent création, modification ou suppression. save n’envoie rien si le formulaire est invalide ; la mutation et ses erreurs sont gérées par Store. Les données sélectionnées restent rattachées à leur profil.
+Methods count data, initialize or populate the form and request creation, editing or deletion. save sends nothing if the form is invalid; Store handles the mutation and its errors. Selected data remains attached to its profile.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `Profiles.count` | `id: string` | `number` |
-| `Profiles.reset` | `aucune` | `void` |
+| `Profiles.reset` | `none` | `void` |
 | `Profiles.edit` | `p: Profile` | `void` |
-| `Profiles.save` | `aucune` | `Promise<void>` |
+| `Profiles.save` | `none` | `Promise<void>` |
 | `Profiles.remove` | `p: Profile` | `Promise<void>` |
 
-## TECH-FRONTEND-SETTINGS-101 — Préférences et service compagnon
+## TECH-FRONTEND-SETTINGS-101 — Preferences and companion service
 
-Implémente REQ-FRONTEND-COMPANION-101. Source : `src/app/pages/settings.ts`.
+Implements REQ-FRONTEND-COMPANION-101. Source: `src/app/pages/settings.ts`.
 
-Les méthodes chargent l’état du service compagnon natif, commandent son démarrage, arrêt, code d’appairage et révocation, et modifient les préférences. companionCommand capture les erreurs dans le signal de l’écran ; les valeurs présentées reflètent la réponse du service, pas un accès cloud.
+Methods load native companion service state, control its start, stop, pairing code and revocation, and change preferences. companionCommand captures errors in the screen signal; displayed values reflect the service response, not cloud access.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `SettingsPage.ngOnInit` | `aucune` | `Promise<void>` |
+| `SettingsPage.ngOnInit` | `none` | `Promise<void>` |
 | `SettingsPage.companionCommand` | `command: string, args?: Record<string, string>` | `Promise<void>` |
-| `SettingsPage.startCompanion` | `aucune` | `void` |
-| `SettingsPage.newPairingCode` | `aucune` | `void` |
-| `SettingsPage.stopCompanion` | `aucune` | `void` |
+| `SettingsPage.startCompanion` | `none` | `void` |
+| `SettingsPage.newPairingCode` | `none` | `void` |
+| `SettingsPage.stopCompanion` | `none` | `void` |
 | `SettingsPage.revokeCompanion` | `deviceId: string` | `void` |
 | `SettingsPage.profileName` | `id: string` | `string` |
 | `SettingsPage.value` | `key: keyof Pick<Settings, "animations" \| "jitter">` | `boolean` |
 | `SettingsPage.toggle` | `key: keyof Pick<Settings, "animations" \| "jitter">, v: boolean` | `void` |
 
-## TECH-FRONTEND-ANIMATION-101 — Chargement et animations des modèles
+## TECH-FRONTEND-ANIMATION-101 — Model loading and animations
 
-Implémente REQ-FRONTEND-SCENE-101. Source : `src/app/scene/artist-animations.ts`.
+Implements REQ-FRONTEND-SCENE-101. Source: `src/app/scene/artist-animations.ts`.
 
-Le contrôleur lit le manifeste d’assets, charge les modèles et variantes, sélectionne les animations, actualise leur temps et adapte la couleur lorsque c’est possible. Les fonctions de destruction libèrent géométries, matériaux et textures possédés. Un chargement ou manifeste invalide est traité par les chemins de repli et erreurs du contrôleur ; ces données ne sont pas des mesures cliniques.
+The controller reads the asset manifest, loads models and variants, selects animations, updates their time and adjusts color where possible. Destruction functions release owned geometries, materials and textures. Invalid loads or manifests are handled through controller fallback and error paths; these data are not clinical measurements.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `isRecord` | `value: unknown` | `boolean` |
 | `materialsIn` | `root: T.Object3D` | `Set<Material>` |
@@ -365,8 +366,8 @@ Le contrôleur lit le manifeste d’assets, charge les modèles et variantes, s�
 | `ArtistAnimations.setColor` | `color: string` | `void` |
 | `ArtistAnimations.play` | `mode: string, replayKey: number, animate: boolean` | `void` |
 | `ArtistAnimations.tick` | `seconds: number` | `void` |
-| `ArtistAnimations.dispose` | `aucune` | `void` |
-| `ArtistAnimations.readManifest` | `aucune` | `Promise<void>` |
+| `ArtistAnimations.dispose` | `none` | `void` |
+| `ArtistAnimations.readManifest` | `none` | `Promise<void>` |
 | `ArtistAnimations.key` | `mode: string, variant: AvatarVariant` | `string` |
 | `ArtistAnimations.load` | `mode: string, variant: AvatarVariant` | `Promise<void>` |
 | `ArtistAnimations.loadModel` | `file: string` | `Promise<LoadedModel \| null>` |
@@ -374,58 +375,58 @@ Le contrôleur lit le manifeste d’assets, charge les modèles et variantes, s�
 | `ArtistAnimations.clearActive` | `source: "loading" \| "procedural"` | `void` |
 | `ArtistAnimations.colorShirt` | `scene: T.Object3D` | `void` |
 
-**Constructeur ArtistAnimations** — Entrées : `root: T.Group, private readonly onSourceChange: (source: AvatarSource) => void, private readonly ghost = false`. Le constructeur attache le contrôleur d’animation au groupe fourni et conserve ses callbacks.
+**ArtistAnimations constructor** — Inputs: `root: T.Group, private readonly onSourceChange: (source: AvatarSource) => void, private readonly ghost = false`. Attaches the animation controller to the supplied group and retains its callbacks.
 
-## TECH-FRONTEND-AVATAR-101 — Cycle de vie de l’avatar
+## TECH-FRONTEND-AVATAR-101 — Avatar lifecycle
 
-Implémente REQ-FRONTEND-SCENE-101. Source : `src/app/scene/avatar.ts`.
+Implements REQ-FRONTEND-SCENE-101. Source: `src/app/scene/avatar.ts`.
 
-Les méthodes initialisent la pièce après création de la vue, réessayent le rendu et ajustent zoom, rotation et cadrage en réponse aux commandes utilisateur ou clavier. Elles préchargent les modes disponibles et détruisent la scène à la fermeture ; les défaillances de rendu sont présentées dans l’état de la vue.
+Methods initialize the room after view creation, retry rendering and adjust zoom, rotation and framing in response to user or keyboard commands. They preload available modes and destroy the scene when closed; rendering failures are exposed in the view state.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `AvatarScene.zoomPercent` | `aucune` | `number` |
-| `AvatarScene.ngAfterViewInit` | `aucune` | `void` |
-| `AvatarScene.createRoom` | `aucune` | `Promise<void>` |
-| `AvatarScene.retry` | `aucune` | `void` |
-| `AvatarScene.focusCamera` | `aucune` | `void` |
+| `AvatarScene.zoomPercent` | `none` | `number` |
+| `AvatarScene.ngAfterViewInit` | `none` | `void` |
+| `AvatarScene.createRoom` | `none` | `Promise<void>` |
+| `AvatarScene.retry` | `none` | `void` |
+| `AvatarScene.focusCamera` | `none` | `void` |
 | `AvatarScene.zoomCamera` | `direction: number` | `void` |
-| `AvatarScene.resetCamera` | `aucune` | `void` |
+| `AvatarScene.resetCamera` | `none` | `void` |
 | `AvatarScene.cameraKey` | `event: KeyboardEvent` | `void` |
 | `AvatarScene.prepareModes` | `modes: string[]` | `Promise<void>` |
-| `AvatarScene.ngOnDestroy` | `aucune` | `void` |
+| `AvatarScene.ngOnDestroy` | `none` | `void` |
 
-**Constructeur AvatarScene** — Entrées : `aucun`. Le constructeur synchronise les options de la scène avec les signaux de la vue.
+**AvatarScene constructor** — Inputs: `none`. Synchronizes scene options with view signals.
 
-## TECH-FRONTEND-GHOSTTIMELINE-101 — Présentation de la chronologie
+## TECH-FRONTEND-GHOSTTIMELINE-101 — Timeline presentation
 
-Implémente REQ-FRONTEND-GHOST-101. Source : `src/app/scene/ghost-timeline.ts`.
+Implements REQ-FRONTEND-GHOST-101. Source: `src/app/scene/ghost-timeline.ts`.
 
-Les méthodes calculent une largeur et une description à partir des données d’événement et des paramètres de la vue. La sortie sert à l’affichage et à son libellé accessible ; aucune mutation de l’historique.
+Methods calculate a width and description from event data and view parameters. The output is used for display and its accessible label; no mutation of history.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
 | `GhostTimeline.width` | `e: GhostEvent` | `number` |
 | `GhostTimeline.description` | `e: GhostEvent` | `string` |
 
-## TECH-FRONTEND-ROOM-101 — Rendu Three.js et ressources
+## TECH-FRONTEND-ROOM-101 — Three.js rendering and resources
 
-Implémente REQ-FRONTEND-SCENE-101. Source : `src/app/scene/room.ts`.
+Implements REQ-FRONTEND-SCENE-101. Source: `src/app/scene/room.ts`.
 
-Le contrôleur construit la pièce, les accessoires et l’avatar, anime les poses et met à jour les éléments fantômes. Les paramètres de caméra et les dimensions pilotent le rendu ; invalidation et visibilité déterminent les images à calculer. dispose annule le rendu et libère les ressources possédées ; la perte du contexte est signalée à la vue. Les opérations graphiques dépendent de WebGL.
+The controller builds the room, props and avatar, animates poses and updates ghost elements. Camera parameters and dimensions drive rendering; invalidation and visibility determine which frames to compute. dispose cancels rendering and releases owned resources; context loss is reported to the view. Graphics operations depend on WebGL.
 
-| Déclaration | Entrées déclarées | Sortie TypeScript |
+| Declaration | Declared inputs | TypeScript output |
 | --- | --- | --- |
-| `Room.emitCameraState` | `aucune` | `void` |
-| `Room.requestFrame` | `aucune` | `void` |
-| `Room.invalidate` | `aucune` | `void` |
-| `Room.cancelFrame` | `aucune` | `void` |
-| `Room.onVisibility` | `aucune` | `void` |
+| `Room.emitCameraState` | `none` | `void` |
+| `Room.requestFrame` | `none` | `void` |
+| `Room.invalidate` | `none` | `void` |
+| `Room.cancelFrame` | `none` | `void` |
+| `Room.onVisibility` | `none` | `void` |
 | `Room.onLost` | `e: Event` | `void` |
 | `Room.box` | `w: number, h: number, d: number, color: number \| string, x: number, y: number, z: number, parent: T.Object3D = this.root` | `Mesh<BoxGeometry, MeshLambertMaterial, Object3DEventMap>` |
-| `Room.buildRoom` | `aucune` | `void` |
-| `Room.buildPerson` | `aucune` | `void` |
-| `Room.buildActivityProps` | `aucune` | `void` |
+| `Room.buildRoom` | `none` | `void` |
+| `Room.buildPerson` | `none` | `void` |
+| `Room.buildActivityProps` | `none` | `void` |
 | `Room.addVapor` | `parent: T.Group, color: number, height: number` | `void` |
 | `Room.setActivityProps` | `mode: string` | `void` |
 | `Room.update` | `o: typeof this.options` | `void` |
@@ -433,18 +434,18 @@ Le contrôleur construit la pièce, les accessoires et l’avatar, anime les pos
 | `Room.preloadModes` | `modes: string[]` | `Promise<void>` |
 | `Room.zoomCamera` | `direction: number` | `void` |
 | `Room.rotateCamera` | `horizontal: number, vertical: number` | `void` |
-| `Room.resetCamera` | `aucune` | `void` |
-| `Room.resize` | `aucune` | `void` |
+| `Room.resetCamera` | `none` | `void` |
+| `Room.resize` | `none` | `void` |
 | `Room.tick` | `ms: number` | `void` |
 | `Room.armPose` | `i: number` | `number` |
 | `Room.armZPose` | `_i: number` | `number` |
 | `Room.legPose` | `_i: number` | `number` |
-| `Room.dispose` | `aucune` | `void` |
+| `Room.dispose` | `none` | `void` |
 
-**Constructeur Room** — Entrées : `private host: HTMLElement, private onUnavailable: () => void, private onAnimationSource?: (source: AvatarSource) => void, private onCameraState?: (state: CameraState) => void, private onGhostSource?: (source: AvatarSource) => void`. Le constructeur reçoit le conteneur et les callbacks de la scène, crée le rendu WebGL, installe les contrôles, observateurs et écouteurs. Il peut échouer lors de la création du contexte graphique.
+**Room constructor** — Inputs: `private host: HTMLElement, private onUnavailable: () => void, private onAnimationSource?: (source: AvatarSource) => void, private onCameraState?: (state: CameraState) => void, private onGhostSource?: (source: AvatarSource) => void`. Receives the container and scene callbacks, creates the WebGL renderer and installs controls, observers and listeners. It can fail while creating the graphics context.
 
-## TECH-FRONTEND-APP-101 — Initialisation de l’interface
+## TECH-FRONTEND-APP-101 — Interface initialization
 
-Implémente REQ-FRONTEND-PROFILE-101. Source : `src/app/app.ts`.
+Implements REQ-FRONTEND-PROFILE-101. Source: `src/app/app.ts`.
 
-Le constructeur du composant racine déclenche `Store.init` ; le chargement et ses erreurs sont gérés par le service. Il ne reçoit aucun paramètre et ne retourne aucune valeur métier.
+The root component constructor triggers `Store.init`; the service handles loading and its errors. It receives no parameters and returns no business value.

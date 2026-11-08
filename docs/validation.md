@@ -1,147 +1,148 @@
-# Validation de la livraison
+# Delivery validation {#validation-de-la-livraison}
 
-## Vérification la plus récente — 22 octobre 2026 {#latest-verification-2026-10-22}
+This page records dated historical checks. The documentation is now in English at the root and legacy `/en/` paths; earlier references to two documentation languages describe the configuration at the time of those checks.
 
-- Les builds de production Angular, VitePress et Storybook réussissent. La documentation compte 14 pages par langue et leurs sections FR/EN correspondent.
-- Les 46 tests Rust hors ligne et les 64 tests fonctionnels Playwright dans Edge passent. Ils couvrent notamment l’isolation des profils, la persistance SQLite, les imports, les habitudes, les sessions horodatées, les versions Target et les scènes masculine/féminine.
-- Les 246 tests visuels Playwright passent sans mise à jour des images. Les 243 références PNG sont classées par catégorie, viewport, langue et thème dans `tests/visual/__screenshots__/win32/chromium/` : huit routes en FR/EN, clair/sombre et quatre formats, ainsi que les références 960/1440, Storybook et les pages de documentation.
-- Cette passe n’a pas relancé l’application Tauri dans WebView2, construit d’installateur, exécuté la CI GitHub ni testé un appareil physique. Les captures de téléphone et tablette sont des viewports Chromium sous Windows.
-- Les limites et travaux préalables à une publication open source restent détaillés dans [la revue de publication](./open-source-review-2026-10-09.md) ; les licences du code et les droits de redistribution des personnages doivent encore être clarifiés.
+## Latest verification — 22 October 2026 {#latest-verification-2026-10-22}
 
-Les rubriques datées ci-dessous conservent les résultats historiques des changements précédents.
+- Angular production, VitePress and Storybook builds pass. The documentation contains 14 pages per language with matching French/English section anchors.
+- All 46 offline Rust tests and 64 functional Playwright tests in Edge pass. Coverage includes profile isolation, SQLite persistence, imports, habit tracking, timed sessions, versioned Target schedules and male/female scenes.
+- All 246 Playwright visual tests pass without updating images. The 243 PNG references are grouped by category, viewport, language and theme in `tests/visual/__screenshots__/win32/chromium/`: eight routes in French/English and light/dark across four formats, plus 960/1440 references, Storybook and documentation pages.
+- This pass did not relaunch the Tauri app in WebView2, build an installer, run GitHub CI or test a physical device. Phone and tablet captures are Chromium viewports on Windows.
+- Remaining open-source publication work is recorded in the [publication review](./open-source-review-2026-10-09.md); the code license and character redistribution rights still need clarification.
 
-Depuis le 27 octobre 2026, le workflow GitHub Actions a été retiré du dépôt. Les mentions de CI dans les résultats datés ci-dessous décrivent l’ancienne configuration ; les vérifications courantes sont exécutées localement.
+The dated sections below preserve historical results from earlier changes.
 
-## Personnage fourni — vérification du 30 septembre 2026
+As of 27 October 2026, the GitHub Actions workflow has been removed from the repository. CI references in the dated results below describe the previous configuration; current checks run locally.
 
-- FBX d’origine préservé à l’identique : 25 os, 498 sommets, 952 triangles, UV et poids du rig conservés dans le `.blend`.
-- Aucun clip d’animation dans le FBX d’origine ; quinze actions créées, enregistrées et exportées en clips GLB nommés.
-- Atlas PNG 256 × 256 embarqué : comparaison des pixels RGBA avec la texture fournie, sans différence.
-- `.blend` compressé, texture intégrée et actions conservées avec utilisateurs fictifs. Export du fichier enregistré vérifié avec `scripts/export-avatar.py`.
-- GLB autonome d’environ 757 Ko : un squelette de 40 articulations, comprenant les 25 os d’origine et 15 os d’accessoires. Quinze correspondances du manifeste vérifiées par `npm run check:avatar`.
-- Captures visuelles des quinze modes inspectées dans Edge, puis personnage texturé confirmé dans la capture native. Les images de test sont dans `test-results/` ; la capture Windows est `docs/native-dashboard.png`.
-- `connect-src blob:` autorise la lecture en mémoire de la texture intégrée par Three.js. Aucun serveur distant n’est ajouté à la CSP.
-- Installateurs NSIS standard et hors ligne reconstruits avec succès ; exécutable direct actualisé dans `release/`. L’installation sur une machine vierge n’a pas été répétée pour ce changement.
+## Supplied character — verification of 30 September 2026 {#personnage-fourni-—-verification-du-30-septembre-2026}
 
-## Caméra 3D — vérification du 30 septembre 2026
+- Original FBX preserved identically: 25 bones, 498 vertices, 952 triangles, UVs/weights retained in `.blend`.
+- Source FBX has no animation clip; fifteen actions created, saved and exported as named GLB clips.
+- Embedded 256 × 256 PNG atlas: RGBA pixels compared to supplied texture without differences.
+- Compressed `.blend`, packed texture, actions retained with fake users. Saved-file export verified with `scripts/export-avatar.py`.
+- Self-contained GLB of roughly 757 KB: 40-joint skeleton comprising 25 original bones and 15 prop bones. Fifteen manifest mappings verified with `npm run check:avatar`.
+- All fifteen mode captures inspected in Edge, then textured character confirmed in native capture. Test images in `test-results/`; Windows capture in `docs/native-dashboard.png`.
+- `connect-src blob:` permits Three.js to read the embedded texture in memory. No remote CSP server added.
+- Standard/offline NSIS installers rebuilt successfully; direct executable updated in `release/`. Clean installation was not repeated for this change.
 
-- Molette et boutons de zoom vérifiés, avec limites de 70 à 400 %. Les boutons se désactivent à leur limite.
-- Orbite par glisser-déposer et flèches du clavier ; bouton de réinitialisation, touche R et touche Début. L’image du rendu, animations arrêtées, est comparée avant manipulation et après réinitialisation : le cadrage d’origine est retrouvé exactement.
-- Zoom conservé lors du redimensionnement, caméras de comparaison indépendantes, commandes masquées et focus retiré lorsque la 3D est indisponible (test de perte de contexte actualisé le 8 octobre). Les écouteurs OrbitControls sont libérés avec la scène.
-- Test natif WebView2 avec une base isolée : orbite, zoom à la molette et restauration exacte de l’image vérifiés, sans erreur JavaScript. Reproductible avec `node scripts/native-camera-smoke.mjs` après lancement du binaire debug dans `.tmp/native-smoke/` et ouverture de son port de débogage local (défaut 9224, configurable par `ME_SIM_NATIVE_DEBUG_URL`).
+## 3D camera — verification of 30 September 2026 {#camera-3d-—-verification-du-30-septembre-2026}
 
-## Langues et thème clair — vérification du 1er octobre 2026
+- Wheel/buttons checked with 70–400% zoom limits; buttons disable at their limit.
+- Drag and keyboard-arrow orbit; reset button, R and Home. With animations stopped, rendering before manipulation and after reset matches exactly.
+- Zoom retained on resize, independent comparison cameras, controls/focus removed when 3D is unavailable (context-loss test updated 8 October). OrbitControls listeners released with the scene.
+- Native WebView2 with isolated database: orbit, wheel zoom and exact image restoration checked without JavaScript errors. Reproduce with `node scripts/native-camera-smoke.mjs` after starting the debug binary under `.tmp/native-smoke/` and opening its local debug port (default 9224, configurable via `ME_SIM_NATIVE_DEBUG_URL`).
 
-- Menu Français / English et bouton de thème dans la barre supérieure ; les préférences proposent aussi les deux langues et les deux thèmes. Traductions embarquées sur les sept routes, commandes de caméra, formulaires, dialogues et messages d’import. Dates, nombres et calendrier suivent la langue choisie.
-- Thème clair inspecté visuellement dans Edge à 960 px puis dans WebView2. Audits automatisés WCAG A/AA des sept routes en français et en anglais ; audit supplémentaire de l’aperçu natif d’import avec conflits et erreurs. Les couleurs des textures et du personnage sont conservées.
-- Changement immédiat, conservation des brouillons de journal, Target et scénario, ainsi que des noms de profils, habitudes, feuilles et fichiers. Les identifiants de métriques et unités stockées ne sont pas traduits.
-- Persistance SQLite et aller-retour JSON vérifiés en Rust, valeurs de langue/thème inconnues refusées, anciennes préférences et sauvegardes chargées avec français/sombre par défaut. Le cache navigateur ne contient que les deux préférences de présentation.
-- Test réel WebView2 : préférences anglais/clair conservées après rechargement, priorité à SQLite face à un cache d’affichage obsolète, profils/observations/journées inchangés, fiche scientifique traduite et scène GLB fonctionnelle. Aucune erreur JavaScript. Base et cache de test isolés sous `.tmp/native-smoke/appearance/`.
-- Reproduction native : `node scripts/native-presentation-smoke.mjs`, avec le port local 9226 (ou `ME_SIM_NATIVE_DEBUG_URL`) et une base placée sous `.tmp/native-smoke/appearance/`. Le script refuse une autre base.
-- Serveur de développement sur 127.0.0.1:1420 : menu de langue et thème clair vérifiés sur la version actuellement servie. Build Angular et binaire debug Tauri reconstruits ; les installateurs de `release/` n’ont pas été reconstruits pour cette modification.
+## Languages and light theme — verification of 1 October 2026 {#langues-et-theme-clair-—-verification-du-1er-octobre-2026}
 
-## Limites de vérification
+- French/English menu and theme button in top bar, also in preferences. Bundled translations on seven routes, camera controls, forms, dialogs and import messages. Dates, numbers and calendar follow the selected language.
+- Light theme inspected in Edge at 960 px, then WebView2. Automated WCAG A/AA audits for seven routes in French/English and a native import preview with conflicts/errors. Character/texture colors retained.
+- Immediate switching preserves journal, Target and scenario drafts, plus profile, habit, sheet and file names. Stored metric/unit identifiers are not translated.
+- SQLite persistence/JSON round-trip tested in Rust; unknown language/theme rejected, legacy settings/backups default to French/dark. Browser cache contains only presentation preferences.
+- Real WebView2: English/light retained after reload, SQLite overrides stale display cache, profiles/observations/days unchanged, translated model card and working GLB scene. No JavaScript errors. Isolated database/cache in `.tmp/native-smoke/appearance/`.
+- Reproduce with `node scripts/native-presentation-smoke.mjs`, local port 9226 (or `ME_SIM_NATIVE_DEBUG_URL`) and database under `.tmp/native-smoke/appearance/`. The script rejects other databases.
+- Development server at 127.0.0.1:1420: language menu/light theme checked on the served app. Angular build and debug Tauri binary rebuilt; release installers were not rebuilt for this change.
 
-- Audit automatisé d’accessibilité complété, sans certification d’accessibilité ni essai utilisateur avec lecteur d’écran.
-- Le rendu est limité à environ 30 images/s et libère géométries, matériaux, observateur et contexte à la fermeture ; pas de benchmark matériel prolongé ni certification de 30 images/s sur toutes les configurations.
-- Les sélecteurs de fichiers natifs sont implémentés ; parsing et écriture sont testés en Rust. Leur parcours complet au clavier dans le shell Windows n’a pas été automatisé.
-- Fonctionnement sans requête distante vérifié dans le navigateur et lancement natif validé. Installation en machine virtuelle neuve avec le réseau physiquement coupé non effectuée.
-- Les installateurs locaux ne sont pas signés avec un certificat d’éditeur.
-- Modèle scientifique complet, références numériques publiées et validation clinique : non réalisés ; projections désactivées.
+## Verification limits {#limites-de-verification}
 
-## Reproduire
+- Automated accessibility audit completed; no accessibility certification or user screen-reader trial.
+- Rendering is limited to roughly 30 fps and releases geometry, materials, observer and context on closing; no prolonged hardware benchmark or 30 fps certification across configurations.
+- Native file pickers implemented; Rust parsing/writing tested. Their full Windows-shell keyboard flow is not automated.
+- Browser absence of remote requests checked and native startup verified. No clean VM installation with physical network disconnection performed.
+- Local installers have no publisher certificate signature.
+- Complete scientific model, published numerical references and clinical validation remain unfinished; projections disabled.
 
-Après installation des dépendances et de Chromium, exécuter `npm run validate:local` sur Windows. Edge doit être installé ; les ports 1421, 1423, 4175 et 6107 doivent être libres. Les installateurs se construisent séparément avec `npm run package` ou `npm run package:offline`.
+## Reproduce {#reproduire}
 
-L’intégration Angular/Tauri désactive l’inlining du CSS critique (pas de gestionnaire onload inline) et transmet le nonce de style Tauri à Angular via ngCspNonce. Les styles dynamiques sont autorisés par nonce ; script-src et style-src n’utilisent pas unsafe-inline.
+After installing dependencies and Chromium, run `npm run validate:local` on Windows. Edge must be installed; ports 1421, 1423, 4175 and 6107 must be free. Build installers separately with `npm run package` or `npm run package:offline`.
 
-## Défauts de la revue — vérification du 2 octobre 2026
+Angular/Tauri disables critical CSS inlining (no inline onload handler) and passes Tauri's style nonce to Angular through ngCspNonce. Dynamic styles are nonce-authorized; script-src/style-src use no unsafe-inline.
 
-Les six défauts confirmés dans `review-2026-10-01.md` sont corrigés.
+## Review defects — verification of 2 October 2026 {#defauts-de-la-revue-—-verification-du-2-octobre-2026}
 
-| Défaut                                                                  | Preuve de correction                                                                                                                                                 |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vue ancienne écrasant un Target récent                                  | Test Rust avec deux connexions utilisant la même méthode que la commande réelle ; tests de brouillons et de réessai explicite ; refus confirmé via IPC dans WebView2 |
-| Récap reprenant une ancienne activité et inventant des zéros            | Calcul pur daté ; tests de données absentes, anciennes et nulles ; affichage natif de zéro explicite et de tabac inconnu                                             |
-| Calendrier et timeline figés                                            | Horloge réactive ; tests du passage de septembre à octobre, sélection historique, expiration sans mutation et brouillon du journal à minuit                          |
-| Heure Excel transformée en date                                         | Test XLSX avec date, heure 18:30 et durée Excel native ; conversion correcte vers date, HH:mm et minutes                                                             |
-| Unité tabac absente                                                     | Choix issu du catalogue de métriques ; aperçu puis import UI de CSV à deux colonnes ; validation Rust de cigarette                                                   |
-| Zéro minute refusé et fractions de cigarettes admises par le formulaire | Zéro enregistré sans événement ; validation entière dans le formulaire ; test natif de persistance après rechargement et validation Rust                             |
+The six confirmed defects in `review-2026-10-01.md` are fixed.
 
-Contrôles supplémentaires : couverture de la déviation sur 13 indicateurs, règle explicite pour les cibles à zéro, absence de double comptage du total d’activité, conservation des champs non modifiés après conflit et conservation de l’aperçu d’import lors d’un changement de langue. Les habitudes archivées ne consomment plus la limite active ; un test vérifie la conservation de l’historique et le refus de plus de 100 habitudes actives.
+| Defect                                                   | Evidence                                                                                                                   |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Stale view overwriting a recent Target                   | Rust two-connection test using the real command's method; draft/explicit-retry tests; rejection confirmed via WebView2 IPC |
+| Summary retaining old activity and inventing zeros       | Dated pure calculation; missing/old/zero data tests; native explicit-zero and unknown-tobacco display                      |
+| Frozen calendar/timeline                                 | Reactive clock; September–October rollover, historical selection, expiry without mutation and midnight journal draft       |
+| Excel time becoming a date                               | XLSX date, 18:30 and native duration test; correct date, HH:mm and minute conversion                                       |
+| Missing tobacco unit                                     | Choices from metric catalogue; preview/UI import of two-column CSV; Rust cigarette validation                              |
+| Rejected zero minutes and accepted fractional cigarettes | Zero saved without event; form integer validation; native reload/persistence and Rust tests                                |
 
-`npm run build`, les 21 tests Rust et les 36 tests Playwright ont réussi. Le nouveau script `scripts/native-fixes-smoke.mjs` a réussi dans l’application Tauri debug, avec une base et un cache WebView2 isolés sous `.tmp/native-smoke/fixes`. Il vérifie une mutation périmée via la commande réelle, la conservation du Target, la saisie de zéro minute, sa persistance SQLite après rechargement et le rendu des données inconnues. Aucune erreur JavaScript n’a été capturée.
+Additional checks cover 13-indicator deviation, explicit zero-target rules, no double-counted total activity, retaining unchanged fields after conflict, and import preview on language switching. Archived habits no longer consume active slots; tests preserve history and reject more than 100 active habits.
 
-Pour reproduire le test natif : construire `npm run tauri -- build --debug --no-bundle`, puis lancer le binaire avec `ME_SIM_TEST_DATA_DIR` sous `.tmp/native-smoke/fixes`, un cache `WEBVIEW2_USER_DATA_FOLDER` isolé et `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9231`. Exécuter `node scripts/native-fixes-smoke.mjs` ; le script refuse une autre base. Fermer ensuite cette instance de test. Le débogage distant n’est pas destiné aux données personnelles.
+`npm run build`, 21 Rust tests and 36 Playwright tests passed. `scripts/native-fixes-smoke.mjs` passed in Tauri debug with isolated database/cache under `.tmp/native-smoke/fixes`, checking real-command stale mutation rejection, Target retention, zero-minute input, SQLite persistence after reload and unknown data display. No JavaScript errors.
 
-## Paquets corrigés — livraison du 2 octobre 2026
+Reproduce by building `npm run tauri -- build --debug --no-bundle`, then starting the binary with `ME_SIM_TEST_DATA_DIR` under `.tmp/native-smoke/fixes`, isolated `WEBVIEW2_USER_DATA_FOLDER` and `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9231`. Run `node scripts/native-fixes-smoke.mjs`; other databases are rejected. Close this test instance afterwards. Remote debugging is not intended for personal data.
 
-- Installateurs NSIS standard et hors ligne reconstruits après la dernière correction de mise en page et copiés dans `release/`. Le paquet hors ligne embarque l’installateur WebView2 x64 ; son assemblage a réussi avec accès au cache Tauri après le refus d’accès rencontré dans le bac à sable.
-- Exécutables directs `Me-Sim.exe` et `Me-Sim-0.1.0-updated.exe` actualisés. La version reste 0.1.0 ; `release/build-info.json` identifie les fichiers par leurs tailles, dates et empreintes SHA-256, et précise que les corrections ne sont pas encore commitées.
-- Courbe de déviation inspectée visuellement : couverture et dates ne chevauchent plus la légende. Le contrôle de géométrie du Target et les deux parcours de thème clair ont réussi après cette dernière correction, en complément des 36 tests précédemment réussis.
-- La réussite de l’assemblage ne confirme pas une installation sur machine vierge : le test en VM sans réseau et la signature des installateurs restent à effectuer. La simulation scientifique reste désactivée.
+## Fixed packages — delivery of 2 October 2026 {#paquets-corriges-—-livraison-du-2-octobre-2026}
 
-## Storybook et régression visuelle — 7 octobre 2026
+- Standard/offline NSIS installers rebuilt after the final layout fix and copied to `release/`. Offline package includes WebView2 x64 installer; assembly succeeded with Tauri cache access after sandbox access had been refused.
+- Direct `Me-Sim.exe` and `Me-Sim-0.1.0-updated.exe` refreshed. Version stays 0.1.0; `release/build-info.json` records size, date, SHA-256 and that fixes were uncommitted.
+- Deviation curve inspected: coverage/dates no longer overlap the legend. Target geometry and both light-theme flows passed after the final fix in addition to the previous 36 tests.
+- Successful assembly does not confirm clean installation: offline VM testing and installer signing remain. Scientific simulation stays disabled.
 
-- Storybook 10.6.1 compatible avec Angular 22 et TypeScript 6 ; versions exactes dans le manifeste et le lockfile. Build statique et serveur de développement sur 127.0.0.1:6006 vérifiés. Palette extraite sans changement de valeurs, boutons et cartes de mesure du tableau de bord partagés avec les stories.
-- 19 stories, deux thèmes et contrôles locaux. Le test de l’atelier vérifie le changement d’une valeur vers zéro, le thème clair, le passage au texte anglais et la documentation Docs. Les données restent fictives et le Store natif n’est pas instancié.
-- 73 références PNG Windows inspectées par échantillonnage : palette dans les deux thèmes, boutons, mesure inconnue, tableau de bord à largeur minimale et calendrier. Les captures couvrent les sept routes à 960 et 1440 px dans les deux thèmes, trois écrans anglais dans les deux thèmes, les 19 stories dans les deux thèmes et le focus clavier. Les références totalisent environ 5,7 Mio et sont conservées sous `tests/visual/__screenshots__/win32/chromium/`.
-- La chaîne complète `npm run test:visual` a réussi : builds Angular et Storybook, puis 74 tests sans mise à jour des références. Un précédent passage de comparaison a aussi réussi ; la sonde temporaire a détecté une couleur de bouton volontairement altérée et a été retirée ensuite.
-- Les 36 tests fonctionnels existants ont réussi après l’extraction des composants. Vérification TypeScript des stories et contrôle du diff réussis. Aucun Rust ni format de stockage modifié pour cette intégration.
-- Les tests visuels refusent les requêtes externes et les erreurs JavaScript. Télémétrie et rapports de crash Storybook désactivés. La CI Windows Server 2022 est configurée avec le Chromium verrouillé par Playwright ; elle refuse les mises à jour de références et conserve les rapports d’échec. Ce job GitHub n’a pas été exécuté dans cette session ; une éventuelle différence de rendu entre ce poste et le runner doit être examinée.
-- Depuis le 8 octobre, seul le canvas GPU est masqué dans les captures de pages ; les contrôles de caméra et les légendes restent visibles. Le rendu 3D, ses animations et le réessai sont couverts par les tests fonctionnels, sans référence pixel du GPU. Ces captures ne constituent pas une certification d’accessibilité. Voir `docs/design-system.md` pour les commandes et le protocole de mise à jour.
+## Storybook and visual regression — 7 October 2026 {#storybook-et-regression-visuelle-—-7-octobre-2026}
 
-- Résolutions de documentation ajoutées au sélecteur Storybook : iPhone 16 Pro 402 × 874, iPad Pro 11″ 834 × 1194, MacBook Pro 14″ 1512 × 982 et Desktop 1920 × 1080 pixels CSS. Dimensions effectives des quatre aperçus et retour au viewport libre contrôlés dans Chromium, sans erreur JavaScript. Build statique, vérification TypeScript et test Playwright de l’atelier réussis après cet ajout. Les références PNG existantes restent inchangées.
+- Storybook 10.6.1, Angular 22 and TypeScript 6 compatible; exact versions in manifest/lockfile. Static build/development server at 127.0.0.1:6006 verified. Palette extracted without changing values; dashboard buttons/metric cards shared with stories.
+- 19 stories, two themes and local controls. Workshop test checks changing a value to zero, light theme, English and Docs. Fictional data; native Store not instantiated.
+- 73 Windows PNG references sampled: palette in both themes, buttons, unknown metric, minimum-width dashboard and calendar. Seven routes at 960/1440 px in both themes, three English screens in both themes, 19 stories in both themes and keyboard focus. Roughly 5.7 MiB under `tests/visual/__screenshots__/win32/chromium/`.
+- Full `npm run test:visual` chain passed: Angular/Storybook builds and 74 tests without baseline updates. A previous comparison also passed; a temporary probe detected a deliberately altered button color and was removed.
+- 36 existing functional tests passed after component extraction. Story TypeScript and diff checks passed. No Rust/storage format changed.
+- Tests reject external requests and JavaScript errors. Storybook telemetry/crash reports disabled. Windows Server 2022 CI uses locked Chromium, forbids baseline updates and retains failure reports. That GitHub job was not executed in this session; system rendering differences require inspection.
+- Since 8 October, only GPU canvas pixels are hidden in page snapshots; camera controls/captions remain. Functional tests check 3D rendering, animation and retry without GPU pixel baselines. These are not accessibility certification. See `docs/design-system.md` for commands/update protocol.
+- Storybook reference viewports added: iPhone 16 Pro 402 × 874, iPad Pro 11″ 834 × 1194, MacBook Pro 14″ 1512 × 982 and Desktop 1920 × 1080 CSS pixels. All four actual preview sizes/reset checked in Chromium without JavaScript errors. Static build, types and workshop test passed afterwards; existing PNGs unchanged.
 
-## Documentation VitePress — 7 octobre 2026
+## VitePress documentation — 7 October 2026 {#documentation-vitepress-—-7-octobre-2026}
 
-- VitePress stable 1.6.4 ajouté aux dépendances de développement et verrouillé dans le lockfile. Les sept guides existants sont repris sans copie ; accueil, démarrage, confidentialité et architecture ajoutent quatre pages, pour onze pages de documentation.
-- Build statique avec refus des liens internes cassés réussi ; types de configuration/thème et build Angular vérifiés. La CI Windows est configurée pour exécuter `npm run docs:build`, sans publication automatique ; ce changement CI n’a pas été exécuté sur GitHub dans cette session.
-- Navigation des onze pages et recherche locale contrôlées dans le build avec Chromium. Aucune requête externe, ressource locale manquante ou erreur JavaScript capturée. Polices et assets locaux vérifiés ; la mémorisation des requêtes de recherche est désactivée.
-- Navigation et absence de débordement horizontal global vérifiées à 402 × 874, 834 × 1194, 1512 × 982 et 1920 × 1080. Captures du guide de démarrage inspectées sur mobile et ordinateur. Thèmes clair/sombre, serveur de développement et menu mobile vérifiés séparément.
-- Serveur de développement limité à `127.0.0.1:5174`, aperçu statique à `127.0.0.1:4174`, avec ports stricts. Les sorties/cache sous `docs/.vitepress/` sont ignorés par Git. La documentation reste distincte du paquet Tauri et ne lit aucune base personnelle.
+- Stable VitePress 1.6.4 locked as development dependency. Seven existing guides reused; home, setup, privacy and architecture add four, totaling eleven documentation pages.
+- Static build rejecting dead internal links passed; config/theme types and Angular build checked. Windows CI runs `npm run docs:build` without automatic publication; CI change not executed on GitHub in this session.
+- Navigation of eleven pages and local search checked in built Chromium site. No external request, missing local asset or JavaScript error. Local fonts/assets verified; search query persistence disabled.
+- Navigation/global overflow checked at 402 × 874, 834 × 1194, 1512 × 982 and 1920 × 1080. Setup guide screenshots inspected on mobile/desktop. Light/dark, dev server and mobile menu separately checked.
+- Dev restricted to `127.0.0.1:5174`, preview to `127.0.0.1:4174`, strict ports. Output/cache under `docs/.vitepress/` ignored by Git. Documentation separate from Tauri, reads no personal database.
 
-## Rendu exclusivement 3D — 8 octobre 2026
+## Exclusively 3D rendering — 8 October 2026 {#rendu-exclusivement-3d-—-8-octobre-2026}
 
-- Option 2D, avatar CSS, animations de remplacement et branche de masquage du moteur supprimés. Les préférences ne conservent que les animations, le tremblement rétro, la langue et le thème.
-- Anciennes bases SQLite et sauvegardes JSON compatibles : le lecteur Rust accepte uniquement l’ancien champ booléen `force2d`, l’ignore et ne le réexporte pas. Les tests vérifient la conservation de toutes les données métier pour les anciennes valeurs vrai et faux ; les autres champs inconnus restent refusés.
-- WebGL absent ou contexte perdu : message traduit, aucune silhouette de remplacement, retrait des commandes de caméra et du focus. Le bouton de réessai recrée une scène 3D ; l’autre caméra de comparaison reste indépendante. Le journal reste utilisable. Ces parcours sont testés dans Edge, et les messages, le réessai et la 3D réelle ont été inspectés sur mobile dans Chromium.
-- Builds Angular et Storybook, types du catalogue, 22 tests Rust, 42 tests fonctionnels et 74 tests visuels réussis. Quatorze références de pages actualisées, puis comparées sans mise à jour ; tableau de bord, paramètres et comparaison inspectés par échantillonnage. Le masquage du canvas est réservé aux tests visuels, sans option correspondante dans l’application.
-- Aucun accès à une base personnelle pendant cette vérification. Les installateurs et exécutables de `release/` n’ont pas été reconstruits pour ce changement.
+- Removed 2D option, CSS avatar, replacement animations and rendering-hide branch. Preferences retain animation, retro jitter, language and theme.
+- Legacy SQLite/JSON compatible: Rust accepts only old boolean `force2d`, ignores it and does not re-export it. Tests retain all business data for old true/false values; other unknown fields remain rejected.
+- Absent/lost WebGL: translated message, no replacement silhouette, camera controls/focus removed. Retry creates 3D again; other comparison camera stays independent. Journal stays usable. Edge tests and mobile Chromium inspection cover messages, retry and real 3D.
+- Angular/Storybook builds/types, 22 Rust tests, 42 functional tests and 74 visual tests passed. Fourteen page references updated then compared without updates; sampled dashboard, settings and comparison. Canvas hiding is test-only, without an app option.
+- No personal database access. Release executables/installers were not rebuilt.
 
-## Personnage féminin — 8 octobre 2026
+## Female character — 8 October 2026 {#personnage-feminin-—-8-octobre-2026}
 
-- Variante féminine locale créée depuis le rig animé existant : silhouette et mâchoire distinctes, coiffure au carré et visage géométrique sans la barbe de l’atlas masculin. Le corps conserve ses 498 sommets, 952 triangles, UV et poids ; la coiffure ajoute 76 triangles et les détails du visage 10 triangles. Le squelette conserve ses 40 articulations et ses quinze actions.
-- Source `art/avatar/female-casual-animated.blend` enregistrée avec les actions et la texture intégrée. Export depuis ce fichier vérifié avec Blender 4.2 et `scripts/export-avatar.py -- --model female` ; GLB autonome de 789 828 octets. Les trente correspondances de clips des deux variantes passent `npm run check:avatar`.
-- Sélection automatique pour `Profile.sex === 'female'`, dans le tableau de bord et les deux scènes de comparaison. Masculin ou non renseigné garde le modèle par défaut ; aucune migration ou nouvelle donnée métier. Manifestes version 1 compatibles, bloc facultatif `variants.female.overrides` documenté pour l’artiste.
-- Tests Edge : quinze clips de chaque variante, timeline, absence de requête distante et d’erreur JavaScript, changement de profil sans recréer la scène ou réinitialiser la caméra, réutilisation des deux modèles et refus d’activer une ancienne variante après un chargement tardif. Modification du profil et deux avatars féminins dans la comparaison vérifiés. Captures des activités et vues rapprochées de face et de profil inspectées.
-- Build Angular, build et types Storybook, 45 tests fonctionnels et 74 tests visuels réussis sans actualisation des références. Le serveur de développement sur 1420 charge le modèle féminin sans erreur JavaScript. Les sources et le guide artiste permettent de remplacer les modèles ou leurs animations indépendamment.
-- Aucun accès à une base personnelle. Les exécutables et installateurs de `release/` n’ont pas été reconstruits pour ce changement.
+- Local female variant created from the existing animated rig: distinct silhouette/jaw, bob haircut and geometric face without atlas beard. Body retained 498 vertices, 952 triangles, UVs/weights; hair added 76 triangles and face details 10. Skeleton retained 40 joints and fifteen actions.
+- `art/avatar/female-casual-animated.blend` saved with actions/packed texture. Blender 4.2 export checked with `scripts/export-avatar.py -- --model female`; self-contained GLB of 789,828 bytes. Thirty mappings pass `npm run check:avatar`.
+- Automatically selected for `Profile.sex === 'female'` in dashboard/both comparisons. Male/unspecified keeps default; no migration/new business data. Version-1 manifests compatible, optional `variants.female.overrides` documented.
+- Edge checks fifteen clips per variant, timeline, no remote requests/JavaScript errors, switching profiles without recreating scene/resetting camera, both models reused and late prior-variant activation rejected. Profile editing and female comparison scenes checked. Activity and close front/side captures inspected.
+- Angular/Storybook builds/types, 45 functional tests and 74 visual tests passed without baseline updates. Dev server on 1420 loads female model without JavaScript errors. Artist sources/guide allow independent model/animation replacement.
+- No personal database access; release executables/installers not rebuilt.
 
-## Modèle féminin fourni — 9 octobre 2026
+## Supplied female model — 9 October 2026 {#modele-feminin-fourni-—-9-octobre-2026}
 
-- Le personnage féminin utilise désormais `female_secretary.fbx` et `secretary_tex.png`, copiés dans `art/avatar/` sans modification. SHA-256 vérifiés par comparaison avec les fichiers fournis. La texture PNG 256 × 256 est embarquée à l’identique dans le GLB.
-- Modèle d’origine : 488 sommets, 932 triangles, 28 os et aucun clip d’animation. Les positions des sommets, faces, UV, poids de skinning et matrices de repos des articulations sont comparés au FBX après préparation : aucune différence, en tenant compte des alias de noms d’os. Quinze os d’accessoires et quinze actions sont ajoutés au rig fourni.
-- Générateur commun paramétré par `--model male` ou `--model female`, avec adaptation de la pose de départ, des prises en main, de l’assise et des accessoires du visage aux proportions féminines. Le modèle masculin est également régénéré avec succès dans un dossier de vérification isolé.
-- Fichier Blender féminin avec texture intégrée, actions conservées et rig éditable. Export depuis ce fichier enregistré vérifié avec `scripts/export-avatar.py -- --model female` : GLB identique octet par octet à la préparation initiale, de 777 004 octets. Le matériau `SecretaryAtlas` préserve les vêtements de la texture fournie.
-- Build Angular et trente correspondances de clips validés. Huit tests Playwright d’avatar et de caméra réussis : quinze activités par personnage, timeline, chargement unique, changement de profil sans perte du cadrage, chargement tardif et scènes de comparaison. Captures des vues rapprochées et des activités inspectées. Le serveur de développement sur 1420 fournit le modèle féminin sans erreur JavaScript.
-- Guide artiste et documentation mis à jour. Aucun accès à une base personnelle ; les exécutables et installateurs de `release/` n’ont pas été reconstruits pour ce changement.
+- Female now uses `female_secretary.fbx` and `secretary_tex.png`, copied unchanged into `art/avatar/`. SHA-256 compared to supplied files. Original 256 × 256 PNG bytes embedded in GLB.
+- Source: 488 vertices, 932 triangles, 28 bones and no clips. Vertex positions, faces, UVs, skin weights and joint rest matrices compared to FBX after preparation: no differences accounting for bone aliases. Fifteen prop bones and actions added.
+- Shared generator accepts `--model male`/`--model female`, adapting initial pose, grips, seating and face props to female proportions. Male regenerated successfully in an isolated verification directory.
+- Female Blender file with packed texture, retained actions and editable rig. Saved-file export via `scripts/export-avatar.py -- --model female` byte-identical to initial preparation: 777,004-byte GLB. `SecretaryAtlas` preserves supplied clothes.
+- Angular build and thirty mappings passed. Eight avatar/camera Playwright tests passed: fifteen activities per character, timeline, single load, switching without camera loss, late loads and comparisons. Close/activity captures inspected. Dev server on 1420 serves female model without JavaScript errors.
+- Artist guide/docs updated. No personal database access; release executables/installers not rebuilt.
 
-## Chargement des personnages sans flash — 9 octobre 2026
+## Character loading without flashes — 9 October 2026 {#chargement-des-personnages-sans-flash-—-9-octobre-2026}
 
-- Le chargeur distingue l’attente du manifeste ou du GLB, le personnage d’artiste prêt et le repli procédural. Le personnage cubique est masqué avant la première frame ; la pièce et la caméra restent utilisables, avec une légende de chargement traduite en français et en anglais.
-- Le repli procédural reste disponible après un manifeste ou un fichier absent, une erreur de chargement ou un clip non fourni. Les gardes de variante, d’activité, de relecture et de destruction restent appliquées aux chargements tardifs.
-- Trois nouveaux tests Playwright ralentissent séparément le manifeste et le GLB pour les deux personnages, après navigation et après rafraîchissement pour le modèle par défaut. Les captures sans éléments de légende vérifient que la pièce reste identique pendant l’attente puis qu’un personnage apparaît après réussite ou échec réel. Un manifeste absent conserve une animation procédurale utilisable.
-- Les trois tests de chargement et les vingt tests existants des parcours, avatars et caméras réussissent. Builds Angular et Storybook, types du catalogue, formatage et 74 tests visuels réussis sans modification des références PNG. Guide artiste et architecture actualisés.
-- Aucun accès à une base personnelle ; les exécutables et installateurs de `release/` n’ont pas été reconstruits pour ce changement.
+- Loader distinguishes waiting for manifest/GLB, ready artist character and procedural fallback. Cubic person hidden before the first frame; room/camera remain usable with French/English loading caption.
+- Procedural fallback remains for missing manifest/file, failed load or unprovided clip. Variant, activity, replay and destruction guards remain on late loads.
+- Three new Playwright tests separately delay manifest and GLB for both characters after navigation, and default model after refresh. Captures without captions check room stability while waiting and a person appearing after success/real failure. Missing manifest retains usable procedural animation.
+- Three loading tests and twenty existing route/avatar/camera tests passed. Angular/Storybook builds/types, formatting and 74 visual tests passed without PNG updates. Artist guide/architecture updated.
+- No personal database access; release executables/installers not rebuilt.
 
-## Documentation bilingue et captures par format — 9 octobre 2026 {#documentation-bilingue-et-captures-par-format-2026-10-09}
+## Bilingual documentation and device captures — 9 October 2026 {#documentation-bilingue-et-captures-par-format-2026-10-09}
 
-- Les onze pages disposent d’une version française et anglaise, y compris les revues historiques. Les URL françaises sont conservées ; les traductions sont sous `/en/`. Navigation, recherche locale et libellés de thème sont traduits. Le menu de langue conserve la page et sa section sur ordinateur et mobile.
-- Le build vérifie les types de configuration/thème, les liens internes et la parité des pages et identifiants de sections entre langues avec `scripts/check-docs.mjs`. Les titres anglais utilisent des identifiants explicites afin de préserver les liens de sections français.
-- Dimensions partagées entre Storybook et Playwright dans `config/viewports.ts` : iPhone 16 Pro 402 × 874, iPad Pro 11″ 834 × 1194, MacBook Pro 14″ 1512 × 982 et Desktop 1920 × 1080 pixels CSS. Les captures couvrent les sept écrans en FR/EN et clair/sombre (112 combinaisons), ainsi que l’accueil et le démarrage de la documentation (32 combinaisons). Les 73 références précédentes restent couvertes ; la suite comprend 217 références PNG et 220 tests.
-- Les parcours de documentation visitent les 22 pages, vérifient leurs sections, le changement de langue et les résultats de recherche locale. Chaque format vérifie la dimension effective de la fenêtre et l’absence de débordement horizontal global. Les requêtes externes et erreurs JavaScript font échouer les tests.
-- Sept tests fonctionnels de présentation réussis dans Edge avec un serveur de test isolé sur le port 1424, le port habituel 1421 étant occupé par un autre projet. Le libellé anglais « Sedentary time » est corrigé et vérifié ; les saisies personnalisées restent inchangées lors d’un changement de langue ou de thème.
-- Captures inspectées par échantillonnage sur les quatre formats, dans les deux langues et thèmes. Il s’agit de fenêtres Chromium sous Windows, pas d’un test physique sur iPhone, iPad ou macOS. Les PNG pleine page peuvent dépasser la hauteur du viewport. Seul le canvas GPU est masqué ; les contrôles et légendes 3D restent visibles, et les tests fonctionnels couvrent le rendu réel séparément.
-- La CI Windows existante est configurée pour construire les trois outils puis comparer les images, sans mise à jour automatique des références. Ce job GitHub n’a pas été exécuté dans cette session. Aucune base personnelle n’est ouverte ; les exécutables et installateurs de `release/` ne sont pas reconstruits pour cette intégration.
-- La chaîne complète `npm run test:visual` a réussi : vérification des traductions et types, builds VitePress, Angular et Storybook, puis 220 tests sans modification des références. Les trente captures antérieures de pages non concernées par le nouveau libellé passent également dans un contrôle séparé. Formatage et contrôle du diff réussis ; seules deux références antérieures du journal anglais changent pour la traduction de la sédentarité.
+- All eleven pages have French and English versions, including historical reviews. French URLs are preserved; translations are under `/en/`. Navigation, local search and theme labels are translated. The language menu preserves the page and section on desktop and mobile.
+- The build checks configuration/theme types, internal links, and matching pages and section IDs across languages with `scripts/check-docs.mjs`. English headings use explicit IDs to preserve French section links.
+- Dimensions shared by Storybook and Playwright in `config/viewports.ts`: iPhone 16 Pro 402 × 874, iPad Pro 11″ 834 × 1194, MacBook Pro 14″ 1512 × 982 and Desktop 1920 × 1080 CSS pixels. Captures cover all seven screens in FR/EN and light/dark (112 combinations), plus documentation home and getting-started pages (32 combinations). The previous 73 references remain covered; the suite contains 217 PNG references and 220 tests.
+- Documentation flows visit all 22 pages and check section anchors, language switching and local search results. Each format checks the actual viewport dimensions and absence of global horizontal overflow. External requests and JavaScript errors fail tests.
+- Seven functional presentation tests passed in Edge using an isolated test server on port 1424, since the usual port 1421 was occupied by another project. The English “Sedentary time” label is corrected and checked; user-entered text remains unchanged when language or theme changes.
+- Captures inspected by sampling across all four formats, both languages and themes. These are Chromium viewports on Windows, not physical iPhone, iPad or macOS tests. Full-page PNGs may exceed viewport height. Only GPU canvas pixels are hidden; 3D controls and captions remain visible, while functional tests cover actual rendering separately.
+- Existing Windows CI is configured to build all three tools and compare images without automatically updating references. This GitHub job was not run in this session. No personal database is opened; executables and installers in `release/` are not rebuilt for this integration.
+- The complete `npm run test:visual` pipeline passed: locale and type checks, VitePress, Angular and Storybook builds, then 220 tests without changing references. The thirty earlier page captures unaffected by the new label also pass a separate check. Formatting and diff checks passed; only two earlier English journal references change for the sedentary-time translation.

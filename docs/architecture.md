@@ -1,62 +1,62 @@
-# Architecture du projet
+# Project architecture {#architecture-du-projet}
 
-## Les trois parties
+## The three parts {#les-trois-parties}
 
-| Partie          | Responsabilité                                                               |
-| --------------- | ---------------------------------------------------------------------------- |
-| Angular         | Écrans, formulaires, routes par fonctionnalité et état réactif avec Signals. |
-| Tauri 2 et Rust | Commandes natives, validation, SQLite, migrations et échanges de fichiers.   |
-| Three.js        | Scène rétro, caméra, animations et gestion des ressources GPU.               |
+| Part             | Responsibility                                                     |
+| ---------------- | ------------------------------------------------------------------ |
+| Angular          | Screens, forms, feature routes and reactive state with Signals.    |
+| Tauri 2 and Rust | Native commands, validation, SQLite, migrations and file exchange. |
+| Three.js         | Retro scene, camera, animations and GPU resource management.       |
 
-Le frontal transmet des opérations typées aux commandes Tauri. Rust valide les entrées et l’appartenance des données à un profil avant l’écriture. Le rendu 3D reçoit un mode d’activité et des préférences ; il ne calcule pas de résultat clinique.
+The frontend sends typed operations to Tauri commands. Rust validates inputs and profile ownership before writing. The 3D renderer receives an activity mode and preferences; it calculates no clinical result.
 
-## Organisation des sources
+## Source organization {#organisation-des-sources}
 
-| Dossier                     | Contenu                                                                                  |
-| --------------------------- | ---------------------------------------------------------------------------------------- |
-| `src/app/core/`             | Contrats, Store Signals, horloge, calculs quotidiens, traductions et composants de base. |
-| `src/app/pages/`            | Tableau de bord, journal, habitudes, scénarios, données, profils et préférences.         |
-| `src/app/ui/`               | Composants et directives partagés avec le catalogue.                                     |
-| `src/design-system/`        | Tokens de couleurs et d’espacement.                                                      |
-| `src/app/scene/`            | Composant de scène, pièce Three.js et chargement des animations d’artiste.               |
-| `src-tauri/src/`            | Domaine, persistance, échanges, verrou scientifique et commandes Tauri.                  |
-| `public/avatar/`            | Manifeste et fichiers GLB utilisés par l’application.                                    |
-| `art/avatar/`               | Sources FBX, texture et fichier Blender éditable.                                        |
-| `stories/` et `.storybook/` | Catalogue local, configuration et exemples fictifs.                                      |
-| `tests/` et `scripts/`      | Tests fonctionnels, références visuelles, contrôles d’assets et sondes natives.          |
-| `config/`                   | Résolutions de référence partagées par Storybook et les tests de captures.              |
-| `docs/`                     | Guides français, versions anglaises dans `en/` et configuration VitePress.              |
+| Folder                       | Contents                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| `src/app/core/`              | Contracts, Signals Store, clock, daily calculations, translations and basic components. |
+| `src/app/pages/`             | Dashboard, journal, habits, scenarios, data, profiles and preferences.                  |
+| `src/app/ui/`                | Components and directives shared with the catalogue.                                    |
+| `src/design-system/`         | Color and spacing tokens.                                                               |
+| `src/app/scene/`             | Scene component, Three.js room and artist animation loading.                            |
+| `src-tauri/src/`             | Domain, persistence, exchange, scientific gate and Tauri commands.                      |
+| `public/avatar/`             | Manifest and GLB files used by the application.                                         |
+| `art/avatar/`                | FBX sources, texture and editable Blender files.                                        |
+| `stories/` and `.storybook/` | Local catalogue, configuration and fictional examples.                                  |
+| `tests/` and `scripts/`      | Functional tests, visual references, asset checks and native probes.                    |
+| `config/`                    | Reference viewport dimensions shared by Storybook and screenshot tests.                 |
+| `docs/`                      | English Markdown guides, legacy `/en/` routes and VitePress configuration.      |
 
-## Contrats et persistance
+## Contracts and persistence {#contrats-et-persistance}
 
-Les principales entités sont `Profile`, `Observation`, `HabitDefinition`, `HabitDay`, `ImportBatch`, `Scenario` et `SimulationRun`. Le profil possède aussi son `TargetDay`. Les données enregistrées portent leur appartenance à un profil ; les préférences de présentation concernent l’espace local entier.
+The main entities are `Profile`, `Observation`, `HabitDefinition`, `HabitDay`, `ImportBatch`, `Scenario` and `SimulationRun`. A profile also owns its `TargetDay`. Stored data carries its profile ownership; presentation preferences apply to the whole local workspace.
 
-Les commandes exposées comprennent `initial_state`, `mutate`, `choose_import`, `preview_import`, `commit_import`, `export_data`, `preview_restore`, `commit_restore` et `run_simulation`. Les sélecteurs natifs donnent accès aux fichiers choisis, puis des jetons opaques identifient les aperçus d’import ou de restauration conservés en mémoire côté Rust.
+Exposed commands include `initial_state`, `mutate`, `choose_import`, `preview_import`, `commit_import`, `export_data`, `preview_restore`, `commit_restore` and `run_simulation`. Native pickers grant access to chosen files, then opaque tokens identify import/restore previews kept in Rust memory.
 
-Une révision SQLite accompagne les lectures et les mutations. Une tentative périmée est refusée, les données sont rechargées et l’utilisateur vérifie son brouillon avant de réessayer. Les mutations, imports et synchronisations écrivent uniquement les lignes modifiées dans une transaction avec contrôle de révision ; le remplacement global est réservé à la restauration. L’ordre des entités et les effets liés aux habitudes et sessions sont conservés. Le contrat IPC échange encore des snapshots complets : la lecture, la validation et la sérialisation dépendent donc toujours du volume de l’historique.
+A SQLite revision accompanies reads and mutations. Stale attempts are rejected, data is reloaded and users review their draft before retrying. Mutations, imports and synchronization write only changed rows inside a transaction that checks the revision; full replacement is reserved for restoration. Entity order and linked habit/session effects are preserved. IPC still exchanges complete snapshots, so reading, validation and serialization costs continue to grow with history size.
 
-La confirmation d’import indexe les observations par profil, date, métrique et clé temporelle canonique. Les ajouts enrichissent cet index immédiatement ; les doublons d’un même fichier et les sessions précises partageant une minute restent distincts selon cette clé. Les rafraîchissements du frontal sont sérialisés, différés pendant une écriture et appliqués seulement si leur révision est plus récente.
+Import confirmation indexes observations by profile, date, metric and canonical temporal key. New rows immediately update that index; repeated rows within a file and precise sessions sharing a wall-clock minute remain distinct according to that key. Frontend refreshes are serialized, deferred during writes and applied only when their revision is newer.
 
-La sauvegarde JSON possède une version indépendante du numéro de migration SQLite. Une version non prise en charge est refusée avant remplacement. Les transactions et la copie préventive protègent la restauration contre une écriture partielle.
+The JSON backup version is independent of the SQLite migration number. Unsupported versions are rejected before replacement. Transactions and the preventive copy protect restoration from partial writes.
 
-## État métier et rendu
+## Business state and rendering {#etat-metier-et-rendu}
 
-L’horloge locale met à jour calendrier, récap et fenêtre de timeline. Les calculs de récap, de couverture et de déviation sont séparés du rendu. Une observation absente reste inconnue ; une valeur explicitement nulle reste une valeur déclarée.
+The local clock updates the calendar, summary and timeline window. Summary, coverage and deviation calculations are separate from rendering. A missing observation remains unknown; an explicitly entered zero remains a reported value.
 
-La scène Three.js est chargée à la demande. La caméra appartient à chaque scène et les ressources sont libérées à la destruction. Si WebGL est indisponible ou que son contexte est perdu, la scène affiche un message avec une action pour réessayer. Aucun avatar 2D n’est généré ; les autres fonctionnalités restent accessibles. La scène reçoit la variante d’apparence (`default` ou `female`) dérivée du profil, sans nouvelle donnée persistée. Les clips sont indexés par variante et activité ; un modèle et un mixer sont partagés par fichier GLB. Le chargeur distingue les états de chargement, de modèle d’artiste et de repli procédural : pendant la lecture du manifeste ou du GLB, le personnage reste masqué dans la pièce. Le repli procédural apparaît uniquement lorsqu’aucun remplacement n’est fourni ou qu’un chargement échoue. Un chargement terminé après un changement de profil ne peut pas remplacer la variante courante, et les modèles mis en cache sont libérés à la destruction. Le [guide d’artiste](./artist-animation-guide.md) définit le contrat de remplacement.
+The Three.js scene loads on demand. Each scene owns its camera and releases resources on destruction. If WebGL is unavailable or its context is lost, the scene displays a message and a retry action. No 2D avatar is generated; other features remain accessible. The scene receives a profile-derived appearance variant (`default` or `female`), without a new persisted field. Clips are indexed by variant and activity; one model and mixer are shared per GLB file. The loader distinguishes loading, ready artist models and procedural fallback: the person stays hidden in the room while the manifest or GLB loads. Procedural fallback appears only when no replacement exists or loading fails. A late load after a profile switch cannot replace the current variant, and cached models are released on destruction. The [artist guide](./artist-animation-guide.md) defines the replacement contract.
 
-Le rendu animé est limité à environ 30 images par seconde et suspendu lorsque le document est masqué ou la scène hors écran. Sans animations, une image est produite après un changement de caméra, de taille, de modèle ou d’état ; aucune boucle de dessin permanente n’est maintenue. Les observateurs et écouteurs sont libérés à la destruction de la scène.
+Animated rendering is limited to approximately 30 frames per second and suspended while the document is hidden or the scene is offscreen. With animations disabled, camera, size, model or state changes request a frame; no permanent drawing loop is maintained. Observers and listeners are released when the scene is destroyed.
 
-Le moteur de recherche du poids reste inaccessible aux projections utilisateur. Voir la [fiche modèle](./model-card.md) pour ses équations implémentées et les critères d’activation manquants.
+The research weight engine remains inaccessible to user projections. See the [model card](./model-card.md) for implemented equations and missing activation criteria.
 
-## Documentation et catalogue
+## Documentation and catalogue {#documentation-et-catalogue}
 
-La [revue des licences et crédits](./licenses.md) décrit la licence AGPL-3.0-only, les conditions des personnages de Vinrax et le contrôle local des dépendances. Les contributions externes ne sont pas acceptées pour le moment ; cloner et forker restent autorisés selon la licence.
+The [license and credits review](./licenses.md) describes AGPL-3.0-only, Vinrax asset terms and local dependency checks. External contributions are currently not accepted; cloning and forking remain permitted under the license.
 
-Les [spécifications fonctionnelles et techniques](./specifications.md) détaillent les contrats associés aux déclarations du code et leurs limites.
+The [functional and technical specifications](./specifications.md) describe the contracts associated with code declarations and their limits.
 
-VitePress 1.6.4 transforme les guides de `docs/` et `docs/en/` en site statique, avec navigation traduite et index de recherche locaux. Storybook expose les styles et composants de l’application. Ces outils sont des dépendances de développement et ne font pas partie du paquet Tauri.
+VitePress 1.6.4 turns the guides in `docs/` and `docs/en/` into a static site, with localized navigation and local search indexes. Storybook exposes application styles and components. These are development dependencies and are not part of the Tauri package.
 
-La configuration du site est dans `docs/.vitepress/config.mts`, son thème dans `docs/.vitepress/theme/` et ses assets dédiés dans `docs/public/`. Cache et sortie de build sont ignorés par Git. Les vérifications locales construisent la documentation, contrôlent les langues et liens internes et comparent les captures aux quatre résolutions partagées. Aucun workflow GitHub Actions ni publication automatique n’est configuré dans le dépôt.
+Site configuration is in `docs/.vitepress/config.mts`, its theme in `docs/.vitepress/theme/` and dedicated assets in `docs/public/`. Cache and build output are ignored by Git. Local checks build the documentation, verify language parity and internal links, and compare screenshots at the four shared reference viewports. The repository contains no GitHub Actions workflow or automatic publication.
 
-Les [commandes de démarrage](./getting-started.md#lancer-cette-documentation), le [protocole visuel](./design-system.md) et les [preuves de validation](./validation.md) permettent de vérifier les changements avant livraison.
+The [startup commands](./getting-started.md#lancer-cette-documentation), [visual protocol](./design-system.md) and [validation evidence](./validation.md) explain how to check changes before delivery.

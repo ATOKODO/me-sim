@@ -1,22 +1,22 @@
-# Spécifications {#specifications}
+# Specifications {#specifications}
 
-Ces documents décrivent le comportement du code présent dans le dépôt. Une référence dans une déclaration renvoie au contrat technique correspondant ; elle ne garantit pas à elle seule que le comportement est validé par un test. Les guides utilisateur et les documents de validation restent les références pour l’utilisation et les vérifications effectuées.
+These documents describe the behavior of the code currently in the repository. A reference on a declaration points to the corresponding technical contract; it does not by itself prove that the behavior is covered by a test. The user guides and validation documents remain the references for usage and completed checks. Contract identifiers are defined in the canonical specification documents.
 
-## Fonctionnel {#fonctionnel}
+## Functional {#fonctionnel}
 
-- [Interface et parcours](./specs/frontend-functional.md) : profils, journal, habitudes, scènes et préférences.
-- [Données et opérations natives](./specs/rust-fonctionnelle.md) : persistance, échanges et limites scientifiques.
-- [Compagnon mobile](./specs/companion-functional.md) : saisie locale, appairage et synchronisation.
+- [Interface and user flows](./specs/frontend-functional.md): profiles, journal, habits, scenes and preferences.
+- [Data and native operations](./specs/rust-fonctionnelle.md): persistence, exchange and scientific limits.
+- [Mobile companion](./specs/companion-functional.md): local entry, pairing and synchronization.
 
-## Technique {#technique}
+## Technical {#technique}
 
-- [Frontal Angular et scène 3D](./specs/frontend-technical.md).
-- [Services Rust et stockage](./specs/rust-technique.md).
-- [Compagnon mobile](./specs/companion-technical.md).
-- [Outils et tests](./specs/tooling-technical.md).
+- [Angular front end and 3D scene](./specs/frontend-technical.md).
+- [Rust services and storage](./specs/rust-technique.md).
+- [Mobile companion](./specs/companion-technical.md).
+- [Tools and tests](./specs/tooling-technical.md).
 
-Les identifiants de ces contrats sont uniques. Plusieurs fonctions peuvent participer au même contrat ; les méthodes portent leur propre référence. Les bibliothèques tierces, fichiers générés et ressources binaires ne font pas partie du périmètre maintenu ici.
+Contract identifiers are unique. Several functions may participate in the same contract; methods carry their own references. Third-party libraries, generated files and binary assets are outside the maintained scope.
 
-## Limites et évolution {#limites-et-evolution}
+## Limits and maintenance {#limites-et-evolution}
 
-Les annotations décrivent une liaison documentaire, pas une preuve d’exécution, de sécurité ou de conformité. Les fonctions anonymes et le code produit par des générateurs ou des macros peuvent échapper à l’indexation. À chaque changement de comportement, mettre à jour la section correspondante, l’annotation si nécessaire et les tests pertinents. Le [guide de validation](./validation.md) explique les contrôles locaux.
+Annotations are documentation links, not proof of execution, security or compliance. Anonymous functions and code produced by generators or macros may fall outside the index. When behavior changes, update the relevant section, annotation if needed and appropriate tests. The [validation guide](./validation.md) describes local checks.

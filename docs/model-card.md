@@ -1,37 +1,37 @@
-# Modèle scientifique — Hall / NIDDK
+# Scientific model — Hall / NIDDK {#modele-scientifique-—-hall-niddk}
 
-Identifiant : `hall-2011` · version de recherche `0.1.0-research` · **désactivé**.
+Identifier: `hall-2011` · research version `0.1.0-research` · **disabled**.
 
-## Sources consultées le 17 septembre 2026
+## Sources consulted on 17 September 2026 {#sources-consultees-le-17-septembre-2026}
 
-- [NIDDK : recherche derrière le Body Weight Planner](https://www.niddk.nih.gov/research-funding/at-niddk/labs-branches/laboratory-biological-modeling/integrative-physiology-section/research/body-weight-planner).
-- Hall KD et al. *Quantification of the effect of energy imbalance on bodyweight*. Lancet 2011;378:826–837. DOI : 10.1016/S0140-6736(11)60812-X.
-- [Annexe mathématique publiée](https://www.niddk.nih.gov/-/media/Files/Labs-Branches-Sections/laboratory-biological-modeling/integrative-physiology-section/Hall-Lancet-Web-Appendix_508.pdf).
-- [Politique de copyright du NIDDK](https://www.niddk.nih.gov/copyright).
+- [NIDDK: research behind the Body Weight Planner](https://www.niddk.nih.gov/research-funding/at-niddk/labs-branches/laboratory-biological-modeling/integrative-physiology-section/research/body-weight-planner).
+- Hall KD et al. _Quantification of the effect of energy imbalance on bodyweight_. Lancet 2011;378:826–837. DOI: 10.1016/S0140-6736(11)60812-X.
+- [Published mathematical appendix](https://www.niddk.nih.gov/-/media/Files/Labs-Branches-Sections/laboratory-biological-modeling/integrative-physiology-section/Hall-Lancet-Web-Appendix_508.pdf).
+- [NIDDK copyright policy](https://www.niddk.nih.gov/copyright).
 
-L’accessibilité publique d’un document ne démontre pas à elle seule les droits de redistribution d’un logiciel complet. Aucun code du simulateur NIDDK, figure publiée ou base clinique n’est redistribué ici. Le statut de licence du modèle complet est marqué **à confirmer**, pas « libre de droits ». La technologie de suivi brevetée présentée séparément par le NIDDK n’est pas implémentée.
+Public access to a document alone does not establish redistribution rights for complete software. No NIDDK simulator code, published figure or clinical database is redistributed here. The complete model's license status is **to be confirmed**, not royalty-free. The patented tracking technology presented separately by NIDDK is not implemented.
 
-## Périmètre implémenté
+## Implemented scope {#perimetre-implemente}
 
-Un module Rust pur reproduit une réponse analytique de la phase tardive linéarisée (équations 11–15). Entrées de recherche : poids initial, masse grasse initiale, activité en kJ/kg/j et variations énergétiques. Sortie interne : série quotidienne déterministe. Les coefficients portent leurs unités en kJ et kg.
+A pure Rust module reproduces an analytical response of the linearized late phase (equations 11–15). Research inputs: initial weight, initial fat mass, activity in kJ/kg/day and energy changes. Internal output: a deterministic daily series. Coefficients carry kJ and kg units.
 
-Cette approximation suppose les compartiments rapides stabilisés et de modestes variations de composition. Elle n’inclut pas les dynamiques initiales du glycogène, des fluides extracellulaires et de la thermogenèse adaptative. Elle ne doit donc pas être utilisée pour afficher une trajectoire individuelle depuis aujourd’hui.
+This approximation assumes stabilized fast compartments and modest composition changes. It excludes initial glycogen, extracellular fluid and adaptive thermogenesis dynamics. It must therefore not display an individual trajectory starting today.
 
-L’API native ne permet pas d’appeler cette fonction. `run_simulation` vérifie les premières conditions d’entrée puis retourne `MODEL_NOT_VALIDATED`. Aucun horizon, résultat probabiliste ou intervalle de confiance n’est activé.
+The native API cannot call this function. `run_simulation` checks initial input conditions then returns `MODEL_NOT_VALIDATED`. No horizon, probabilistic result or confidence interval is enabled.
 
-## Domaine et entrées du candidat complet
+## Domain and inputs of the complete candidate {#domaine-et-entrees-du-candidat-complet}
 
-La page source réserve l’outil aux adultes, hors grossesse et allaitement. Ces exclusions devront être saisies explicitement avant toute activation. Les profils actuellement enregistrés ne contiennent pas toutes les entrées du modèle complet : composition corporelle, paramètres d’activité, apports initiaux, glucides et sodium nécessitent une spécification validée et une interface dédiée. Une donnée manquante ne doit jamais être remplacée silencieusement par une moyenne.
+The source page reserves the tool for adults, excluding pregnancy and breastfeeding. These exclusions must be explicitly collected before activation. Current profiles do not contain all complete-model inputs: body composition, activity parameters, initial intake, carbohydrates and sodium require a validated specification and dedicated interface. Missing data must never be silently replaced with an average.
 
-Les scénarios enregistrent un horizon souhaité de 1, 3, 6 ou 12 mois, une variation d’apports en kcal/j et une variation du paramètre d’activité en kJ/kg/j. Il ne s’agit pas d’horizons scientifiques autorisés ni de recommandations. La conversion énergétique conventionnelle est 1 kcal = 4,184 kJ. Aucune conversion automatique de séances/pas vers énergie.
+Scenarios store a requested horizon of 1, 3, 6 or 12 months, an intake change in kcal/day and an activity-parameter change in kJ/kg/day. These are not scientifically authorized horizons or recommendations. The conventional energy conversion is 1 kcal = 4.184 kJ. No automatic conversion from sessions/steps to energy is provided.
 
-## Conditions nécessaires à l’activation
+## Conditions required for activation {#conditions-necessaires-a-l-activation}
 
-1. Confirmer les droits, la version exacte et le domaine du modèle complet.
-2. Implémenter tous les compartiments et leur initialisation, puis documenter le solveur et la gestion des entrées.
-3. Constituer des fixtures numériques indépendantes et traçables issues de références publiées ; conserver leurs unités, population et provenance.
-4. Définir la tolérance à partir de la précision des références et du solveur, avant comparaison. **Aucune tolérance clinique ou numérique validée n’est actuellement fixée.**
-5. Reproduire ces références, faire revoir les résultats et n’activer que les horizons réellement étayés.
-6. Rendre les hypothèses, versions, entrées et résultats exportables. Une analyse de sensibilité ne doit pas être nommée intervalle de confiance sans justification probabiliste.
+1. Confirm rights, exact version and domain of the complete model.
+2. Implement every compartment and its initialization, then document the solver and input handling.
+3. Create independent, traceable numerical fixtures from published references; retain units, population and provenance.
+4. Define tolerance from reference precision and the solver before comparison. **No validated clinical or numerical tolerance is currently set.**
+5. Reproduce these references, have results reviewed and enable only supported horizons.
+6. Make assumptions, versions, inputs and results exportable. A sensitivity analysis must not be called a confidence interval without a probabilistic justification.
 
-Les tests de déterminisme, d’équilibre et de direction actuellement présents ne remplacent aucune de ces étapes. La validation scientifique reste un travail explicitement non achevé de cette livraison.
+Existing determinism, equilibrium and direction tests replace none of these steps. Scientific validation remains an explicitly unfinished part of this delivery.

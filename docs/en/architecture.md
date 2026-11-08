@@ -25,7 +25,7 @@ The frontend sends typed operations to Tauri commands. Rust validates inputs and
 | `stories/` and `.storybook/` | Local catalogue, configuration and fictional examples.                                  |
 | `tests/` and `scripts/`      | Functional tests, visual references, asset checks and native probes.                    |
 | `config/`                    | Reference viewport dimensions shared by Storybook and screenshot tests.                 |
-| `docs/`                      | French Markdown guides, English translations in `en/` and VitePress configuration.      |
+| `docs/`                      | English Markdown guides, legacy `/en/` routes and VitePress configuration.      |
 
 ## Contracts and persistence {#contrats-et-persistance}
 

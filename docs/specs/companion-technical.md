@@ -1,35 +1,36 @@
 ---
 kind: technical
-title: Compagnon mobile — contrats techniques
+title: Mobile companion — technical contracts
 ---
-# Compagnon mobile
+# Mobile companion
 
-## TECH-COMPANION-DATA — Opérations et validation
 
-Implémente REQ-COMPANION-CAPTURE et REQ-COMPANION-SYNC. Les opérations sont des objets sérialisables associés à un profil et identifiées par leur UUID fourni par l’appelant ; les données ne sont pas une prédiction ou une évaluation médicale.
+## TECH-COMPANION-DATA — Operations and validation
 
-- `localDate(now)` et `localTime(now)` formatent respectivement la date locale en `AAAA-MM-JJ` et l’heure locale en `HH:mm`, avec la date courante par défaut.
-- `validDate(date)` accepte seulement une date ISO calendaire existante ; il renvoie un booléen.
-- `observationOperation` valide identifiants, date, métrique du catalogue, valeur finie dans ses bornes, entier si requis et heure `HH:mm` pour une activité positive. Elle renvoie une opération avec unité, provenance mobile et durée applicable ; une entrée invalide déclenche une erreur.
-- `habitOperation` exige des identifiants, une date valide et une réponse booléenne ; elle renvoie une opération de réponse, ou déclenche une erreur si les entrées sont invalides.
-- `applySyncResult(operations, result)` retire les identifiants acceptés et associe aux opérations restantes les statuts et motifs de conflit ou de rejet connus. L’appelant valide la cohérence de l’accusé avant cet appel.
+This implements the capture and synchronization requirements. Operations are serializable objects associated with a profile and identified by a caller-supplied UUID; the data is neither a prediction nor a medical assessment.
 
-## TECH-COMPANION-STORAGE — File et préférences IndexedDB
+- `localDate(now)` and `localTime(now)` format the local date as `YYYY-MM-DD` and the local time as `HH:mm`, using the current date by default.
+- `validDate(date)` accepts only an existing ISO calendar date and returns a boolean.
+- `observationOperation` validates identifiers, date, catalogue metric, finite value within its limits, an integer where required, and an `HH:mm` time for a positive activity. It returns an operation containing the unit, mobile provenance and applicable duration; invalid input throws an error.
+- `habitOperation` requires identifiers, a valid date and a boolean answer. It returns an answer operation or throws an error for invalid input.
+- `applySyncResult(operations, result)` removes accepted identifiers and associates known conflict or rejection statuses and reasons with the remaining operations. The caller validates acknowledgement consistency before calling it.
 
-Implémente REQ-COMPANION-CAPTURE et REQ-COMPANION-SYNC. La base IndexedDB `me-sim-companion` contient les magasins `settings` et `operations` indexé par identifiant. Les opérations écrites par transaction sont conservées sur le téléphone sous réserve des garanties du navigateur.
+## TECH-COMPANION-STORAGE — IndexedDB queue and preferences
 
-- `open()` ouvre ou initialise la base et propage les erreurs d’ouverture ; `request()` convertit une requête IndexedDB en promesse, résolue avec son résultat ou rejetée avec son erreur.
-- `withStore(name, mode, task)` exécute la tâche sur un magasin dans une transaction et ferme la connexion après sa terminaison ; les erreurs de tâche, de transaction ou d’annulation sont propagées.
-- `getSetting`, `putSetting` lisent et écrivent une préférence par clé. `addOperation` ajoute une entrée ; `replaceOperation` supprime l’ancienne et ajoute la nouvelle dans la même transaction ; `deleteOperation` retire une entrée.
-- `allOperations` lit la file complète. `updateOperations(operations, acceptedIds)` supprime les entrées acceptées et réécrit les opérations restantes au sein d’une transaction. Les erreurs de stockage sont propagées aux appels de l’interface.
+This implements the capture and synchronization requirements. The `me-sim-companion` IndexedDB database contains the `settings` store and the `operations` store keyed by identifier. Operations written in transactions are retained on the phone subject to the browser’s guarantees.
 
-## TECH-COMPANION-UI — Interface et synchronisation
+- `open()` opens or initializes the database and propagates opening errors; `request()` converts an IndexedDB request into a promise, resolved with its result or rejected with its error.
+- `withStore(name, mode, task)` executes the task against a store in a transaction and closes the connection after completion. Task, transaction and abort errors are propagated.
+- `getSetting` and `putSetting` read and write a preference by key. `addOperation` adds an entry; `replaceOperation` removes the old one and adds the new one in the same transaction; `deleteOperation` removes an entry.
+- `allOperations` reads the entire queue. `updateOperations(operations, acceptedIds)` deletes accepted entries and rewrites remaining operations in one transaction. Storage errors are propagated to interface callers.
 
-Implémente REQ-COMPANION-CAPTURE et REQ-COMPANION-SYNC. L’interface conserve une copie en mémoire des profils, du profil actif, du jeton et de la file. Les fonctions de rendu utilisent le DOM local ; elles ne téléversent pas de données à elles seules.
+## TECH-COMPANION-UI — Interface and synchronization
 
-- `$` retrouve un élément par son identifiant ; `notice` affiche un message et son état d’erreur ; `connection` indique l’état du PC et du réseau.
-- `selectedProfile` retrouve le profil actif ; `profileName` renvoie son nom ou un libellé de remplacement. `renderProfiles` actualise le sélecteur et les panneaux ; `activeHabits` filtre les habitudes selon la date et l’archivage ; `renderHabits` affiche les réponses en attente. `renderQueue` affiche au maximum les 30 dernières opérations et permet de les retirer ; `renderMetric` met à jour les bornes et la visibilité de l’heure selon la métrique.
-- `queue` ajoute ou remplace une opération en stockage puis actualise la file ; la file est limitée à 2 000 ajouts et une synchronisation peut être tentée lorsque le réseau est disponible. Une erreur de stockage reste propagée. `saveHabit` construit une réponse et affiche une erreur si elle ne peut pas être sauvegardée.
-- `api` exige un contexte sécurisé, envoie une requête JSON sans cookies avec jeton quand il existe, abandonne après 10 secondes et propage les erreurs HTTP et réseau. Une réponse 401 hors association efface le jeton local sans supprimer les saisies.
-- `refreshBootstrap` récupère les profils, vérifie que la réponse est un tableau et persiste le résultat. `sync` ignore les appels concurrents et envoie les opérations sans statut par lots de 50 ; elle valide l’unicité et l’appartenance des identifiants reçus avant de mettre à jour la file. Les conflits et refus restent dans la file ; une interruption conserve les opérations non acquittées et indique la déconnexion.
-- `setTab` affiche le panneau de saisie choisi. `start` enregistre le service worker lorsque possible, recharge réglages et file, initialise dates et métriques et tente une mise à jour si associé et en ligne. Une erreur IndexedDB arrête l’initialisation et affiche un message.
+This implements the capture and synchronization requirements. The interface keeps an in-memory copy of profiles, the active profile, the token and the queue. Rendering functions use the local DOM; they do not upload data by themselves.
+
+- `$` retrieves an element by its identifier; `notice` displays a message and its error state; `connection` reports the PC and network status.
+- `selectedProfile` finds the active profile; `profileName` returns its name or a fallback label. `renderProfiles` updates the selector and panels; `activeHabits` filters habits by date and archive status; `renderHabits` displays pending answers. `renderQueue` shows at most the latest 30 operations and allows their removal; `renderMetric` updates bounds and time visibility according to the metric.
+- `queue` adds or replaces an operation in storage and updates the queue. The queue is limited to 2,000 additions. If paired, synchronization may be attempted without relying on `navigator.onLine`, since the PC may be reachable on a local network without Internet access. Storage errors remain propagated. `saveHabit` builds an answer and displays an error if it cannot be saved.
+- `api` requires a secure context, sends a JSON request without cookies and with a token when present, aborts after 10 seconds and propagates HTTP and network errors. A 401 response outside pairing clears the local token without deleting entries.
+- `refreshBootstrap` fetches profiles, checks that the response is an array and persists the result. `reconnect` checks the PC at startup, on network changes, on returning to the foreground, and every 15 seconds while the PWA is visible; after a valid response it starts `sync` when operations are pending. These checks contact the PC directly without relying on `navigator.onLine`. `sync` ignores concurrent calls and sends operations without a status in batches of 50; it checks that received identifiers are unique and belong to the batch before updating the queue. Conflicts and rejections remain in the queue; interruption retains unacknowledged operations and indicates disconnection.
+- `setTab` displays the selected capture panel. `start` registers the service worker when possible, reloads settings and the queue, initializes dates and metrics, and attempts reconnection if paired. An IndexedDB error stops initialization and displays a message.

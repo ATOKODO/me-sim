@@ -1,5 +1,7 @@
 # Delivery validation {#validation-de-la-livraison}
 
+This page records dated historical checks. The documentation is now in English at the root and legacy `/en/` paths; earlier references to two documentation languages describe the configuration at the time of those checks.
+
 ## Latest verification — 22 October 2026 {#latest-verification-2026-10-22}
 
 - Angular production, VitePress and Storybook builds pass. The documentation contains 14 pages per language with matching French/English section anchors.

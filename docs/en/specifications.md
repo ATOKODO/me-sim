@@ -1,6 +1,6 @@
 # Specifications {#specifications}
 
-These documents describe the behavior of the code currently in the repository. A reference on a declaration points to the corresponding technical contract; it does not by itself prove that the behavior is covered by a test. The user guides and validation documents remain the references for usage and completed checks. Contract identifiers are defined once in the French documents; the English pages translate their content.
+These documents describe the behavior of the code currently in the repository. A reference on a declaration points to the corresponding technical contract; it does not by itself prove that the behavior is covered by a test. The user guides and validation documents remain the references for usage and completed checks. Contract identifiers are defined in the canonical specification documents.
 
 ## Functional {#fonctionnel}
 

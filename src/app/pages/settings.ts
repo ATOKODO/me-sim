@@ -109,6 +109,12 @@ interface CompanionStatus {
     </section>
     <section class="panel settings-panel">
       <h2>{{ "Compagnon téléphone" | t }}</h2>
+      <p class="field-help">
+        {{
+          "Compagnon expérimental en alpha, non stable et sans développement actif. La confiance accordée au certificat racine concerne aussi d’autres sites : protège sa clé privée et consulte la documentation avant de l’approuver."
+            | t
+        }}
+      </p>
       <p>
         {{
           "Saisis tes observations sur ton téléphone, même hors ligne. Quand la PWA est ouverte et retrouve ce PC sur le même Wi-Fi, elle renvoie les saisies en attente."

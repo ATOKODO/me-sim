@@ -4,7 +4,7 @@ title: Tools and checks â€” technical contracts
 ---
 # Development tools
 
-The canonical technical identifiers are defined in the [French specification](../../specs/tooling-technical.md).
+The canonical technical identifiers are defined in the [canonical specification](../../specs/tooling-technical.md).
 
 ## Documentation navigation
 
@@ -14,7 +14,7 @@ The canonical technical identifiers are defined in the [French specification](..
 
 These scripts run on the development machine and report failure with an error or nonzero exit code; they are not features of the distributed application.
 
-- `pages(folder)` lists and sorts immediate Markdown files; `flatten(nodes)` recursively flattens the heading tree; `sections(file)` renders Markdown and returns heading levels and identifiers. The check compares French and English filenames and anchors and fails on a mismatch or read error.
+- `pages(folder)` lists and sorts immediate Markdown files; `flatten(nodes)` recursively flattens the heading tree; `sections(file)` renders Markdown and returns heading levels and identifiers. The check compares canonical and legacy page filenames and anchors and fails on a mismatch or read error.
 - `property(object, name)` finds a property of a literal parsed by TypeScript; `visit(node)` walks the tree and extracts event metrics for animation manifest validation. An invalid manifest, GLB file or clip makes validation fail.
 - `spawnNode(file, params, options)` starts a Node program and tracks its process until closure. `run` waits for completion and rejects on failure or interruption. `startServer(file, marker, env)` waits for startup text and rejects if the process fails or after 20 seconds. `stopChildren()` terminates tracked processes and waits at most five seconds per process. These operations are used by local visual validation.
 - The `capture`, `read` and `state` functions in native smoke scripts retrieve Windows application state for the corresponding scenario assertions; access errors and assertion failures are reported by the calling script.
@@ -41,4 +41,4 @@ These Python functions are used during asset generation and require the scriptâ€
 
 ## License inventory
 
-`scripts/license-inventory.mjs` reads both lockfiles, installed npm manifests and the Windows Cargo graph resolved offline. It writes `licenses/dependencies.json`, or checks exact equality with `--check`. It rejects installed versions differing from lock entries, missing declarations and stale output; local npm links are resolved within the lockfile. `hash(file)` reads a lockfile path and returns the bytes' SHA-256 digest, propagating read errors. No personal Cargo path is recorded. This inventory is not a compatibility proof or a complete binary notice bundle. The canonical identifier is defined in the French specification.
+`scripts/license-inventory.mjs` reads both lockfiles, installed npm manifests and the Windows Cargo graph resolved offline. It writes `licenses/dependencies.json`, or checks exact equality with `--check`. It rejects installed versions differing from lock entries, missing declarations and stale output; local npm links are resolved within the lockfile. `hash(file)` reads a lockfile path and returns the bytes' SHA-256 digest, propagating read errors. No personal Cargo path is recorded. This inventory is not a compatibility proof or a complete binary notice bundle. The canonical identifier is defined in the canonical specification.

@@ -125,22 +125,11 @@ function navigation(language: "fr" | "en"): DefaultTheme.Config {
 }
 
 export default defineConfig({
-  lang: "fr-FR",
+  lang: "en-US",
   title: "Me-Sim",
-  description:
-    "Documentation de Me-Sim : habitudes, avatar rétro et données locales.",
+  description: "Me-Sim documentation: habits, a retro avatar and local data.",
   cleanUrls: true,
   ignoreDeadLinks: false,
-  locales: {
-    root: { label: "Français", lang: "fr-FR" },
-    en: {
-      label: "English",
-      lang: "en-US",
-      description:
-        "Me-Sim documentation: habits, a retro avatar and local data.",
-      themeConfig: navigation("en"),
-    },
-  },
   head: [
     ["link", { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
   ],
@@ -148,29 +137,29 @@ export default defineConfig({
     server: { host: "127.0.0.1", port: 5174, strictPort: true },
   },
   themeConfig: {
-    ...navigation("fr"),
+    ...navigation("en"),
     search: {
       provider: "local",
       options: {
         disableQueryPersistence: true,
         translations: {
           button: {
-            buttonText: "Rechercher",
-            buttonAriaLabel: "Rechercher dans la documentation",
+            buttonText: "Search",
+            buttonAriaLabel: "Search documentation",
           },
           modal: {
-            noResultsText: "Aucun résultat pour",
-            resetButtonTitle: "Effacer la recherche",
-            backButtonTitle: "Fermer la recherche",
-            displayDetails: "Afficher les détails",
+            noResultsText: "No results for",
+            resetButtonTitle: "Clear search",
+            backButtonTitle: "Close search",
+            displayDetails: "Show details",
             footer: {
-              selectText: "Sélectionner",
-              selectKeyAriaLabel: "Entrée",
-              navigateText: "Naviguer",
-              navigateUpKeyAriaLabel: "Flèche vers le haut",
-              navigateDownKeyAriaLabel: "Flèche vers le bas",
-              closeText: "Fermer",
-              closeKeyAriaLabel: "Échap",
+              selectText: "Select",
+              selectKeyAriaLabel: "Enter",
+              navigateText: "Navigate",
+              navigateUpKeyAriaLabel: "Arrow up",
+              navigateDownKeyAriaLabel: "Arrow down",
+              closeText: "Close",
+              closeKeyAriaLabel: "Escape",
             },
           },
         },

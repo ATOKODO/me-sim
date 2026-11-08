@@ -4,7 +4,7 @@ title: Mobile companion — functional requirements
 ---
 # Mobile companion
 
-The canonical requirement identifiers are defined in the [French specification](../../specs/companion-functional.md).
+The canonical requirement identifiers are defined in the [canonical specification](../../specs/companion-functional.md).
 
 ## Capture without a connection
 

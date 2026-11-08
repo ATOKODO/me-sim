@@ -9,11 +9,11 @@ const pages = (folder) =>
     .readdirSync(folder)
     .filter((name) => name.endsWith(".md"))
     .sort();
-const french = pages(root),
-  english = pages(path.join(root, "en"));
-if (JSON.stringify(french) !== JSON.stringify(english))
+const canonical = pages(root),
+  legacy = pages(path.join(root, "en"));
+if (JSON.stringify(canonical) !== JSON.stringify(legacy))
   throw Error(
-    "Each documentation page needs a French source and matching English translation.",
+    "Each canonical documentation page needs a matching legacy /en/ page.",
   );
 const md = await createMarkdownRenderer(root, {
   headers: { level: [1, 2, 3] },
@@ -27,15 +27,15 @@ function sections(file) {
   md.render(fs.readFileSync(file, "utf8"), env);
   return flatten(env.headers ?? []).map(({ level, slug }) => ({ level, slug }));
 }
-for (const name of french) {
+for (const name of canonical) {
   if (
     JSON.stringify(sections(path.join(root, name))) !==
     JSON.stringify(sections(path.join(root, "en", name)))
   )
     throw Error(
-      `Section anchors differ between locales: ${name}. Update both translations and preserve explicit heading IDs.`,
+      `Section anchors differ between documentation paths: ${name}. Update both copies and preserve explicit heading IDs.`,
     );
 }
 console.log(
-  `Documentation: ${french.length} pages per language; matching FR/EN section anchors.`,
+  `Documentation: ${canonical.length} English pages per path; matching section anchors.`,
 );

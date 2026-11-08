@@ -5,7 +5,7 @@ title: Frontend technical contracts
 
 # Frontend contracts
 
-The canonical technical and requirement identifiers are defined in the [French technical specification](../../specs/frontend-technical.md) and [French functional specification](../../specs/frontend-functional.md).
+The canonical technical and requirement identifiers are defined in the [canonical technical specification](../../specs/frontend-technical.md) and [canonical functional specification](../../specs/frontend-functional.md).
 
 The parameters and return types below reflect TypeScript declarations or their inferred types. Called dependencies can fail: unless handling is specified, their errors follow their own contracts. Listed local functions are implementation details, not public APIs. Displayed data comes from the active profile; the native application remains responsible for validation and persistence.
 

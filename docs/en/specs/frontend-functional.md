@@ -5,7 +5,7 @@ title: Frontend functional specifications
 
 # User journeys
 
-The canonical requirement identifiers are defined in the [French functional specification](../../specs/frontend-functional.md).
+The canonical requirement identifiers are defined in the [canonical functional specification](../../specs/frontend-functional.md).
 
 ## Profiles and presentation
 

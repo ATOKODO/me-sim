@@ -1,91 +1,91 @@
-# Préparation de la publication open source — 9 octobre 2026 {#open-source-publication-2026-10-09}
+# Open source publication readiness — 9 October 2026 {#open-source-publication-2026-10-09}
 
-**Suivi du 30 octobre :** le code est désormais sous AGPL-3.0-only ; les sources et crédits Vinrax sont identifiés. La [revue des licences](./licenses.md) remplace les constats historiques correspondants ci-dessous et distingue usage autorisé et redistribution des originaux encore à clarifier. Les contributions externes ne sont pas acceptées pour le moment.
+**30 October update:** the code is now AGPL-3.0-only; Vinrax sources and credits are identified. The [license review](./licenses.md) supersedes the historical licensing findings below and distinguishes permitted use from editable-original redistribution that still needs clarification. External contributions are currently not accepted.
 
-**Suivi du 9 octobre :** les points npm, parseur XML et contrôles avant chargement sont traités dans les [correctifs de dépendances et d’import](./dependency-import-hardening.md). Les constats ci-dessous décrivent l’état du commit audité.
+**9 October follow-up:** npm, XML parser and preallocation checks are addressed in [dependency and import hardening](./dependency-import-hardening.md). Findings below describe the audited commit.
 
-**Suivi du 27 octobre :** le workflow GitHub Actions a été retiré ; les vérifications et la construction des paquets se font localement. Les mentions de CI ci-dessous décrivent la configuration historique.
+**27 October follow-up:** the GitHub Actions workflow has been removed; checks and package builds run locally. CI references below describe the historical configuration.
 
-Revue du commit `ca8eca2`, arbre propre au démarrage : 404 fichiers suivis, environ 38,7 Mo et 14 commits accessibles. Périmètre : licences, assets, historique Git, dépendances, entrées de fichiers, CI et documentation. Aucun code métier, asset, licence ou historique Git modifié par cette revue.
+Review of commit `ca8eca2`, clean working tree at the start: 404 tracked files, about 38.7 MB and 14 reachable commits. Scope: licenses, assets, Git history, dependencies, file inputs, CI and documentation. This review changes no business code, asset, license or Git history.
 
-**Publication à différer jusqu’à clarification des licences et traitement des dépendances exposées.** Le suivi local des habitudes peut être présenté comme une alpha ; les projections scientifiques restent désactivées. Publier les sources et distribuer un installateur final ont des critères distincts.
+**Defer publication until licenses are clarified and exposed dependencies are addressed.** Local habit tracking can be presented as an alpha; scientific projections remain disabled. Publishing source and distributing a finished installer have different criteria.
 
-## Corrections prioritaires {#priority-fixes}
+## Priority fixes {#priority-fixes}
 
-### P1 — Définir la licence du code et son périmètre {#code-license}
+### P1 — Define the code license and its scope {#code-license}
 
-Aucun fichier `LICENSE`, `COPYING` ou `NOTICE` dans les fichiers suivis. `package.json` et `src-tauri/Cargo.toml` ne définissent pas de licence. Un dépôt visible publiquement ne suffit pas à autoriser les usages attendus d’un projet open source. Voir la [documentation GitHub sur les licences](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
+No tracked `LICENSE`, `COPYING` or `NOTICE` file. `package.json` and `src-tauri/Cargo.toml` specify no license. A publicly visible repository alone does not grant the permissions expected from an open source project. See [GitHub's licensing documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
 
-Choisir explicitement une licence, ajouter son texte, identifier le titulaire des droits et renseigner les identifiants SPDX des manifestes. Expliquer dans le README le traitement distinct du code, de la documentation et des assets tiers. Inventorier les notices nécessaires avant de distribuer les binaires ou les sites construits ; les licences des dépendances ne remplacent pas celle du projet. Le champ npm `private: true` peut rester : il bloque une publication npm accidentelle, pas un dépôt public.
+Explicitly choose a license, add its text, identify the copyright holder and set manifest SPDX identifiers. Explain how code, documentation and third-party assets are treated in the README. Inventory required notices before distributing binaries or built sites; dependency licenses do not replace the project's license. npm's `private: true` can remain: it prevents accidental npm publication, not a public repository.
 
-### P1 — Établir les droits des personnages et textures {#asset-rights}
+### P1 — Establish character and texture redistribution rights {#asset-rights}
 
-`art/avatar/README.md:3–9` décrit les fichiers fournis, sans auteur, URL d’origine, licence ou preuve de permission de redistribution. Cela concerne `male_casual.fbx`, `character-texture.png`, `female_secretary.fbx` et `secretary_tex.png`, leurs fichiers Blender et leurs exports GLB sous `public/avatar/character/`. Les empreintes SHA-256 prouvent leur identité, pas leurs droits.
+`art/avatar/README.md:3–9` describes supplied files without an author, source URL, license or evidence of redistribution permission. This covers `male_casual.fbx`, `character-texture.png`, `female_secretary.fbx` and `secretary_tex.png`, their Blender files and GLB exports in `public/avatar/character/`. SHA-256 hashes establish identity, not rights.
 
-Obtenir la provenance et les conditions de redistribution, puis ajouter un inventaire par asset : auteur, source, licence, modifications et attribution requise. Si les droits restent inconnus, remplacer ou retirer les originaux **et leurs dérivés**. Les anciens fichiers étant dans l’historique, supprimer seulement la version actuelle ne suffit pas pour publier cet historique. Une éventuelle préparation d’un historique assaini doit être décidée séparément ; aucune réécriture n’a été effectuée ici. Ce constat ne présume pas que les fichiers sont illicites.
+Obtain provenance and redistribution terms, then add an asset inventory: author, source, license, modifications and required attribution. If rights remain unknown, replace or remove originals **and derived files**. Because earlier files are in history, deleting only the current version is insufficient when publishing that history. Preparing sanitized history requires a separate decision; no history rewriting was performed here. This finding does not presume the files are unlawful.
 
-### P1 — Traiter les alertes npm avant d’ouvrir les outils aux contributeurs {#npm-advisories}
+### P1 — Address npm alerts before exposing contributor tools {#npm-advisories}
 
-`npm audit --json` du 9 octobre signale **21 paquets** : 3 critiques, 14 élevés et 4 modérés. Ces nombres incluent les parents transitifs d’une même alerte ; ce ne sont pas 21 failles indépendantes. La plupart sont des dépendances de développement.
+The 9 October `npm audit --json` flags **21 packages**: 3 critical, 14 high and 4 moderate. Counts include transitive parents of the same advisory, not 21 independent vulnerabilities. Most are development dependencies.
 
-| Chemin verrouillé                                              | Constat                                                                                                                                  | Suite à donner                                                                                                                                                                             |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Angular CLI/build 22.1.x → `piscina 5.2.0`                     | [Alerte de pollution de prototype](https://github.com/advisories/GHSA-67c8-pqhq-4rmx), classée critique par l’audit                      | Mise à jour compatible de la chaîne Angular, avec builds et tests ; aucune exploitation démontrée dans ce projet                                                                           |
-| VitePress 1.6.4 → Vite 5.4.21                                  | Alertes de serveur de développement, dont [contournement Windows de `server.fs.deny`](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) | Trouver une combinaison VitePress/Vite corrigée et compatible ; les serveurs actuels écoutent sur loopback et ne doivent pas être exposés au réseau                                        |
-| Storybook → `webpack-dev-middleware 6.1.3` ; autre copie 8.0.3 | [Alerte de traversée de chemins](https://github.com/advisories/GHSA-g84c-rxfj-3j2c)                                                      | Résoudre la dépendance compatible et vérifier les conditions de `publicPath`, puis reconstruire le catalogue                                                                               |
-| `@angular/router 22.1.7`                                       | Seule alerte avec `npm audit --omit=dev`                                                                                                 | [Alerte SSR](https://github.com/advisories/GHSA-ff3f-86qr-9cv3) : le projet utilise un client Angular avec routes hash, sans SSR ; ce chemin n’est pas exposé dans l’architecture actuelle |
+| Locked path                                                    | Finding                                                                                                                       | Follow-up                                                                                                                                                                                         |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Angular CLI/build 22.1.x → `piscina 5.2.0`                     | [Prototype-pollution advisory](https://github.com/advisories/GHSA-67c8-pqhq-4rmx), rated critical by the audit                | Update the Angular toolchain compatibly and rerun builds/tests; no exploitation demonstrated in this project                                                                                      |
+| VitePress 1.6.4 → Vite 5.4.21                                  | Development-server advisories, including [Windows `server.fs.deny` bypass](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) | Find a patched, compatible VitePress/Vite combination; current servers bind loopback and must not be exposed to the network                                                                       |
+| Storybook → `webpack-dev-middleware 6.1.3`; another copy 8.0.3 | [Path-traversal advisory](https://github.com/advisories/GHSA-g84c-rxfj-3j2c)                                                  | Resolve a compatible dependency and check `publicPath` conditions, then rebuild the catalogue                                                                                                     |
+| `@angular/router 22.1.7`                                       | Only alert from `npm audit --omit=dev`                                                                                        | [SSR advisory](https://github.com/advisories/GHSA-ff3f-86qr-9cv3): this project uses a client Angular application with hash routes and no SSR; the current architecture does not expose this path |
 
-Ne pas lancer `npm audit fix --force` sans examen : l’audit suggère notamment une ancienne version majeure de Storybook et ne propose pas de correction automatique compatible pour VitePress. Mettre à jour par groupes cohérents, inspecter les résultats et documenter les alertes restantes avec leur applicabilité. `.npmrc:3` désactive l’audit automatique ; la CI ne contient pas de contrôle de dépendances dédié.
+Do not blindly run `npm audit fix --force`: the audit suggests an older Storybook major and offers no compatible automatic VitePress fix. Update coherent dependency groups, inspect results, and document remaining alerts with their applicability. `.npmrc:3` disables automatic audits; CI has no dedicated dependency check.
 
-### P1 — Corriger le lecteur XML utilisé par les imports Excel {#rust-xml-advisories}
+### P1 — Fix the XML reader used for Excel imports {#rust-xml-advisories}
 
-Le contrôle OSV de 475 versions crates.io du lockfile retrouve `quick-xml 0.39.4`, dépendance de `calamine 0.34.0`, dans le graphe Windows. [RUSTSEC-2026-0194](https://rustsec.org/advisories/RUSTSEC-2026-0194.html) décrit une vérification d’attributs XML de coût quadratique, corrigée à partir de 0.41.0. Les appels d’attributs avec vérification par défaut sont présents dans le lecteur XLSX de Calamine ; l’application appelle ce lecteur dans `src-tauri/src/exchange.rs:100`.
+An OSV check of 475 crates.io versions in the lockfile identifies `quick-xml 0.39.4`, a dependency of `calamine 0.34.0`, in the Windows graph. [RUSTSEC-2026-0194](https://rustsec.org/advisories/RUSTSEC-2026-0194.html) describes quadratic attribute checking, fixed from 0.41.0. Attribute calls with default checking are present in Calamine's XLSX reader; the application calls it in `src-tauri/src/exchange.rs:100`.
 
-Mettre à jour Calamine et son parseur vers une combinaison corrigée, puis tester les imports avec une fixture de taille et de coût bornés. Aucune charge destinée à bloquer le poste n’a été exécutée.
+Update Calamine and its parser to a patched combination, then test imports with bounded size/cost fixtures. No workload intended to stall the computer was executed.
 
-La même version est signalée pour [RUSTSEC-2026-0195](https://rustsec.org/advisories/RUSTSEC-2026-0195.html), qui concerne `NsReader`. Aucun usage de `NsReader` n’a été trouvé dans ce chemin Calamine : cette seconde alerte n’est pas présentée comme une exploitation démontrée. Les cinq alertes `unic-*` retrouvées dans le graphe Windows indiquent des paquets non maintenus ; ce ne sont pas cinq nouvelles vulnérabilités prouvées. Les alertes GLib et `proc-macro-error` du lockfile ne sont pas dans le graphe Windows vérifié.
+The same version is flagged by [RUSTSEC-2026-0195](https://rustsec.org/advisories/RUSTSEC-2026-0195.html), which concerns `NsReader`. No `NsReader` use was found in this Calamine path; that second alert is not presented as demonstrated exploitation. Five `unic-*` alerts in the Windows graph identify unmaintained packages, not five newly proven vulnerabilities. The lockfile's GLib and `proc-macro-error` alerts are outside the checked Windows graph.
 
-## Durcissement avant une alpha publique {#public-alpha-hardening}
+## Hardening before a public alpha {#public-alpha-hardening}
 
-### P2 — Borner les imports avant les allocations {#import-bounds}
+### P2 — Bound imports before allocation {#import-bounds}
 
-`exchange.rs:60` borne la taille du fichier à 25 Mo, puis `worksheet_range`, ligne 102, matérialise la feuille **avant** le contrôle des dimensions ligne 103. Dans Calamine 0.34.0, `Range::from_sparse` alloue une grille à partir de l’étendue des cellules. Un petit XLSX compressé ou une feuille très creuse peut donc réclamer bien plus de mémoire que sa taille sur disque. Le nombre de feuilles et le volume décompressé total n’ont pas de limite explicite dans ce parcours.
+`exchange.rs:60` caps the file at 25 MB, then `worksheet_range` at line 102 materializes the sheet **before** the dimension check at line 103. In Calamine 0.34.0, `Range::from_sparse` allocates a grid from cell bounds. A small compressed XLSX or sparse sheet can therefore demand much more memory than its disk size. This path has no explicit sheet-count or total decompressed-size budget.
 
-Ajouter un contrôle préalable du budget décompressé, des entrées et des étendues de cellules ; définir un budget cumulé pour le classeur. Prévoir un traitement isolé avec une interruption effective pour les parsers non coopératifs. Le constat vient du code et des sources de la dépendance, pas d’un test d’épuisement mémoire sur ce poste. Les rejets transactionnels existants protègent l’état écrit, sans empêcher l’allocation préalable.
+Add preflight checks for decompressed bytes, entries and cell bounds, with a cumulative workbook budget. Consider isolated processing with effective interruption for non-cooperative parsers. This finding comes from application and dependency source, not a memory-exhaustion test on this computer. Existing transactional rejections protect written state without preventing earlier allocation.
 
-### P2 — Ajouter les règles de contribution et de sécurité {#community-and-security}
+### P2 — Add contribution and security policies {#community-and-security}
 
-Aucun `CONTRIBUTING.md`, `SECURITY.md`, modèle d’issue/PR ou configuration Dependabot/Renovate n’est suivi. Décrire les commandes de validation, la cible Windows, les fixtures fictives et le protocole de mise à jour des captures. Prévoir un canal privé de signalement avec un contact réel et des versions prises en charge ; ne pas inviter à joindre des sauvegardes personnelles dans des issues publiques. Ajouter une politique de contribution et un code de conduite selon l’organisation du projet.
+No tracked `CONTRIBUTING.md`, `SECURITY.md`, issue/PR templates or Dependabot/Renovate configuration. Document validation commands, Windows scope, fictional fixtures and screenshot update protocol. Define a private reporting channel with a real contact and supported versions; do not invite personal backups in public issues. Add contribution rules and a code of conduct appropriate to project governance.
 
-Dans `.github/workflows/windows.yml`, les permissions du jeton ne sont pas explicites et les actions sont référencées par tags. Déclarer les permissions nécessaires, épingler les actions par SHA et automatiser leurs mises à jour ; GitHub [recommande l’épinglage par SHA](https://docs.github.com/en/code-security/tutorials/secure-your-organization/protect-against-threats). Ajouter un contrôle de secrets de l’historique, les audits npm/Rust et `npm run check:avatar`. Les paramètres distants de protection de branche, de secrets et l’état des jobs GitHub n’ont pas pu être vérifiés ici.
+`.github/workflows/windows.yml` has no explicit token permissions and references actions by tags. Declare necessary permissions, pin actions by SHA and automate updates; GitHub [recommends SHA pinning](https://docs.github.com/en/code-security/tutorials/secure-your-organization/protect-against-threats). Add historical secret checks, npm/Rust audits and `npm run check:avatar`. Remote branch/secret protection settings and GitHub job status could not be verified here.
 
-### P2 — Adapter l’accueil du dépôt à un clone neuf {#new-clone-documentation}
+### P2 — Make repository onboarding accurate for a fresh clone {#new-clone-documentation}
 
-`README.md:9–15` annonce des paquets disponibles dans `release/`, mais ce dossier est ignoré et absent des fichiers suivis. Indiquer des liens GitHub Releases vérifiés si ces paquets existent, ou présenter la compilation depuis les sources. Ne pas annoncer les artefacts locaux comme disponibles dans un clone.
+`README.md:9–15` announces packages in `release/`, but that directory is ignored and absent from tracked files. Provide verified GitHub Releases links if packages exist, or describe building from source. Do not present local artifacts as available in a clone.
 
-La capture `docs/native-dashboard.png` montre encore l’ancienne identité avec losange, alors que le code actuel l’a supprimée. La remplacer par une capture fictive actuelle et ajouter un résumé d’installation/limites en anglais directement accessible depuis le README. Les guides VitePress FR/EN, Storybook et les captures des quatre formats sont déjà en place.
+`docs/native-dashboard.png` still shows the former diamond branding, which current code has removed. Replace it with a current fictional capture and make an English installation/limitations summary directly accessible from the README. VitePress FR/EN guides, Storybook and four-format captures already exist.
 
-## Travaux qui peuvent suivre la publication des sources {#after-source-publication}
+## Work that can follow source publication {#after-source-publication}
 
-- Indexer les recherches d’import : `exchange.rs:452` parcourt toutes les observations pour chaque ligne. La complexité augmente avec les lignes existantes et entrantes.
-- Remplacer les écritures complètes : `store.rs:29–37` et `store.rs:120` traitent tout le snapshot pour une mutation courante. Les transactions et révisions protègent les conflits ; le problème restant est la montée en charge.
-- Extraire les éditeurs Target et mapping/import des grandes pages Angular, réutiliser les composants réels dans Storybook et vérifier la parité des contrats Rust/TypeScript. Voir la [revue des refactorings](./refactoring-review-2026-10-07.md).
-- Réexaminer les métadonnées et chemins absolus des sources Blender pour leur portabilité. La recherche textuelle de l’historique n’a pas trouvé de chemin utilisateur personnel ; les chemins de travail retrouvés dans les Blender ne sont pas présentés comme des secrets.
+- Index import lookups: `exchange.rs:452` scans all observations for each input row. Cost grows with existing and incoming rows.
+- Replace whole-snapshot writes: `store.rs:29–37` and `store.rs:120` process the full snapshot for ordinary mutations. Transactions/revisions protect conflicts; scaling remains the issue.
+- Extract Target and mapping/import editors from large Angular pages, reuse real components in Storybook and verify Rust/TypeScript contract parity. See the [refactoring review](./refactoring-review-2026-10-07.md).
+- Revisit absolute paths and metadata in Blender sources for portability. Historical text scanning found no personal user paths; workspace paths found in Blender files are not classified as secrets.
 
-Ces refactorings ne justifient pas une réécriture générale avant une première publication.
+These refactorings do not require a general rewrite before an initial publication.
 
-## Critères distincts pour distribuer les installateurs {#installer-release}
+## Separate installer release criteria {#installer-release}
 
-Avant une release Windows annoncée comme prête : reconstruire les paquets au commit publié, donner version, empreintes et notices, vérifier installation/mise à jour/désinstallation dans une VM Windows 11 sans réseau, et décider de la signature des binaires. Les paquets locaux décrits sont non signés et n’ont pas été reconstruits pour les changements récents. La CI assemble le paquet standard, sans test de VM ni assemblage hors ligne dans ce workflow.
+Before advertising a ready Windows release: rebuild packages from the published commit, provide version, hashes and notices, test installation/update/uninstallation in an offline Windows 11 VM, and decide binary signing. Documented local packages are unsigned and have not been rebuilt for recent changes. CI builds the standard package, without VM testing or offline packaging in this workflow.
 
-L’absence de chiffrement applicatif est documentée : la protection dépend de la session Windows et de l’accès aux fichiers. Elle doit rester visible dans les communications. Ce n’est pas un défaut de licence ni un motif imposant d’ajouter un cloud. Les projections scientifiques peuvent rester désactivées dans une alpha open source ; leur activation reste soumise aux critères de la [fiche modèle](./model-card.md).
+The absence of application encryption is documented: protection relies on the Windows session and file access. Keep this visible in communications. It is not a licensing defect or a reason to require cloud storage. Scientific projections can remain disabled in an open source alpha; activation still depends on the [model card's criteria](./model-card.md).
 
-## Vérifications et limites {#review-validation}
+## Checks and limits {#review-validation}
 
-- Arbre propre au début de la revue ; 404 fichiers suivis. Aucun fichier de base SQLite ou nom de fichier de credentials reconnu parmi les fichiers suivis.
-- 289 blobs textuels distincts dans l’historique accessible examinés avec des motifs de jetons GitHub/OpenAI/AWS, clés privées et affectations de credentials : aucun résultat. Ce contrôle heuristique ne remplace pas Gitleaks/TruffleHog, ne prouve pas l’absence de secrets dans les binaires et ne couvre pas un historique distant inaccessible.
-- Capture du README inspectée : démonstration explicitement fictive. Métadonnées Blender examinées par motifs ; aucune donnée personnelle ouverte.
-- Audits npm complets et production exécutés ; OSV interrogé avec uniquement les noms et versions des dépendances publiques. Graphe Cargo résolu pour `x86_64-pc-windows-msvc` afin de distinguer les alertes hors cible. Ce contrôle n’est pas une analyse d’exploitabilité exhaustive ni un audit Cargo complet avec politique de licences.
-- `cargo test --locked --offline --manifest-path src-tauri/Cargo.toml` : **22 tests réussis** lors de cette revue. La dernière chaîne visuelle au même commit applicatif comptait **220 tests réussis**, et les sept tests de présentation étaient réussis avant cette revue ; la suite native/UI complète et une VM vierge ne sont pas relancées ici.
-- Documentation de cette revue : formatage, typage, parité des **12 pages par langue** et build VitePress réussis ; **34 tests Playwright de documentation réussis**, sans mise à jour des références visuelles.
-- Les seuls changements de cette revue sont les deux pages de rapport et leur entrée de navigation. Aucune correction de dépendance, choix de licence, remplacement d’asset, réécriture Git ou publication effectués.
+- Clean tree at the start; 404 tracked files. No SQLite database or recognized credential filename among tracked files.
+- 289 distinct text blobs in reachable history checked for GitHub/OpenAI/AWS tokens, private keys and credential assignments: no matches. This heuristic check does not replace Gitleaks/TruffleHog, prove absence of secrets in binaries, or cover inaccessible remote history.
+- README capture inspected: explicitly fictional demonstration. Blender metadata examined with patterns; no personal data opened.
+- Full and production npm audits executed; OSV queried only with public dependency names/versions. Cargo graph resolved for `x86_64-pc-windows-msvc` to distinguish off-target advisories. This is neither exhaustive exploitability analysis nor a full Cargo audit with license policy.
+- `cargo test --locked --offline --manifest-path src-tauri/Cargo.toml`: **22 tests passed** in this review. The last visual pipeline at the same application commit had **220 passing tests**, and seven presentation tests passed before this review; the complete native/UI suite and a clean VM were not rerun here.
+- Review documentation: formatting, type checks, parity of **12 pages per language** and VitePress build passed; **34 documentation Playwright tests passed**, with no visual baseline updates.
+- This review changes only two report pages and their navigation entry. No dependency fix, license choice, asset replacement, Git history rewrite or publication performed.

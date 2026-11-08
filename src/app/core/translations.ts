@@ -1,6 +1,8 @@
 /** Bundled UI translations. User-entered text and canonical data are never rewritten. */
 export const ENGLISH: Readonly<Record<string, string>> = {
   "Compagnon téléphone": "Phone companion",
+  "Compagnon expérimental en alpha, non stable et sans développement actif. La confiance accordée au certificat racine concerne aussi d’autres sites : protège sa clé privée et consulte la documentation avant de l’approuver.":
+    "Experimental alpha companion, unstable and not under active development. Trusting its root certificate also affects other sites: protect its private key and read the documentation before trusting it.",
   "Saisis tes observations sur ton téléphone, même hors ligne. Quand la PWA est ouverte et retrouve ce PC sur le même Wi-Fi, elle renvoie les saisies en attente.":
     "Record observations on your phone, even offline. When the PWA is open and finds this PC on the same Wi-Fi, it sends pending entries.",
   "Les saisies et la clé d’association conservées sur le téléphone ne sont pas chiffrées par Me-Sim. Protège l’accès à ton téléphone.":
