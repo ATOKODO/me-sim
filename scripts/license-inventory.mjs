@@ -19,14 +19,22 @@ const npm = Object.entries(lock.packages)
       : null;
     if (installed && installed.version !== locked.version)
       throw Error(`Installed version differs from lock: ${location}`);
+    if (
+      installed?.license &&
+      locked.license &&
+      JSON.stringify(installed.license) !== JSON.stringify(locked.license)
+    )
+      throw Error(`Installed license differs from lock: ${location}`);
     return {
       name:
-        installed?.name || locked.name || location.split("node_modules/").pop(),
+        locked.name ||
+        (location.includes("node_modules/")
+          ? location.split("node_modules/").pop()
+          : path.basename(location)),
       version: locked.version,
-      license: installed?.license || locked.license || null,
+      license: locked.license || null,
       development: !!locked.dev,
       optional: !!locked.optional,
-      inspectedInstalledManifest: !!installed,
       location,
     };
   });
@@ -67,7 +75,7 @@ if ([...npm, ...cargo].some((pkg) => !pkg.license))
 const result =
   JSON.stringify(
     {
-      schemaVersion: 1,
+      schemaVersion: 2,
       target: "x86_64-pc-windows-msvc",
       packageLockSha256: hash("package-lock.json"),
       cargoLockSha256: hash("src-tauri/Cargo.lock"),

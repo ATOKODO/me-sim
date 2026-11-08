@@ -14,7 +14,7 @@ The published permission does not explicitly address redistribution of editable 
 
 ## Dependency compatibility {#dependances}
 
-Review dated 30 October 2026: **1,187 npm lock entries** (including development and optional platforms) and **318 Windows x64 Cargo packages**, including build dependencies. No missing license declarations were found. Installed manifests are used where available; absent npm platforms rely on lockfile metadata. This scope is not exact binary composition. The versioned inventory is `licenses/dependencies.json`, without personal workstation paths.
+Review dated 30 October 2026 covered 1,187 npm lock entries and 318 Windows x64 Cargo packages. The current inventory contains **1,180 npm lock entries** (including development and optional platforms) and **318 Windows x64 Cargo packages**, including build dependencies. No missing license declarations were found. npm license declarations come from the lockfile, and installed package versions and declared licenses are checked when available. This scope is not exact binary composition. The versioned inventory is `licenses/dependencies.json`, without personal workstation paths.
 
 | Group | Conclusion and conditions |
 | --- | --- |
@@ -37,6 +37,6 @@ npm run licenses:inventory
 npm run licenses:check
 ```
 
-Generation uses local manifests and Windows `cargo metadata --locked --offline`; it does not upload the graph. The check rejects missing declarations, installed versions differing from the lockfile or a stale inventory. Both lockfile hashes are recorded. Installed optional-platform state can vary between workstations. Review changes after every update: the script does not automatically prove compatibility.
+Generation uses lockfile declarations and Windows `cargo metadata --locked --offline`; it does not upload the graph. The check rejects missing declarations, installed versions or declared licenses differing from the lockfile, or a stale inventory. Both lockfile hashes are recorded. Optional packages installed on different platforms do not change the inventory. Review changes after every update: the script does not automatically prove compatibility.
 
 Before publishing an installer, provide applicable texts and notices and access to the exact build's corresponding sources. For the companion and modified versions accessed over a network, provide an AGPL-compliant source offer; it can be served locally. See [GNU's instructions](https://www.gnu.org/licenses/gpl-howto.en.html).
