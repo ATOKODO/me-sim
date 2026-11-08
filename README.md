@@ -55,7 +55,7 @@ npm run desktop
 - `npm run docs:build` : documentation statique, avec vérification des liens internes.
 - `npm run docs:preview` : aperçu du site construit sur http://127.0.0.1:4174.
 - `npm run storybook` : catalogue local du design système sur 127.0.0.1:6006.
-- `npm run test:visual` : builds et régression visuelle Playwright ; installer Chromium avec `npx playwright install chromium`.
+- `npm run test:visual` : builds et régression visuelle Playwright de l’application, du compagnon PWA, de Storybook et de la documentation ; installer Chromium avec `npx playwright install chromium`.
 - `npm run test:visual:update` : mise à jour volontaire des références visuelles après inspection.
 - `npm run test:rust` : tests Rust des données, fichiers et verrou scientifique.
 - `npm run package` : installateur NSIS par utilisateur ; installe WebView2 si nécessaire via Internet.

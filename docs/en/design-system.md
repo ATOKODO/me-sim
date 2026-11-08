@@ -35,7 +35,7 @@ Stories tagged `visual` are discovered from the built index, automatically cover
 
 The application runs as a browser demo with a fixed date, animations stopped and only GPU canvas pixels hidden in snapshots; no native database is opened. Camera controls and captions remain visible. Functional tests independently check actual 3D rendering, clips, context loss and retry without hiding the canvas. Global horizontal overflow fails device tests; tables can still scroll inside their own containers.
 
-References are grouped in `tests/visual/__screenshots__/win32/chromium/` by category, viewport, language and theme: `application/<viewport>/<language>/<theme>/<page>.png`, `storybook/<viewport>/<language>/<theme>/<story>.png` and `documentation/<viewport>/<language>/<theme>/<page>.png`. Reference viewports keep their names and dimensions, for example `ipadpro11-834x1194` or `desktop-1920x1080`. Historical captures use `960x1000` and `1440x1000`. Chromium comes from locked Playwright, with scale 1, Europe/Paris timezone and fixed dimensions. References depend on the OS; Linux/macOS need their own. Investigate font/system differences instead of hiding them with higher tolerance.
+References are grouped by OS, then category, viewport, language and theme: `application/<viewport>/<language>/<theme>/<page>.png`, `storybook/<viewport>/<language>/<theme>/<story>.png`, `documentation/<viewport>/<language>/<theme>/<page>.png` and `companion/<viewport>/fr/dark/<screen>.png`. Companion covers pairing, a measurement and an offline habit entry on iPhone 16 Pro and iPad Pro 11″. Reference viewports keep their names and dimensions, for example `ipadpro11-834x1194` or `desktop-1920x1080`. Historical captures use `960x1000` and `1440x1000`. Chromium comes from locked Playwright, with scale 1, Europe/Paris timezone and fixed dimensions. References depend on the OS; Linux/macOS need their own. Investigate font/system differences instead of hiding them with higher tolerance.
 
 A screenshot permits at most 100 differing pixels with a color threshold of 0.15. Data/animations are stabilized; cards, forms and charts are not hidden. External requests are blocked and fail the test, as do JavaScript errors.
 
@@ -43,7 +43,7 @@ A screenshot permits at most 100 differing pixels with a color threshold of 0.15
 
 1. Run tests and open `npm run test:visual:report` to compare expected, actual and diff.
 2. Fix unintended defects.
-3. On Windows, run `npm run test:visual:update` only for the intended change; add `-- --grep ...` to restrict captures. For new device references use `-- --grep 'devices /' --update-snapshots=missing`; for documentation use `-- --grep 'docs /' --update-snapshots=missing`.
+3. On the OS running visual regression, run `npm run test:visual:update` only for the intended change; add `-- --grep ...` to restrict captures. For new device references use `-- --grep 'devices /' --update-snapshots=missing`; for documentation use `-- --grep 'docs /' --update-snapshots=missing`.
 4. Inspect changed PNGs, rerun `npm run test:visual`, then commit code and references together.
 
 With Playwright 1.58, creating a missing reference with `--update-snapshots=missing` writes the PNG but reports a failure on that first run. Inspect the generated file, then rerun comparison without updates; creating a reference alone does not validate the regression.

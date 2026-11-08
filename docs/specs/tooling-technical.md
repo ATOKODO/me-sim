@@ -27,6 +27,7 @@ Ces fonctions préparent des scénarios reproductibles et exposent les erreurs a
 - `snapshotPath(category, width, height, language, theme, ...file)` renvoie les segments de chemin de référence, y compris le nom d’appareil lorsque sa taille correspond à une résolution de référence ; sinon elle utilise la résolution seule.
 - Dans les tests visuels d’application, `prepare(page, theme, language, width, height)` fixe le contexte d’affichage et les préférences ; `navigate(page, route, language)` ouvre la route et vérifie le titre et les commandes de scène. `translated(source)` choisit le libellé attendu selon la langue. Les pixels du canvas sont masqués dans ces captures ; les interactions 3D sont vérifiées séparément.
 - Dans les tests de documentation, `path(language, name)` construit le chemin de page ; `prepare(page, theme)` fixe le thème et `ready(page, language, name)` attend la langue, le titre et les polices. Les erreurs de lecture ou de correspondance font échouer le test.
+- Dans les tests visuels du compagnon, `prepare(page, viewportName)` fixe le viewport et l’horloge, `pair(page)` parcourt l’association avec l’API fictive et `capture(page, viewportName, screenName)` compare l’écran PWA à sa référence. Les scénarios couvrent l’association, la saisie d’une mesure et une saisie d’habitude hors ligne.
 
 ## TECH-TOOLING-ART — Préparation des ressources artistiques
 

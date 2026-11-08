@@ -21,7 +21,7 @@ export const test = base.extend<{ localOnly: void }>({
       expect(errors, "No JavaScript errors in the rendered UI").toEqual([]);
       expect(
         external,
-        "No external requests from stories or the application",
+        "No external requests from the app, companion, stories or docs",
       ).toEqual([]);
     },
     { auto: true },

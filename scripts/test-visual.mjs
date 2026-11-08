@@ -100,6 +100,7 @@ try {
     ME_SIM_DOCS_PORT: "4175",
   });
   await startServer("scripts/serve-storybook.mjs", "Storybook static:");
+  await startServer("scripts/serve-companion-visual.mjs", "Companion visual static:");
   await startServer("scripts/serve.mjs", "Me-Sim preview:", {
     ME_SIM_PREVIEW_PORT: "1423",
   });

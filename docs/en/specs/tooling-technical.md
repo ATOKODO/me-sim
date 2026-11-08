@@ -29,6 +29,7 @@ These functions prepare reproducible scenarios and expose errors to Playwright t
 - `snapshotPath(category, width, height, language, theme, ...file)` returns the reference path segments, including the device name when its size matches a reference resolution; otherwise it uses the resolution alone.
 - In application visual tests, `prepare(page, theme, language, width, height)` sets the display context and preferences; `navigate(page, route, language)` opens the route and checks the heading and scene controls. `translated(source)` selects the expected label for the language. Canvas pixels are hidden in these captures; 3D interactions are checked separately.
 - In documentation tests, `path(language, name)` constructs the page path; `prepare(page, theme)` sets the theme and `ready(page, language, name)` waits for the language, heading and fonts. Read or matching errors fail the test.
+- In companion visual tests, `prepare(page, viewportName)` fixes the viewport and clock, `pair(page)` exercises pairing against a mock API, and `capture(page, viewportName, screenName)` compares the PWA screen to its reference. Scenarios cover pairing, measurement entry and an offline habit entry.
 
 ## Art asset preparation
 

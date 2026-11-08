@@ -51,6 +51,15 @@ export default defineConfig({
           timeout: 20000,
         },
         {
+          command: "node scripts/serve-companion-visual.mjs",
+          url: VISUAL_ORIGINS.companion + "/companion/",
+          env: {
+            ME_SIM_COMPANION_PORT: new URL(VISUAL_ORIGINS.companion).port,
+          },
+          reuseExistingServer: false,
+          timeout: 20000,
+        },
+        {
           command: "node scripts/serve.mjs",
           url: VISUAL_ORIGINS.application,
           env: {
