@@ -14,19 +14,22 @@ Me-Sim's original code and documentation are licensed under **AGPL-3.0-only**: [
 
 **External contributions are not currently accepted.** You are welcome to clone, study, run, fork, modify and redistribute the code in accordance with its license. Please do not open pull requests or send unsolicited patches: see the [contribution policy](CONTRIBUTING.md).
 
-## Windows packages
+## Build Windows packages
 
-Release artifacts are located in `release/`:
+Prebuilt Windows installers are not included in this repository. On Windows, install Node.js, Rust with the MSVC toolchain, the Visual Studio C++ build tools and WebView2, then build an installer from the project directory:
 
-- `Me-Sim_0.1.0_x64-setup.exe`: standard installer; downloads WebView2 if necessary.
-- `Me-Sim_0.1.0_x64-offline-setup.exe`: installer including WebView2.
-- `Me-Sim-0.1.0-updated.exe`: standalone executable for this release; requires WebView2.
+```powershell
+npm ci
+npm run package
+```
 
-The packages are unsigned and are not installed automatically.
+The NSIS installer is generated under `src-tauri/target/release/bundle/nsis/`. The standard installer downloads WebView2 if it is missing. To build an installer that includes WebView2 instead, run `npm run package:offline` on Windows; its initial build may require Internet access to download the WebView2 installer. Preserve or rename an existing installer before building another variant in the same output directory.
+
+Locally built packages are unsigned and are not installed automatically.
 
 ## Build Linux packages
 
-On x86_64 Linux, `npm run package:linux` produces a Debian `.deb` package in `src-tauri/target/release/bundle/deb/`. No prebuilt Linux artifact is currently provided in `release/`. The package was built on Ubuntu 24.04; installation and compatibility with other distributions remain to be validated.
+On x86_64 Linux, `npm run package:linux` produces a Debian `.deb` package in `src-tauri/target/release/bundle/deb/`. No prebuilt Linux package is included in this repository. The package was built on Ubuntu 24.04; installation and compatibility with other distributions remain to be validated.
 
 Development prerequisites for Ubuntu/Debian, in addition to Node 24.15+ and stable Rust:
 
