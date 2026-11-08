@@ -40,7 +40,7 @@ import { Icon } from "../core/icon";
     @if (!store.desktop) {
       <div class="notice">
         {{
-          "Les échanges de fichiers sont disponibles dans l’application Windows. Cet aperçu ne lit ni n’enregistre de fichiers personnels."
+          "Les échanges de fichiers sont disponibles dans l’application de bureau. Cet aperçu ne lit ni n’enregistre de fichiers personnels."
             | t
         }}
       </div>

@@ -662,6 +662,15 @@ fn response(
 }
 
 // @spec TECH-RUST-111
+fn redirect(stream: &mut impl Write, location: &str) -> std::io::Result<()> {
+    write!(
+        stream,
+        "HTTP/1.1 308 Permanent Redirect\r\nLocation: {location}\r\nContent-Length: 0\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
+    )?;
+    stream.flush()
+}
+
+// @spec TECH-RUST-111
 fn json_response(
     stream: &mut impl Write,
     status: &str,
@@ -731,6 +740,10 @@ fn serve(
     }
     let state = app.state::<AppState>();
     let path = request.path.split('?').next().unwrap_or("");
+    if request.method == "GET" && path == "/companion" {
+        redirect(&mut stream, "/companion/")?;
+        return Ok(());
+    }
     if request.method == "GET" && path == "/companion/ca.crt" {
         response(
             &mut stream,

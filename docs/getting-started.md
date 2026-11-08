@@ -2,7 +2,7 @@
 
 ## Installer sur Windows
 
-La cible actuelle est Windows 11 x64. Les paquets disponibles localement dans `release/` sont décrits dans le README du projet :
+Pour Windows, la cible est Windows 11 x64. Les paquets disponibles localement dans `release/` sont décrits dans le README du projet :
 
 | Fichier                              | Usage                                                              |
 | ------------------------------------ | ------------------------------------------------------------------ |
@@ -14,9 +14,24 @@ Les paquets sont non signés. La construction de l’installateur hors ligne est
 
 Après ouverture, créer un profil ou charger la démonstration fictive. Choisir les habitudes, compléter le calendrier ou ajouter des observations au journal. Les [guides des données](./data-guide.md) et de [confidentialité](./privacy.md) précisent les sauvegardes et leurs limites.
 
+## Construire et lancer sous Linux {#installer-sous-linux}
+
+La cible Linux est x86_64 au format Debian. Aucun paquet préconstruit n’est fourni dans `release/` : depuis Linux, `npm run package:linux` crée un `.deb` dans `src-tauri/target/release/bundle/deb/`. Le paquet déclare ses dépendances système, dont WebKitGTK 4.1. Il a été construit sur Ubuntu 24.04 ; son installation et sa compatibilité avec d’autres distributions restent à valider.
+
+Sur Ubuntu ou Debian, installer les dépendances Tauri, puis construire :
+
+```sh
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+npm ci
+npm run package:linux
+sudo apt install ./src-tauri/target/release/bundle/deb/Me-Sim_0.1.0_amd64.deb
+```
+
+Pour lancer en développement, utiliser `npm run desktop` après installation de ces dépendances. Les distributions non Debian utilisent leurs équivalents de WebKitGTK 4.1 et des bibliothèques GTK.
+
 ## Développer l’application
 
-Prérequis : Node.js 24.15+ dans la branche 24.x, Rust stable MSVC, outils C++ Visual Studio et WebView2. Le premier téléchargement des dépendances nécessite Internet.
+Prérequis communs : Node.js 24.15+ dans la branche 24.x et Rust stable. Sous Windows, installer Rust MSVC, les outils C++ Visual Studio et WebView2. Sous Linux, installer WebKitGTK 4.1 et les dépendances indiquées ci-dessus. Le premier téléchargement des dépendances nécessite Internet.
 
 Depuis la racine du projet :
 
@@ -33,6 +48,7 @@ npm run desktop
 | `npm run desktop`         | Application Tauri en développement.                                      |
 | `npm run package`         | Installateur NSIS standard.                                              |
 | `npm run package:offline` | Installateur NSIS avec WebView2 embarqué.                                |
+| `npm run package:linux`  | Paquet `.deb` ; exécuter sous Linux.                                    |
 
 L’aperçu navigateur garde les données en mémoire et désactive les échanges natifs de fichiers. Utiliser Tauri pour vérifier SQLite, les sélecteurs de fichiers et la persistance.
 

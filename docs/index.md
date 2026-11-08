@@ -3,7 +3,7 @@ layout: home
 hero:
   name: Me-Sim
   text: Tes habitudes, ton petit monde.
-  tagline: Le guide d’une application Windows avec un avatar rétro, un suivi quotidien et des données conservées sur ton ordinateur.
+  tagline: Le guide d’une application de bureau Windows et Linux avec un avatar rétro, un suivi quotidien et des données conservées sur ton ordinateur.
   actions:
     - theme: brand
       text: Démarrer
@@ -24,7 +24,7 @@ features:
 
 ## Trouver le bon guide
 
-- **Utiliser l’application** : [démarrage Windows](./getting-started.md), [journal, calendrier et échanges](./data-guide.md), [confidentialité](./privacy.md).
+- **Utiliser l’application** : [démarrage Windows et Linux](./getting-started.md), [journal, calendrier et échanges](./data-guide.md), [confidentialité](./privacy.md).
 - **Modifier le projet** : [architecture](./architecture.md), [design système et régression visuelle](./design-system.md), [personnage et animations](./artist-animation-guide.md).
 - **Comprendre ses limites** : [fiche scientifique](./model-card.md), [validation et livraison](./validation.md), [revue de préparation à la livraison](./review-2026-10-01.md), [refactorings proposés](./refactoring-review-2026-10-07.md).
 

@@ -79,7 +79,7 @@ Implémente REQ-RUST-105.
 
 `lan_ip` choisit une adresse IPv4 privée ou link-local ; `ca_and_server` crée ou recharge une autorité locale et construit un certificat TLS pour cette adresse. `code` et `new_pairing` créent un code d'appariement à durée limitée. `start` vérifie le profil, ouvre le port local 18439 et démarre le serveur ; `status`, `stop`, `refresh_pairing` et `revoke` exposent ou modifient son état et ses appareils. Les verrous, réseau, certificats et base peuvent produire une erreur.
 
-`authenticated` vérifie le jeton pour le profil demandé. `sync` valide les opérations du téléphone, leur profil et leur identité, puis les applique avec les identifiants de déduplication dans une transaction. `read_request`, `response`, `json_response`, `configure_connection` et `serve` gèrent les requêtes et réponses HTTPS locales sous limites de taille et de connexions. `sha256_hex` calcule un condensat et `internal` convertit une erreur en erreur compagnon.
+`authenticated` vérifie le jeton pour le profil demandé. `sync` valide les opérations du téléphone, leur profil et leur identité, puis les applique avec les identifiants de déduplication dans une transaction. `read_request`, `response`, `redirect`, `json_response`, `configure_connection` et `serve` gèrent les requêtes et réponses HTTPS locales sous limites de taille et de connexions ; `/companion` redirige vers `/companion/`. `sha256_hex` calcule un condensat et `internal` convertit une erreur en erreur compagnon.
 
 ## TECH-RUST-112 — Commandes Tauri et simulation
 

@@ -1,6 +1,6 @@
 # Me-Sim
 
-Application Windows locale : Angular 22, Tauri 2, SQLite et Three.js. Interface française ou anglaise, thèmes sombre et clair, plusieurs profils et diorama rétro PS1 entièrement construit avec des assets locaux.
+Application de bureau locale pour Windows et Linux : Angular 22, Tauri 2, SQLite et Three.js. Interface française ou anglaise, thèmes sombre et clair, plusieurs profils et diorama rétro PS1 entièrement construit avec des assets locaux.
 
 ![Application Windows](docs/native-dashboard.png)
 
@@ -22,9 +22,24 @@ Les artefacts de cette livraison sont dans `release/` :
 
 Les paquets sont non signés. Ils ne sont pas installés automatiquement sur ton poste.
 
+## Construire les paquets Linux
+
+Depuis une machine Linux x86_64, `npm run package:linux` produit un paquet Debian `.deb` dans `src-tauri/target/release/bundle/deb/`. Aucun artefact Linux préconstruit n’est fourni dans `release/` pour le moment. Le paquet a été construit sur Ubuntu 24.04 ; l’installation et la compatibilité avec d’autres distributions restent à valider.
+
+Prérequis de développement pour Ubuntu/Debian (en plus de Node 24.15+ et Rust stable) :
+
+```sh
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+npm ci
+npm run package:linux
+sudo apt install ./src-tauri/target/release/bundle/deb/Me-Sim_0.1.0_amd64.deb
+```
+
+Le paquet `.deb` déclare ses dépendances système, dont WebKitGTK 4.1. D’autres distributions demandent leurs paquets de développement équivalents et ne disposent pas encore d’un format de paquet dédié. La construction doit se faire sous Linux ; l’installation propre et la compatibilité avec d’autres distributions restent à valider. Voir les [prérequis Linux de Tauri](https://v2.tauri.app/start/prerequisites/) et ses [formats de distribution Linux](https://v2.tauri.app/distribute/).
+
 ## Démarrer
 
-Prérequis de développement : Node 24.15+ (24.x), Rust stable MSVC, outils C++ Visual Studio et WebView2. Le téléchargement initial des dépendances nécessite Internet.
+Prérequis de développement : Node 24.15+ (24.x) et Rust stable. Sous Windows, installer aussi les outils C++ Visual Studio et WebView2 ; sous Linux, installer WebKitGTK 4.1 et les paquets système indiqués ci-dessus. Le téléchargement initial des dépendances nécessite Internet.
 
 ```powershell
 npm ci
@@ -45,10 +60,11 @@ npm run desktop
 - `npm run test:rust` : tests Rust des données, fichiers et verrou scientifique.
 - `npm run package` : installateur NSIS par utilisateur ; installe WebView2 si nécessaire via Internet.
 - `npm run package:offline` : installateur NSIS incluant l’installateur WebView2 hors ligne.
+- `npm run package:linux` : paquet Linux `.deb` (commande à lancer sous Linux).
 
-Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `src-tauri/Cargo.lock`. Les caches peuvent être déplacés dans le projet avec `$env:CARGO_HOME = "$PWD\.cache\cargo"`.
+Les versions JavaScript et Rust sont verrouillées par `package-lock.json` et `src-tauri/Cargo.lock`. Les caches peuvent être déplacés dans le projet avec `$env:CARGO_HOME = "$PWD\.cache\cargo"` sous PowerShell ou `CARGO_HOME="$PWD/.cache/cargo"` sous Linux.
 
-Les builds et tests sont lancés sur le poste : aucun workflow GitHub Actions n’est inclus. Après installation des dépendances et de Chromium, `npm run validate:local` utilise les outils disponibles localement. Précharger aussi les dépendances Rust avec `cargo fetch --locked --manifest-path src-tauri/Cargo.toml` avant de couper le réseau. L’installation initiale et `npm audit` nécessitent une connexion au registre ; les installateurs se construisent séparément avec `npm run package` ou `npm run package:offline`. Leur première construction peut nécessiter le téléchargement d’outils et de WebView2.
+Les builds et vérifications sont lancés sur le poste : aucun workflow GitHub Actions n’est inclus. `npm run validate:local` s’appuie sur Edge/Chromium et reste documenté pour Windows. Précharger aussi les dépendances Rust avec `cargo fetch --locked --manifest-path src-tauri/Cargo.toml` avant de couper le réseau. L’installation initiale et `npm audit` nécessitent une connexion au registre ; les paquets se construisent séparément avec `npm run package`, `npm run package:offline` ou `npm run package:linux` sur Linux. Les premières constructions peuvent nécessiter le téléchargement d’outils ou de WebView2.
 
 ## Ce qui fonctionne
 
@@ -75,11 +91,11 @@ Voir [la fiche scientifique](docs/model-card.md) pour les sources, les condition
 
 ## Confidentialité
 
-La base est située sous `%LOCALAPPDATA%\fr.mesim.desktop\me-sim.db`. Son emplacement exact est affiché dans les préférences. Seuls la langue et le thème sont aussi mémorisés dans le cache local de la WebView pour l’affichage au démarrage ; aucune donnée de santé n’y est stockée. Les traductions sont embarquées, sans service distant. Aucun compte, serveur distant, CDN, police externe, analytique ou service d’IA. Pas de mise à jour automatique.
+La base est enregistrée dans le dossier local de données de l’application pour le compte système courant. Son emplacement exact est affiché dans les préférences. Seuls la langue et le thème sont aussi mémorisés dans le cache local de la WebView pour l’affichage au démarrage ; aucune donnée de santé n’y est stockée. Les traductions sont embarquées, sans service distant. Aucun compte, serveur distant, CDN, police externe, analytique ou service d’IA. Pas de mise à jour automatique.
 
-Données non chiffrées, protégées par la session Windows. Les profils ne sont pas des comptes authentifiés. Supprimer un profil supprime ses enregistrements de la base active, mais pas les sauvegardes, exports ou copies système déjà créés ; ce n’est pas un effacement forensique du disque.
+Données non chiffrées, protégées par les permissions du compte système et du disque. Les profils ne sont pas des comptes authentifiés. Supprimer un profil supprime ses enregistrements de la base active, mais pas les sauvegardes, exports ou copies système déjà créés ; ce n’est pas un effacement forensique du disque.
 
-La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent par les sélecteurs natifs Rust ; aucun chemin arbitraire n’est fourni depuis JavaScript. Les imports et restaurations sont préparés en mémoire puis confirmés par jeton opaque. L’application n’envoie pas de télémétrie ; les politiques de maintenance propres à Windows/WebView2 restent celles du système.
+La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent par les sélecteurs natifs Rust ; aucun chemin arbitraire n’est fourni depuis JavaScript. Les imports et restaurations sont préparés en mémoire puis confirmés par jeton opaque. L’application n’envoie pas de télémétrie ; la maintenance de WebView2 sous Windows ou WebKitGTK sous Linux reste celle du système.
 
 ## Organisation
 
@@ -92,7 +108,7 @@ La WebView n’accède pas directement au disque ou à SQL. Les fichiers passent
 
 ## Documentation
 
-La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Guides français et anglais (`/en/`), navigation et recherche locale traduites, thèmes clair/sombre et ressources embarquées. Le build local vérifie la parité des pages et sections entre langues. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle.
+La [documentation VitePress](docs/index.md) reprend les guides Markdown du dossier `docs/` : démarrage Windows et Linux, confidentialité, journal et données, animations, architecture, design système, limites scientifiques et revues. Guides français et anglais (`/en/`), navigation et recherche locale traduites, thèmes clair/sombre et ressources embarquées. Le build local vérifie la parité des pages et sections entre langues. Le site reste indépendant de Tauri et ne contient aucune donnée personnelle.
 
 Les [spécifications fonctionnelles et techniques](docs/specifications.md) décrivent les contrats du code et les références placées sur ses déclarations.
 
@@ -100,7 +116,7 @@ Les [spécifications fonctionnelles et techniques](docs/specifications.md) décr
 
 [Guide Storybook et régression visuelle](docs/design-system.md) : composants partagés, thèmes, contrôles et captures de référence exécutés localement. Les écrans et la documentation sont capturés aux formats iPhone 16 Pro, iPad Pro 11″, MacBook Pro 14″ et Desktop en français/anglais, clair/sombre.
 
-## Vérification native isolée
+## Vérification native isolée sous Windows
 
 Après `npx tauri build --debug --no-bundle`, lancer le binaire avec `ME_SIM_TEST_DATA_DIR` pointant vers un dossier de test et `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9223`. `node scripts/native-smoke.mjs` vérifie que la base est bien dans un chemin contenant `native-smoke` avant toute mutation.
 

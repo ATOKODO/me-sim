@@ -123,7 +123,7 @@ import { Icon } from "./core/icon";
       @if (!store.desktop) {
         <div class="preview-banner">
           {{
-            "Aperçu de l’interface · données fictives en mémoire. Ouvre l’application Windows pour enregistrer et échanger tes données."
+            "Aperçu de l’interface · données fictives en mémoire. Ouvre l’application de bureau pour enregistrer et échanger tes données."
               | t
           }}
         </div>

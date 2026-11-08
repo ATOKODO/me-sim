@@ -2,7 +2,7 @@
 
 ## Où restent les données ?
 
-Me-Sim fonctionne avec une base SQLite sur l’ordinateur Windows. L’emplacement par défaut est `%LOCALAPPDATA%\fr.mesim.desktop\me-sim.db` ; son chemin exact apparaît dans les préférences. Les profils, observations, habitudes, journées, imports et scénarios sont enregistrés dans cette base.
+Me-Sim fonctionne avec une base SQLite dans le dossier local de données de l’application pour le compte système courant ; son chemin exact apparaît dans les préférences. Les profils, observations, habitudes, journées, imports et scénarios sont enregistrés dans cette base.
 
 Aucun compte distant, cloud, API externe, CDN ou télémétrie applicative n’est nécessaire. Les traductions et les ressources du personnage sont embarquées. La WebView ne reçoit pas un accès général au disque ni un accès SQL : les opérations de fichiers passent par les commandes Rust et les sélecteurs natifs.
 
@@ -10,9 +10,9 @@ La langue et le thème sont aussi mémorisés dans le cache local de la WebView 
 
 ## Quelle protection existe ?
 
-La base et les exports ne sont pas chiffrés par Me-Sim. Leur protection repose sur la session Windows et les droits d’accès aux fichiers. Les profils sont séparés dans l’application, mais ne sont pas des comptes authentifiés : une personne ayant accès à la session ou aux fichiers peut accéder à leur contenu.
+La base et les exports ne sont pas chiffrés par Me-Sim. Leur protection repose sur la session du compte système et les droits d’accès aux fichiers. Les profils sont séparés dans l’application, mais ne sont pas des comptes authentifiés : une personne ayant accès à la session ou aux fichiers peut accéder à leur contenu.
 
-La documentation et Storybook ne lisent aucune base personnelle. Ils contiennent des guides et des exemples fictifs. Leur recherche est locale. Les politiques de maintenance de Windows et de WebView2 restent celles du système.
+La documentation et Storybook ne lisent aucune base personnelle. Ils contiennent des guides et des exemples fictifs. Leur recherche est locale. La maintenance du système et du moteur WebView reste celle de la distribution utilisée.
 
 ## Sauvegarder et restaurer
 
@@ -20,7 +20,7 @@ Une sauvegarde JSON contient tous les profils et paramètres. Les exports CSV, X
 
 Une restauration remplace l’espace local après aperçu et crée auparavant une copie JSON de l’état précédent à côté de la base. Ce fichier reste lisible. Les détails et règles de validation sont dans le [guide des données](./data-guide.md#export-et-restauration).
 
-Le dossier choisi pour un export peut être synchronisé par un outil extérieur à Me-Sim. Choisir son emplacement en fonction de la confidentialité souhaitée ; l’application ne contrôle pas les copies réalisées par Windows ou par d’autres logiciels.
+Le dossier choisi pour un export peut être synchronisé par un outil extérieur à Me-Sim. Choisir son emplacement en fonction de la confidentialité souhaitée ; l’application ne contrôle pas les copies réalisées par le système ou par d’autres logiciels.
 
 ## Supprimer un profil
 

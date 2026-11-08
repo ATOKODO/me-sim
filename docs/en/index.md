@@ -3,7 +3,7 @@ layout: home
 hero:
   name: Me-Sim
   text: Your habits, your little world.
-  tagline: A guide to a Windows application with a retro avatar, daily tracking and data kept on your computer.
+  tagline: A guide to a Windows and Linux desktop app with a retro avatar, daily tracking and data kept on your computer.
   actions:
     - theme: brand
       text: Get started
@@ -24,7 +24,7 @@ features:
 
 ## Find the right guide {#trouver-le-bon-guide}
 
-- **Use the application**: [Windows setup](./getting-started.md), [journal, calendar and file exchange](./data-guide.md), [privacy](./privacy.md).
+- **Use the application**: [Windows and Linux setup](./getting-started.md), [journal, calendar and file exchange](./data-guide.md), [privacy](./privacy.md).
 - **Modify the project**: [architecture](./architecture.md), [design system and visual regression](./design-system.md), [character and animations](./artist-animation-guide.md).
 - **Understand its limits**: [scientific model card](./model-card.md), [validation and delivery](./validation.md), [release readiness review](./review-2026-10-01.md), [proposed refactoring](./refactoring-review-2026-10-07.md).
 

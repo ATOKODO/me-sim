@@ -141,7 +141,7 @@ import { Icon } from "../core/icon";
         }
         <div class="info-footnote standalone">
           <ui-icon name="lock" />{{
-            "Les profils partagent la même session Windows. Ils ne sont pas protégés les uns des autres par un mot de passe."
+            "Les profils partagent la session de cet ordinateur. Ils ne sont pas protégés les uns des autres par un mot de passe."
               | t
           }}
         </div>

@@ -7,7 +7,7 @@ export const ENGLISH: Readonly<Record<string, string>> = {
     "Entries and the pairing key stored on the phone are not encrypted by Me-Sim. Protect access to your phone.",
   "Me-Sim n’utilise ni compte ni service distant. La base principale reste sur le PC ; le compagnon conserve ses saisies en attente sur le téléphone.":
     "Me-Sim uses no account or remote service. The main database stays on the PC; the companion keeps pending entries on the phone.",
-  "Disponible dans l’application Windows.": "Available in the Windows app.",
+  "Disponible dans l’application de bureau.": "Available in the desktop app.",
   "Profil accessible sur le téléphone": "Profile available on the phone",
   "Créer un code d’appairage": "Create a pairing code",
   "Arrêter le compagnon": "Stop companion",
@@ -16,8 +16,8 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "CODE TEMPORAIRE · 5 MINUTES": "TEMPORARY CODE · 5 MINUTES",
   "Pour installer la PWA hors ligne, approuve d’abord le certificat local sur le téléphone. Vérifie son empreinte avec celle affichée ici.":
     "To install the offline PWA, first trust the local certificate on your phone. Compare its fingerprint with the one shown here.",
-  "Si Windows demande une autorisation réseau, choisis uniquement les réseaux privés. Garde cette adresse locale stable : un changement d’adresse isole les saisies en attente sur le téléphone.":
-    "If Windows asks for network access, allow private networks only. Keep this local address stable: changing it isolates pending entries on the phone.",
+  "Si ton système demande une autorisation réseau, limite-la au réseau local. Garde cette adresse locale stable : un changement d’adresse isole les saisies en attente sur le téléphone.":
+    "If your system asks for network access, limit it to the local network. Keep this local address stable: changing it isolates pending entries on the phone.",
   "CERTIFICAT LOCAL À TRANSFÉRER": "LOCAL CERTIFICATE TO TRANSFER",
   "TÉLÉCHARGEMENT SUR LE TÉLÉPHONE": "DOWNLOAD ON PHONE",
   "EMPREINTE SHA-256": "SHA-256 FINGERPRINT",
@@ -231,8 +231,8 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Aperçu navigateur": "Browser preview",
   "Profil actif": "Active profile",
   "Aucun profil": "No profile",
-  "Aperçu de l’interface · données fictives en mémoire. Ouvre l’application Windows pour enregistrer et échanger tes données.":
-    "Interface preview · fictional data in memory. Open the Windows app to save and exchange your data.",
+  "Aperçu de l’interface · données fictives en mémoire. Ouvre l’application de bureau pour enregistrer et échanger tes données.":
+    "Interface preview · fictional data in memory. Open the desktop app to save and exchange your data.",
   "Fermer l’erreur": "Dismiss error",
   "Fermer le message": "Dismiss message",
   "Ouverture de ton espace…": "Opening your space…",
@@ -247,13 +247,13 @@ export const ENGLISH: Readonly<Record<string, string>> = {
   "Tes données restent sur cet appareil. Aucun compte, service distant ou suivi d’utilisation n’est nécessaire.":
     "Your data stays on this device. No account, remote service or usage tracking is required.",
   "EMPLACEMENT DE LA BASE": "DATABASE LOCATION",
-  "La base et les exports ne sont pas chiffrés. Leur protection dépend de ta session Windows et des personnes ayant accès au disque.":
-    "The database and exports are not encrypted. Their protection depends on your Windows session and who can access the disk.",
+  "La base et les exports ne sont pas chiffrés. Leur protection dépend de ta session sur cet ordinateur et des personnes ayant accès au disque.":
+    "The database and exports are not encrypted. Their protection depends on your account on this computer and who can access the disk.",
   "Sauvegarder ou restaurer": "Back up or restore",
   "Gérer ou supprimer mes profils": "Manage or delete my profiles",
   "À propos de Me-Sim": "About Me-Sim",
-  "Version 0.1.0 · Windows · Angular, Tauri et Three.js.":
-    "Version 0.1.0 · Windows · Angular, Tauri and Three.js.",
+  "Version 0.1.0 · Angular, Tauri et Three.js.":
+    "Version 0.1.0 · Angular, Tauri and Three.js.",
   "Les avatars sont des illustrations. Les projections scientifiques sont désactivées tant que le modèle complet n’est pas validé. Les données de démonstration sont entièrement fictives.":
     "Avatars are illustrations. Scientific projections remain disabled until the complete model is validated. Demo data is entirely fictional.",
   "Donner vie à l’avatar": "Bring the avatar to life",
@@ -588,13 +588,13 @@ export const ENGLISH: Readonly<Record<string, string>> = {
     "Your habits and calendar will stay attached to this profile.",
   "Ses mesures, habitudes, journées suivies, imports et scénarios seront supprimés de la base. Les fichiers déjà exportés resteront sur le disque.":
     "Its measurements, habits, tracked days, imports and scenarios will be deleted from the database. Previously exported files will stay on disk.",
-  "Les profils partagent la même session Windows. Ils ne sont pas protégés les uns des autres par un mot de passe.":
-    "Profiles share the same Windows session. They are not protected from one another by a password.",
+  "Les profils partagent la session de cet ordinateur. Ils ne sont pas protégés les uns des autres par un mot de passe.":
+    "Profiles share this computer account. They are not protected from one another by a password.",
   "TES DONNÉES T’APPARTIENNENT": "YOUR DATA BELONGS TO YOU",
   "Fais entrer ton historique. Emporte-le quand tu veux.":
     "Bring in your history. Take it with you whenever you want.",
-  "Les échanges de fichiers sont disponibles dans l’application Windows. Cet aperçu ne lit ni n’enregistre de fichiers personnels.":
-    "File exchange is available in the Windows app. This preview does not read or save personal files.",
+  "Les échanges de fichiers sont disponibles dans l’application de bureau. Cet aperçu ne lit ni n’enregistre de fichiers personnels.":
+    "File exchange is available in the desktop app. This preview does not read or save personal files.",
   "01 / IMPORTER": "01 / IMPORT",
   "Importer un fichier": "Import a file",
   "CSV, XLS, XLSX ou tableau JSON · jusqu’à 25 Mo":

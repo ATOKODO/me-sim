@@ -12,6 +12,7 @@
     "desktop": "tauri dev",
     "package": "tauri build --bundles nsis",
     "package:offline": "tauri build --bundles nsis --config src-tauri/tauri.offline.conf.json",
+    "package:linux": "tauri build --bundles deb",
     "check:avatar": "node scripts/check-avatar.mjs",
     "test": "node scripts/test.mjs",
     "test:companion": "node --test companion/*.test.mjs",

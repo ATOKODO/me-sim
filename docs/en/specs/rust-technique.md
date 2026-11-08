@@ -81,7 +81,7 @@ Implements REQ-RUST-105.
 
 `lan_ip` selects a private or link-local IPv4 address; `ca_and_server` creates or reloads a local authority and builds a TLS certificate for that address. `code` and `new_pairing` create a time-limited pairing code. `start` verifies the profile, opens local port 18439 and starts the server; `status`, `stop`, `refresh_pairing` and `revoke` expose or change its state and devices. Locks, networking, certificates and the database can produce an error.
 
-`authenticated` checks the token for the requested profile. `sync` validates phone operations, their profile and their identity, then applies them with deduplication identifiers in a transaction. `read_request`, `response`, `json_response`, `configure_connection` and `serve` handle local HTTPS requests and responses under size and connection limits. `sha256_hex` computes a digest and `internal` converts an error into a companion error.
+`authenticated` checks the token for the requested profile. `sync` validates phone operations, their profile and their identity, then applies them with deduplication identifiers in a transaction. `read_request`, `response`, `redirect`, `json_response`, `configure_connection` and `serve` handle local HTTPS requests and responses under size and connection limits; `/companion` redirects to `/companion/`. `sha256_hex` computes a digest and `internal` converts an error into a companion error.
 
 ## Tauri commands and simulation
 

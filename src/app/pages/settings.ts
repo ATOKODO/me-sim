@@ -95,7 +95,7 @@ interface CompanionStatus {
       </div>
       <p class="field-help">
         {{
-          "La base et les exports ne sont pas chiffrés. Leur protection dépend de ta session Windows et des personnes ayant accès au disque."
+          "La base et les exports ne sont pas chiffrés. Leur protection dépend de ta session sur cet ordinateur et des personnes ayant accès au disque."
             | t
         }}
       </p>
@@ -123,7 +123,7 @@ interface CompanionStatus {
       </p>
       @if (!store.desktop) {
         <p class="field-help">
-          {{ "Disponible dans l’application Windows." | t }}
+          {{ "Disponible dans l’application de bureau." | t }}
         </p>
       } @else {
         <label class="companion-profile">
@@ -180,7 +180,7 @@ interface CompanionStatus {
           </div>
           <p class="field-help">
             {{
-              "Si Windows demande une autorisation réseau, choisis uniquement les réseaux privés. Garde cette adresse locale stable : un changement d’adresse isole les saisies en attente sur le téléphone."
+              "Si ton système demande une autorisation réseau, limite-la au réseau local. Garde cette adresse locale stable : un changement d’adresse isole les saisies en attente sur le téléphone."
                 | t
             }}
           </p>
@@ -234,7 +234,7 @@ interface CompanionStatus {
     </section>
     <section class="panel settings-panel">
       <h2>{{ "À propos de Me-Sim" | t }}</h2>
-      <p>{{ "Version 0.1.0 · Windows · Angular, Tauri et Three.js." | t }}</p>
+      <p>{{ "Version 0.1.0 · Angular, Tauri et Three.js." | t }}</p>
       <p class="field-help">
         {{
           "Les avatars sont des illustrations. Les projections scientifiques sont désactivées tant que le modèle complet n’est pas validé. Les données de démonstration sont entièrement fictives."

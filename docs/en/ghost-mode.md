@@ -22,7 +22,7 @@ Timelines share the 00:00–24:00 axis. Selecting a slot reveals details. Point 
 
 Choose a category, optionally a linked habit, and a custom name. **Start now** opens a local session. **Finish and save** creates a journal observation; **Pause** saves the segment, after which a new session can begin. A linked habit receives a Yes answer on the start date, and its day needs validation again. Performing a habit to reduce remains a Yes answer, without silently reversing its meaning.
 
-Only one session can be open per profile. In the Windows app it survives navigation and closing, retaining its initial instant. It is not ended automatically: correct the end if necessary. A session may last at most 24 hours and cannot end in the future. Discarding requires confirmation and creates no observation. Revision or time-slot conflicts are rejected without losing the session.
+Only one session can be open per profile. In the desktop app it survives navigation and closing, retaining its initial instant. It is not ended automatically: correct the end if necessary. A session may last at most 24 hours and cannot end in the future. Discarding requires confirmation and creates no observation. Revision or time-slot conflicts are rejected without losing the session.
 
 The journal can correct the date, time, quantity and name; a manual correction removes absolute session instants and preserves a local declaration. Existing observations remain usable. Sessions retain instants with UTC offsets and their declared time zone: elapsed durations use absolute instants, including daylight-saving changes. Comparison displays hours in the computer's current time zone; a repeated hour may contain several slots. The time-zone name is metadata, without any remote service.
 
